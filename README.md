@@ -25,11 +25,11 @@ These materials include worked examples used during lectures and recitations. Se
 
 - [ ] Select and verify the syllabus for the relevant section.
 - [ ] Add the remaining lecture PDFs and released homework statements as they become available.
-- [x] Create a private GitHub repository.
+- [x] Publish a public GitHub repository for student access.
 
 ## Repository
 
-[NathanSauldubois/stochastic-calculus-option-pricing-fall-2026-students](https://github.com/NathanSauldubois/stochastic-calculus-option-pricing-fall-2026-students) is private. The local `origin` remote points to this repository.
+[NathanSauldubois/stochastic-calculus-option-pricing-fall-2026-students](https://github.com/NathanSauldubois/stochastic-calculus-option-pricing-fall-2026-students) is public. Course materials can be viewed and downloaded without signing in. The local `origin` remote points to this repository.
 
 For future updates, commit the reviewed changes and run:
 
