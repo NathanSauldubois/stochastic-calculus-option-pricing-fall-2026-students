@@ -1,0 +1,35 @@
+# Liste explicite des fichiers autorisés pour diffusion.
+# Ajouter un support ici seulement après vérification.
+*
+!/.gitignore
+!/README.md
+!/Exercises/
+!/Python/
+!/Seance 1/
+!/Seance 2/
+!/Seance 3/
+!/Seance 4/
+!/Seance 5/
+!/Synthesis/
+!/Exercises/Exercise Sheet/
+!/Seance 1/Notes/
+!/Seance 1/Slides/
+!/Seance 2/Notes/
+!/Seance 2/Slides/
+!/Seance 3/Notes/
+!/Seance 3/Slides/
+!/Seance 4/Notes/
+!/Seance 4/Slides/
+!/Seance 5/Notes de cours/
+!/Exercises/Exercise Sheet/Exercises.pdf
+!/Python/Python_doc.pdf
+!/Seance 1/Notes/Notes_Lecture_1.pdf
+!/Seance 1/Slides/Slides_Lecture_1.pdf
+!/Seance 2/Notes/Notes_Lecture_2.pdf
+!/Seance 2/Slides/Slides.pdf
+!/Seance 3/Notes/Notes.pdf
+!/Seance 3/Slides/Slides.pdf
+!/Seance 4/Notes/notes.pdf
+!/Seance 4/Slides/Slides.pdf
+!/Seance 5/Notes de cours/notes.pdf
+!/Synthesis/synthesis.pdf
