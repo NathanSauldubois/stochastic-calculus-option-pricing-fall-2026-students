@@ -1,0 +1,187 @@
+% Week 3 section of the synthesis exercise sheet, included by Exercises.tex.
+\section{Week 3 --- Applications of Stochastic Integration}
+
+Throughout, \(W\) is standard Brownian motion with its usual augmented
+natural filtration \((\F_t)\), and \(T>0\) is deterministic.
+
+\subsection*{Part I --- Information and Identification}
+
+\begin{exercise}[Easy --- Uncorrelated gains can remain dependent]
+Fix \(0<a<T\). Consider the successive gains
+\[
+U=\int_0^a 1\dd W_t,
+\qquad
+V=\int_a^T W_a\dd W_t.
+\]
+\begin{exparts}
+  \item Explain why the position defining \(V\) is predictable and has
+  finite expected energy. Express \(U\) and \(V\) using Brownian increments.
+  \item Compute \(\E[V\mid\F_a]\) and \(\E[V^2\mid\F_a]\).
+  Deduce \(\E[V]\) and \(\E[V^2]\).
+  \item Show that \(\operatorname{Cov}(U,V)=0\).
+  \item Are \(U\) and \(V\) independent? Justify your answer by examining
+  \(\E[V^2\mid U]\). Explain why disjoint holding intervals do not settle
+  the question when the later position depends on the earlier gain.
+\end{exparts}
+\end{exercise}
+
+\begin{exercise}[Easy --- Can the terminal gain identify the strategy?]
+Let \(\phi,\psi\) be predictable with
+\(\E\int_0^T(\phi_t^2+\psi_t^2)\dd t<\infty\), and write
+\(I(\phi)=\int_0^T\phi_t\dd W_t\).
+\begin{exparts}
+  \item Suppose \(I(\phi)=I(\psi)\) almost surely. Use the isometry to
+  prove that \(\phi=\psi\) almost everywhere for the product measure
+  \(\dd t\otimes\Pb\).
+  \item Does equality in \emph{distribution} of the two gains imply the
+  same conclusion? Construct a counterexample with constant integrands.
+  \item Suppose \(I(\phi)\geq0\) almost surely. Show first that
+  \(I(\phi)=0\) almost surely, then identify \(\phi\) up to
+  \(\dd t\otimes\Pb\)-null sets.
+  \item Explain why changing a deterministic integrand at a single
+  deterministic time cannot be detected from its stochastic integral.
+\end{exparts}
+\end{exercise}
+
+\clearpage
+\subsection*{Part II --- What Makes an Approximation Valid?}
+
+\begin{exercise}[Easy --- An exposure that becomes singular at maturity]
+For \(\alpha\geq0\), consider the deterministic function
+\(f_\alpha(t)=(T-t)^{-\alpha}\) for \(0\leq t<T\); its value at
+\(T\) may be set to zero. For \(0<\varepsilon<T\), define
+\[
+I_\varepsilon=\int_0^{T-\varepsilon}f_\alpha(t)\dd W_t.
+\]
+\begin{exparts}
+  \item Compute \(\E[I_\varepsilon]\) and
+  \(\E[I_\varepsilon^2]\), treating \(\alpha=1/2\) separately.
+  \item Determine exactly when \(f_\alpha\in L^2(0,T)\), so that the
+  full-horizon integral \(I\) exists under the construction of Lecture 3.
+  \item In that case, compute the exact mean-square truncation error
+  \(\E[(I-I_\varepsilon)^2]\) and show that it tends to zero.
+  \item For the remaining values of \(\alpha\), explain why
+  \(I_\varepsilon\) cannot converge in \(L^2\) as
+  \(\varepsilon\downarrow0\), although each truncated integral is well defined.
+\end{exparts}
+\end{exercise}
+
+\begin{exercise}[Easy to medium --- Pointwise convergence can lose the risk]
+On \([0,1]\), let
+\[
+f_n(t)=\sqrt n\,\1_{(0,1/n]}(t),
+\qquad
+J_n=\int_0^1 f_n(t)\dd W_t.
+\]
+\begin{exparts}
+  \item Show that \(f_n(t)\to0\) for every \(t\in[0,1]\), but compute
+  \(\int_0^1f_n(t)^2\dd t\). Does \(f_n\to0\) in \(L^2(0,1)\)?
+  \item Express \(J_n\) as a Brownian value and identify its law.
+  Can \(J_n\) converge to zero in probability?
+  \item Compute \(\E[J_nJ_{2n}]\) and
+  \(\E[(J_n-J_{2n})^2]\). Deduce that \((J_n)\) has no \(L^2\) limit.
+  \item Replace \(\sqrt n\) by \(n^\gamma\), with \(\gamma\in\R\).
+  For which \(\gamma\) do the corresponding stochastic integrals converge
+  to zero in \(L^2\)? State the lesson for interchanging limits and
+  stochastic integrals.
+\end{exparts}
+\end{exercise}
+
+\clearpage
+\subsection*{Part III --- Choosing and Approximating an Exposure}
+
+\begin{exercise}[Medium --- The least risky deterministic exposure]
+Fix \(c\in\R\). Among deterministic functions \(f\in L^2(0,T)\)
+satisfying \(\int_0^T f(t)\dd t=c\), consider the gain
+\(G_f=\int_0^T f(t)\dd W_t\).
+\begin{exparts}
+  \item Express \(\operatorname{Var}(G_f)\) in terms of \(f\).
+  Use Cauchy--Schwarz to obtain a lower bound depending only on \(c,T\).
+  \item Find an exposure attaining this bound, and prove uniqueness up to
+  equality almost everywhere.
+  \item Suppose trading is allowed only during \((a,T]\), where
+  \(0<a<T\). Find the new minimizer and minimum variance under the same
+  constraint \(\int_0^T f(t)\dd t=c\).
+  \item For any admissible \(f\) in the original problem, compute
+  \(\E[(G_f-(c/T)W_T)^2]\). Interpret the result as the additional
+  variance caused by an uneven exposure profile.
+\end{exparts}
+\end{exercise}
+
+\begin{exercise}[Medium --- The best position held between two observations]
+Fix \(0\leq a<b\). Approximate
+\[
+I=\int_a^b W_t\dd W_t
+\quad\text{by}\quad
+J_\xi=\xi(W_b-W_a),
+\]
+where \(\xi\in L^2(\Omega,\F_a,\Pb)\) is chosen at time \(a\).
+\begin{exparts}
+  \item Use the isometry to express \(\E[(I-J_\xi)^2]\) as a time
+  integral. Verify that all integrands have finite expected energy.
+  \item Write \(W_t-\xi=(W_a-\xi)+(W_t-W_a)\), and use conditioning
+  on \(\F_a\) to show that
+  \[
+  \E[(I-J_\xi)^2]
+  =(b-a)\E[(W_a-\xi)^2]+\frac{(b-a)^2}{2}.
+  \]
+  \item Find the optimal \(\xi\), its uniqueness condition, and the
+  smallest possible error. Explain why a positive error remains.
+  \item On a deterministic grid \(0=t_0<\cdots<t_n=T\), deduce the
+  minimum error when one position is chosen at each \(t_i\) and held on
+  \((t_i,t_{i+1}]\). For fixed \(n\), show that the uniform grid is optimal.
+  \emph{Hint:} use \(\sum_i(t_{i+1}-t_i)=T\) and Cauchy--Schwarz.
+\end{exparts}
+\end{exercise}
+
+\clearpage
+\subsection*{Part IV --- Accumulated Risk and Risk Limits}
+
+\begin{exercise}[Medium --- Integrating a stochastic gain again]
+Define
+\[
+M_t=\int_0^t s\dd W_s,
+\qquad
+N_t=\int_0^t M_s\dd W_s.
+\]
+You may use the covariance form of the isometry from Lecture 3.
+\begin{exparts}
+  \item Compute \(\E[M_t]\) and \(\E[M_t^2]\). Check that \(M\) is
+  an admissible integrand for \(N\) on every bounded horizon.
+  \item Prove that \(N\) is a square-integrable martingale, and compute
+  \(\E[N_t^2]\) without finding an explicit formula for \(N_t\).
+  \item Compute \(\operatorname{Cov}(N_t,W_t)\) and
+  \(\operatorname{Cov}(N_t,M_t)\). Explain why these calculations alone
+  do not establish independence.
+  \item For \(0\leq s<t\), find \(\E[N_t\mid\F_s]\) and show that
+  \[
+  \E[(N_t-N_s)^2\mid\F_s]
+  =(t-s)M_s^2+\int_s^t\int_s^u r^2\dd r\dd u.
+  \]
+  \emph{Hint:} first compute \(\E[M_u^2\mid\F_s]\).
+\end{exparts}
+\end{exercise}
+
+\begin{exercise}[Medium --- Stopping when a variance budget is spent]
+Let \(\phi\) be predictable with
+\(\E\int_0^T\phi_s^2\dd s<\infty\). For \(b>0\), define
+\[
+A_t=\int_0^t\phi_s^2\dd s,
+\qquad
+\tau=\inf\{t\in[0,T]:A_t\geq b\}\wedge T,
+\]
+with \(\inf\varnothing=\infty\), and let
+\(G_t=\int_0^t\1_{\{s\leq\tau\}}\phi_s\dd W_s\).
+\begin{exparts}
+  \item Using continuity, adaptation, and monotonicity of \(A\), show
+  that \(\tau\) is a stopping time. Explain why the stopped integrand
+  is predictable.
+  \item Show pathwise that
+  \(\int_0^T\1_{\{s\leq\tau\}}\phi_s^2\dd s\leq b\).
+  Deduce \(\E[G_T]=0\), \([G]_T\leq b\), and \(\E[G_T^2]\leq b\).
+  \item For \(L>0\), prove \(\Pb(|G_T|\geq L)\leq b/L^2\).
+  Does this imply the pathwise loss guarantee \(G_T\geq-L\)?
+  \item Set \(\phi_t=\sqrt{b/T}\). Identify \(\tau\) and the law of
+  \(G_T\), and use this example to settle the preceding question.
+\end{exparts}
+\end{exercise}

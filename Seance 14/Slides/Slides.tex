@@ -1,0 +1,546 @@
+% !TEX program = pdflatex
+\documentclass[10pt,aspectratio=169]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,bm,mathtools}
+\usepackage{booktabs,array}
+
+\usetheme[numbering=fraction,progressbar=frametitle]{metropolis}
+\setbeamertemplate{frame numbering}[fraction]
+\setbeamertemplate{navigation symbols}{}
+
+\definecolor{CourseBlue}{HTML}{1A3C68}
+\definecolor{CourseGreen}{HTML}{216E39}
+\definecolor{CourseGold}{HTML}{B8860B}
+\definecolor{CourseRed}{HTML}{9A2C2C}
+\definecolor{SoftBlue}{HTML}{F2F6FA}
+\definecolor{SoftGreen}{HTML}{F1F8F3}
+\definecolor{SoftRed}{HTML}{FFF3F3}
+
+\setbeamercolor{normal text}{fg=black,bg=white}
+\setbeamercolor{structure}{fg=CourseBlue}
+\setbeamercolor{title}{fg=CourseBlue}
+\setbeamerfont{title}{size=\Large,series=\bfseries}
+\setbeamercolor{frametitle}{bg=CourseBlue,fg=white}
+\setbeamerfont{frametitle}{series=\bfseries,size=\large}
+\setbeamertemplate{frametitle}{
+  \nointerlineskip
+  \begin{beamercolorbox}[wd=\paperwidth,ht=3.2ex,dp=1.4ex,leftskip=1em,rightskip=1em]{frametitle}
+    \usebeamerfont{frametitle}\insertframetitle
+  \end{beamercolorbox}
+}
+\setbeamercolor{block title}{bg=CourseBlue,fg=white}
+\setbeamercolor{block body}{bg=SoftBlue,fg=black}
+\setbeamercolor{block title example}{bg=CourseGreen,fg=white}
+\setbeamercolor{block body example}{bg=SoftGreen,fg=black}
+\setbeamercolor{block title alerted}{bg=CourseRed,fg=white}
+\setbeamercolor{block body alerted}{bg=SoftRed,fg=black}
+\setbeamertemplate{blocks}[rounded][shadow=false]
+
+\newenvironment{modelbox}{\begin{beamercolorbox}[rounded=true,sep=0.7em,wd=\textwidth]{block body}
+  \textbf{\color{CourseBlue}MODEL}\quad}{\end{beamercolorbox}}
+\newenvironment{marketbox}{\begin{beamercolorbox}[rounded=true,sep=0.7em,wd=\textwidth]{block body example}
+  \textbf{\color{CourseGreen}NO-ARBITRAGE}\quad}{\end{beamercolorbox}}
+\newenvironment{simplificationbox}{\begin{beamercolorbox}[rounded=true,sep=0.7em,wd=\textwidth]{block body alerted}
+  \textbf{\color{CourseRed}WATCH OUT}\quad}{\end{beamercolorbox}}
+\newenvironment{pausebox}{\begin{beamercolorbox}[rounded=true,sep=0.8em,wd=\textwidth]{block body}
+  \textbf{\color{CourseGold}YOUR TURN}\quad}{\end{beamercolorbox}}
+
+\newcommand{\E}{\mathbb E}
+\newcommand{\Pp}{\mathbb P}
+\newcommand{\Q}{\mathbb Q}
+\newcommand{\F}{\mathcal F}
+\newcommand{\dd}{\,\mathrm d}
+\newcommand{\Ncdf}{\Phi}
+
+\AtBeginSection[]{
+  \begin{frame}[plain]\vfill
+    {\Large\bfseries\color{CourseBlue}\insertsectionhead\par}
+    \medskip{\color{CourseBlue}\rule{0.92\textwidth}{0.8pt}}\vfill
+  \end{frame}
+}
+
+\title{Pricing Toolbox: A Guided Refresher}
+\subtitle{It\^o calculus, Girsanov, path dependence, and early exercise}
+\author{}
+\date{Lecture 14}
+
+\begin{document}
+
+\begin{frame}[plain]
+  \vfill
+  {\LARGE\bfseries\color{CourseBlue}Pricing Toolbox: A Guided Refresher\par}
+  \medskip{\large It\^o calculus, Girsanov, path dependence, and early exercise\par}
+  \medskip{\color{CourseGold}\rule{0.94\textwidth}{0.8pt}}
+  \medskip{Lecture 14\par}\vfill
+\end{frame}
+
+\begin{frame}{Four tools solve four pricing questions}
+\begin{block}{The question}
+How do the core tools of continuous-time finance work together when a payoff
+depends on a path, a barrier, or an exercise decision?
+\end{block}
+\begin{enumerate}
+  \item Use It\^o's formula to handle nonlinear functions of Brownian motion.
+  \item Use Girsanov to move a drifted hitting problem to Brownian motion.
+  \item Augment the state for an Asian option and price it by PDE or simulation.
+  \item Use backward induction to decide whether an American option is exercised.
+\end{enumerate}
+\begin{marketbox}
+Each technique changes the representation of a problem while preserving the
+economic object that must be priced.
+\end{marketbox}
+\end{frame}
+
+\section{It\^o calculus turns stochastic integrals into identities}
+
+\begin{frame}{The quadratic-variation term is the essential correction}
+For \(f(x)=e^x\), It\^o's formula gives
+\[
+\dd e^{B_t}=e^{B_t}\dd B_t+\frac12e^{B_t}\dd t.
+\]
+Integrating from \(0\) to \(t\),
+\[
+\boxed{
+\int_0^t e^{B_s}\dd B_s
+=
+e^{B_t}-1-\frac12\int_0^t e^{B_s}\dd s.}
+\]
+\begin{block}{Why ordinary calculus fails}
+The term \(\tfrac12 f''(B_t)\dd t\) comes from
+\((\dd B_t)^2=\dd t\). Omitting it produces the wrong stochastic integral.
+\end{block}
+\end{frame}
+
+\begin{frame}{A quick It\^o check}
+\begin{pausebox}
+Suppose someone claims
+\[
+\int_0^t e^{B_s}\dd B_s=e^{B_t}-1.
+\]
+What term is missing, and why?
+\end{pausebox}
+\pause
+\begin{exampleblock}{Answer}
+The correction is
+\[
+-\frac12\int_0^t e^{B_s}\dd s.
+\]
+It comes from the second derivative of \(e^x\) and Brownian quadratic
+variation.
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{The stochastic exponential is a martingale after correction}
+For deterministic square-integrable \(f\), define
+\[
+\mathcal E_t=
+\exp\left(
+\int_0^t f(s)\dd B_s-\frac12\int_0^t f(s)^2\dd s
+\right).
+\]
+Then
+\[
+\dd\mathcal E_t=\mathcal E_t f(t)\dd B_t,
+\]
+so \(\mathcal E\) is a martingale under standard integrability conditions.
+\begin{marketbox}
+The compensating term
+\(\tfrac12\int f^2\) is exactly what makes an exponential Gaussian
+quantity have mean one. It will become the density process in Girsanov.
+\end{marketbox}
+\end{frame}
+
+\section{Girsanov removes drift by changing measure}
+
+\begin{frame}{A change of measure turns drifted Brownian motion into Brownian motion}
+Let
+\[
+X_t=\mu t+\sigma B_t,\qquad \theta=\frac{\mu}{\sigma},
+\]
+under \(\Pp\). Define
+\[
+Z_t=\exp\left(-\theta B_t-\frac12\theta^2t\right),
+\qquad
+\left.\frac{\dd\Q}{\dd\Pp}\right|_{\F_t}=Z_t.
+\]
+Girsanov's theorem says
+\[
+\widetilde B_t=B_t+\theta t
+\]
+is a Brownian motion under \(\Q\). Therefore
+\[
+\boxed{X_t=\sigma\widetilde B_t\quad\text{under }\Q.}
+\]
+\end{frame}
+
+\begin{frame}{The measure change simplifies a hitting-time question}
+Let
+\[
+\tau_a=\inf\{t\geq0:X_t=a\},\qquad a>0.
+\]
+Under \(\Q\), \(\tau_a\) is the first time a standard Brownian motion reaches
+\(a/\sigma\). Its density is
+\[
+f_{\tau_a}^{\Q}(t)
+=
+\frac{a/\sigma}{\sqrt{2\pi t^3}}
+\exp\left(-\frac{(a/\sigma)^2}{2t}\right).
+\]
+\begin{block}{Returning to the original measure}
+Use
+\[
+\Pp(A)=\E^\Q[Z_t^{-1}\mathbf1_A],
+\]
+then evaluate the density weight on the event \(\{\tau_a=t\}\).
+\end{block}
+\end{frame}
+
+\begin{frame}{A drifted hitting time has an inverse-Gaussian density}
+The change-of-measure calculation yields
+\[
+\boxed{
+f_{\tau_a}^{\Pp}(t)=
+\frac{a}{\sigma\sqrt{2\pi t^3}}
+\exp\left(-\frac{(a-\mu t)^2}{2\sigma^2t}\right),\qquad t>0.}
+\]
+\begin{pausebox}
+When \(\mu>0\), does the process tend to hit a positive level sooner or later
+than a driftless Brownian motion?
+\end{pausebox}
+\pause
+\begin{exampleblock}{Answer}
+Sooner. Positive drift shifts the density toward earlier hitting times. The
+formula makes this visible through the term \((a-\mu t)^2\).
+\end{exampleblock}
+\end{frame}
+
+\section{Martingale pricing with path-dependent payoffs}
+
+\begin{frame}{An Asian payoff needs a memory variable}
+An arithmetic-average Asian call pays
+\[
+\left(\frac1T\int_0^T S_u\dd u-K\right)^+.
+\]
+Define the running integral
+\[
+I_t=\int_0^t S_u\dd u.
+\]
+At time \(t\),
+\[
+\int_0^T S_u\dd u=I_t+\int_t^T S_u\dd u.
+\]
+\begin{marketbox}
+The stock price alone is not enough. The minimal Markov state is
+\(\boxed{(t,S_t,I_t)}\).
+\end{marketbox}
+\end{frame}
+
+\begin{frame}{State augmentation restores a pricing PDE}
+Under Black--Scholes,
+\[
+\dd S_t=rS_t\dd t+\sigma S_t\dd B_t,\qquad
+\dd I_t=S_t\dd t.
+\]
+For \(v(t,s,i)\), the pricing PDE is
+\[
+\boxed{
+v_t+rs\,v_s+s\,v_i+\tfrac12\sigma^2s^2v_{ss}-rv=0,}
+\]
+with terminal condition
+\[
+v(T,s,i)=\left(\frac{i}{T}-K\right)^+.
+\]
+\begin{block}{What changed from a vanilla option}
+The new term \(s\,v_i\) reflects the deterministic accumulation of the
+running integral; there is no diffusion term in the \(i\)-direction.
+\end{block}
+\end{frame}
+
+\begin{frame}{Monte Carlo prices the same Asian claim path by path}
+On a grid \(t_k=k\Delta t\), simulate risk-neutral stock paths and form
+\[
+\bar S_T^{(m)}=\frac1T\sum_{k=0}^{n-1}S_{t_k}^{(m)}\Delta t.
+\]
+The price estimator is
+\[
+\boxed{V_0\approx e^{-rT}\frac1M\sum_{m=1}^M
+\left(\bar S_T^{(m)}-K\right)^+.}
+\]
+\begin{pausebox}
+Where should the deterministic discount factor appear?
+\end{pausebox}
+\pause
+\begin{exampleblock}{Answer}
+Once outside the average. The simulated quantity is the risk-neutral payoff.
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{A geometric Asian option can reduce Monte Carlo noise}
+The geometric average
+\[
+G=\exp\left(\frac1T\int_0^T\log S_u\dd u\right)
+\]
+is tractable in Black--Scholes because \(\log S\) is Gaussian and its time
+integral is Gaussian.
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{Arithmetic Asian}
+The desired payoff uses the arithmetic average; it generally has no
+comparable closed form.
+\end{block}
+\column{0.48\textwidth}
+\begin{exampleblock}{Control variate}
+Simulate both payoffs and use the known geometric-Asian value to reduce
+variance in the arithmetic-Asian estimator.
+\end{exampleblock}
+\end{columns}
+\end{frame}
+
+\section{Barrier events combine a path maximum and Girsanov}
+
+\begin{frame}{A one-touch option is a hitting probability}
+Under \(\Q\), let the stock pay dividend yield \(q\):
+\[
+\frac{\dd S_t}{S_t}=(r-q)\dd t+\sigma\dd B_t.
+\]
+A one-touch pays one unit at \(T\) if it ever reaches \(H>S_0\):
+\[
+\Pi=\mathbf1_{\{\sup_{0\leq t\leq T}S_t\geq H\}}.
+\]
+\begin{block}{Log transform}
+With \(X_t=\log(S_t/S_0)=\mu t+\sigma B_t\), where
+\(\mu=(r-q)-\tfrac12\sigma^2\), the barrier becomes the level
+\(a=\log(H/S_0)\). Price the resulting hitting probability and discount it.
+\end{block}
+\end{frame}
+
+\begin{frame}{Reflection plus Girsanov gives the one-touch probability}
+For \(Y_t=\mu t+\sigma B_t\),
+\[
+\boxed{
+\Q\left(\sup_{0\leq t\leq T}Y_t\geq a\right)
+=
+\Phi\left(\frac{\mu T-a}{\sigma\sqrt T}\right)
++e^{2\mu a/\sigma^2}
+\Phi\left(\frac{-\mu T-a}{\sigma\sqrt T}\right).}
+\]
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{When \(\mu=0\)}
+Reflection gives twice the upper tail of \(B_T\).
+\end{block}
+\column{0.48\textwidth}
+\begin{exampleblock}{When \(\mu\neq0\)}
+Girsanov removes drift, then the density change restores the original
+probability weights.
+\end{exampleblock}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Worked one-touch: check the scale of a barrier probability}
+Let \(S_0=100\), \(H=120\), \(r=5\%\), \(q=0\), \(\sigma=20\%\), \(T=1\).
+Then
+\[
+\mu=0.03,\qquad a=\log(1.2)=0.1823,
+\]
+and the hitting probability is approximately
+\[
+\Q\left(\sup_{t\leq1}S_t\geq120\right)\approx0.413.
+\]
+Therefore
+\[
+\boxed{V_0\approx e^{-0.05}(0.413)=0.393.}
+\]
+\begin{marketbox}
+A terminal digital and a one-touch are not the same contract: the barrier
+may be hit and then the stock may fall before maturity.
+\end{marketbox}
+\end{frame}
+
+\begin{frame}{Discrete monitoring understates continuous barrier hitting}
+A simulation on dates \(t_0,\ldots,t_N\) replaces
+\[
+\mathbf1_{\{\sup_{0\leq t\leq T}S_t\geq H\}}
+\]
+by
+\[
+\mathbf1_{\{\max_{0\leq k\leq N}S_{t_k}\geq H\}}.
+\]
+\begin{pausebox}
+For an up-and-in one-touch, is this discretely monitored estimator biased
+high or low relative to continuous monitoring?
+\end{pausebox}
+\pause
+\begin{exampleblock}{Answer}
+Low. A path can cross the barrier between two monitoring dates and return
+below it before the next observation. Refining the grid reduces this bias.
+\end{exampleblock}
+\end{frame}
+
+\section{American options turn pricing into a decision}
+
+\begin{frame}{American pricing is backward induction with an exercise test}
+In a binomial model with gross return \(R=1+r\) and risk-neutral probability
+\(p\),
+\[
+\boxed{
+V_t=\max\left\{g(S_t),\frac{pV_{t+1}^{u}+(1-p)V_{t+1}^{d}}{R}\right\}.}
+\]
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{Exercise value}
+\[
+g(S_t).
+\]
+Take the payoff and stop.
+\end{block}
+\column{0.48\textwidth}
+\begin{exampleblock}{Continuation value}
+\[
+R^{-1}\E^\Q[V_{t+1}\mid\F_t].
+\]
+Keep all future exercise choices.
+\end{exampleblock}
+\end{columns}
+\end{frame}
+
+\begin{frame}{A three-step American put has a genuine exercise region}
+Consider
+\[
+S_0=100,\quad u=1.1,\quad d=0.9,\quad R=1.02,\quad K=100.
+\]
+The risk-neutral up probability is
+\[
+p=\frac{R-d}{u-d}=0.6.
+\]
+At maturity, the stock values and put payoffs are
+\[
+\begin{array}{c|cccc}
+S_3 & 133.1 & 108.9 & 89.1 & 72.9\\
+\midrule
+(K-S_3)^+ & 0 & 0 & 10.9 & 27.1
+\end{array}
+\]
+\begin{marketbox}
+At \(S_2=81\), \(19>
+\bigl[0.6(10.9)+0.4(27.1)\bigr]/1.02=17.04\), so exercise.
+\end{marketbox}
+\end{frame}
+
+\begin{frame}{The early-exercise premium comes from node-by-node choices}
+Working backward gives:
+\[
+\begin{array}{c|c|c|c}
+\toprule
+\text{Node} & \text{Exercise} & \text{Continuation} & \text{Action}\\
+\midrule
+t=2,\ S=81 & 19.00 & 17.04 & exercise\\
+t=1,\ S=90 & 10.00 & 9.97 & exercise\\
+t=0,\ S=100 & 0.00 & 4.91 & continue\\
+\bottomrule
+\end{array}
+\]
+\[
+V_0^{\mathrm{Eur}}\approx4.59,\qquad V_0^{\mathrm{Am}}\approx4.91.
+\]
+\begin{pausebox}
+What is the early-exercise premium?
+\end{pausebox}
+\pause
+\begin{exampleblock}{Answer}
+\(4.91-4.59=0.32\): the value of exercising at low-stock nodes.
+\end{exampleblock}
+\end{frame}
+
+\section{Numerical habits complete the toolkit}
+
+\begin{frame}{Euler simulation is simple, but its approximation must be named}
+For
+\[
+\dd X_t=b(X_t,t)\dd t+a(X_t,t)\dd W_t,
+\]
+the Euler scheme on a grid is
+\[
+\boxed{
+X_{n+1}=X_n+b(X_n,t_n)\Delta t
++a(X_n,t_n)\sqrt{\Delta t}\,Z_{n+1},}
+\]
+where \(Z_{n+1}\sim N(0,1)\).
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{What is approximated}
+The continuous diffusion and any path functional evaluated between grid
+dates.
+\end{block}
+\column{0.48\textwidth}
+\begin{alertblock}{What must be checked}
+Convergence in \(\Delta t\), sampling error in \(M\), positivity or boundary
+behavior, and bias for extrema or stopping rules.
+\end{alertblock}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Before trusting a numerical price, identify its weakest link}
+\begin{center}
+\begin{tabular}{p{0.31\textwidth}|p{0.49\textwidth}}
+\toprule
+Problem & First diagnostic\\
+\midrule
+Asian Monte Carlo & refine the integration grid and estimate sampling error\\
+Barrier Monte Carlo & test monitoring bias and barrier correction\\
+American tree & refine time steps and map the exercise region\\
+PDE or local-vol grid & test boundary placement and mesh convergence\\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{marketbox}
+A numerical result is credible only when it survives a refinement or a
+no-arbitrage check appropriate to the contract.
+\end{marketbox}
+\end{frame}
+
+\section{Takeaways}
+
+\begin{frame}{The same pricing logic adapts to the contract}
+\begin{center}
+\begin{tabular}{p{0.25\textwidth}|p{0.30\textwidth}|p{0.27\textwidth}}
+\toprule
+Contract feature & Mathematical tool & Extra state or decision\\
+\midrule
+Nonlinear Brownian function & It\^o formula & quadratic variation\\
+Drifted barrier event & Girsanov and reflection & hitting probability\\
+Asian average & state augmentation & running integral \(I_t\)\\
+American exercise & dynamic programming & stop or continue\\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{marketbox}
+The payoff determines which information must be carried forward: a state
+variable, a stopping rule, or a path-monitoring convention.
+\end{marketbox}
+\end{frame}
+
+\begin{frame}{Final check: choose the representation before calculating}
+\begin{pausebox}
+A claim pays one dollar at maturity if a stock ever crosses an upper barrier.
+What are the three modelling choices you should state before presenting a
+numerical price?
+\end{pausebox}
+\pause
+\begin{exampleblock}{Answer}
+State the risk-neutral dynamics, whether monitoring is continuous or
+discrete, and the numerical approximation used for the hitting event. These
+choices determine the probability being priced.
+\end{exampleblock}
+\vfill
+\begin{center}
+{\large\color{CourseBlue}\bfseries Good pricing begins by identifying the right state, measure, and event.}
+\end{center}
+\end{frame}
+
+\end{document}

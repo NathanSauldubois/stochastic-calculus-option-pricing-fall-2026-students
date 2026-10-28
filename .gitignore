@@ -1,35 +1,157 @@
-# Liste explicite des fichiers autorisés pour diffusion.
-# Ajouter un support ici seulement après vérification.
+# Explicit publication list; all other files stay ignored.
+# Review new course material before adding paths to this list.
 *
 !/.gitignore
 !/README.md
 !/Exercises/
 !/Python/
 !/Seance 1/
+!/Seance 10/
+!/Seance 11/
+!/Seance 12/
+!/Seance 13/
+!/Seance 14/
 !/Seance 2/
 !/Seance 3/
 !/Seance 4/
 !/Seance 5/
+!/Seance 6/
+!/Seance 7/
+!/Seance 8/
+!/Seance 9/
+!/Syllabus/
 !/Synthesis/
 !/Exercises/Exercise Sheet/
+!/Exercises/In-Class/
+!/Exercises/Session Worksheets/
 !/Seance 1/Notes/
 !/Seance 1/Slides/
+!/Seance 10/Notes/
+!/Seance 10/Slides/
+!/Seance 11/Notes/
+!/Seance 11/Slides/
+!/Seance 12/Notes/
+!/Seance 12/Slides/
+!/Seance 13/Notes/
+!/Seance 13/Slides/
+!/Seance 14/Notes/
+!/Seance 14/Slides/
 !/Seance 2/Notes/
 !/Seance 2/Slides/
 !/Seance 3/Notes/
 !/Seance 3/Slides/
 !/Seance 4/Notes/
 !/Seance 4/Slides/
-!/Seance 5/Notes de cours/
+!/Seance 5/Notes/
+!/Seance 5/Slides/
+!/Seance 6/Notes/
+!/Seance 6/Slides/
+!/Seance 7/Notes/
+!/Seance 7/Slides/
+!/Seance 8/Notes/
+!/Seance 8/Slides/
+!/Seance 9/Figures/
+!/Seance 9/Notes/
+!/Seance 9/Slides/
+!/Exercises/In-Class/Seance 7/
+!/Exercises/Session Worksheets/Seance 10/
+!/Exercises/Session Worksheets/Seance 11/
+!/Exercises/Session Worksheets/Seance 12/
+!/Exercises/Session Worksheets/Seance 13/
+!/Exercises/Session Worksheets/Seance 14/
+!/Exercises/Session Worksheets/Seance 9/
 !/Exercises/Exercise Sheet/Exercises.pdf
+!/Exercises/Exercise Sheet/Exercises.tex
+!/Exercises/Exercise Sheet/Week_1_Exercises.tex
+!/Exercises/Exercise Sheet/Week_2_Exercises.tex
+!/Exercises/Exercise Sheet/Week_3_Exercises.tex
+!/Exercises/Exercise Sheet/Week_4_Exercise_Sheet.pdf
+!/Exercises/Exercise Sheet/Week_4_Exercise_Sheet.tex
+!/Exercises/Exercise Sheet/Week_4_Exercises.tex
+!/Exercises/Exercise Sheet/Week_5_Exercise_Sheet.pdf
+!/Exercises/Exercise Sheet/Week_5_Exercise_Sheet.tex
+!/Exercises/Exercise Sheet/Week_5_Exercises.tex
+!/Exercises/Exercise Sheet/Week_6_Exercise_Sheet.pdf
+!/Exercises/Exercise Sheet/Week_6_Exercise_Sheet.tex
+!/Exercises/Exercise Sheet/Week_6_Exercises.tex
+!/Exercises/Exercise Sheet/Week_7_Exercises.tex
+!/Exercises/Exercise Sheet/Week_8_Exercises.tex
+!/Exercises/In-Class/Seance 7/doneninclass.tex
+!/Exercises/Session Worksheets/Seance 10/Exercises.pdf
+!/Exercises/Session Worksheets/Seance 10/Exercises.tex
+!/Exercises/Session Worksheets/Seance 11/Exercises.pdf
+!/Exercises/Session Worksheets/Seance 11/Exercises.tex
+!/Exercises/Session Worksheets/Seance 12/Exercises.pdf
+!/Exercises/Session Worksheets/Seance 12/Exercises.tex
+!/Exercises/Session Worksheets/Seance 13/Exercises.pdf
+!/Exercises/Session Worksheets/Seance 13/Exercises.tex
+!/Exercises/Session Worksheets/Seance 14/Exercises.pdf
+!/Exercises/Session Worksheets/Seance 14/Exercises.tex
+!/Exercises/Session Worksheets/Seance 9/Exercises.pdf
+!/Exercises/Session Worksheets/Seance 9/Exercises.tex
 !/Python/Python_doc.pdf
+!/Python/Python_doc.tex
 !/Seance 1/Notes/Notes_Lecture_1.pdf
+!/Seance 1/Notes/Notes_Lecture_1.tex
 !/Seance 1/Slides/Slides_Lecture_1.pdf
+!/Seance 1/Slides/Slides_Lecture_1.tex
+!/Seance 10/Notes/Notes.pdf
+!/Seance 10/Notes/Notes.tex
+!/Seance 10/Slides/Slides.pdf
+!/Seance 10/Slides/Slides.tex
+!/Seance 11/Notes/Notes.pdf
+!/Seance 11/Notes/Notes.tex
+!/Seance 11/Slides/Slides.pdf
+!/Seance 11/Slides/Slides.tex
+!/Seance 12/Notes/Notes.pdf
+!/Seance 12/Notes/Notes.tex
+!/Seance 12/Slides/Slides.pdf
+!/Seance 12/Slides/Slides.tex
+!/Seance 13/Notes/Notes.pdf
+!/Seance 13/Notes/Notes.tex
+!/Seance 13/Slides/Slides.pdf
+!/Seance 13/Slides/Slides.tex
+!/Seance 14/Notes/Notes.pdf
+!/Seance 14/Notes/Notes.tex
+!/Seance 14/Slides/Slides.pdf
+!/Seance 14/Slides/Slides.tex
 !/Seance 2/Notes/Notes_Lecture_2.pdf
+!/Seance 2/Notes/Notes_Lecture_2.tex
 !/Seance 2/Slides/Slides.pdf
+!/Seance 2/Slides/Slides.tex
 !/Seance 3/Notes/Notes.pdf
+!/Seance 3/Notes/Notes.tex
 !/Seance 3/Slides/Slides.pdf
+!/Seance 3/Slides/Slides.tex
 !/Seance 4/Notes/notes.pdf
+!/Seance 4/Notes/notes.tex
 !/Seance 4/Slides/Slides.pdf
-!/Seance 5/Notes de cours/notes.pdf
+!/Seance 4/Slides/Slides.tex
+!/Seance 5/Notes/notes.pdf
+!/Seance 5/Notes/notes.tex
+!/Seance 5/Slides/Slides.pdf
+!/Seance 5/Slides/Slides.tex
+!/Seance 6/Notes/Notes.pdf
+!/Seance 6/Notes/Notes.tex
+!/Seance 6/Slides/Slides.pdf
+!/Seance 6/Slides/Slides.tex
+!/Seance 7/Notes/Notes.pdf
+!/Seance 7/Notes/Notes.tex
+!/Seance 7/Slides/Slides.pdf
+!/Seance 7/Slides/Slides.tex
+!/Seance 8/Notes/notes.pdf
+!/Seance 8/Notes/notes.tex
+!/Seance 8/Slides/Slides.pdf
+!/Seance 8/Slides/Slides.tex
+!/Seance 9/Figures/SOURCES.md
+!/Seance 9/Figures/eurusd_smile_2025-04-23.png
+!/Seance 9/Figures/spx_skew_2024-08-02_2024-08-05.png
+!/Seance 9/Notes/Notes.pdf
+!/Seance 9/Notes/Notes.tex
+!/Seance 9/Slides/Slides.pdf
+!/Seance 9/Slides/Slides.tex
+!/Syllabus/Syllabus_6233_Thursday.pdf
+!/Syllabus/Syllabus_6233_Wednesday.pdf
 !/Synthesis/synthesis.pdf
+!/Synthesis/synthesis.tex
+!/Synthesis/weeks_5_7.tex

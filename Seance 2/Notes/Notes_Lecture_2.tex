@@ -1,0 +1,798 @@
+% !TEX program = pdflatex
+\documentclass[10pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[margin=0.72in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage[most]{tcolorbox}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{CourseBlue}{HTML}{1A3C68}
+\definecolor{CourseGreen}{HTML}{216E39}
+\definecolor{CourseGold}{HTML}{B8860B}
+\definecolor{SoftBlue}{HTML}{F2F6FA}
+\definecolor{SoftGreen}{HTML}{F1F8F3}
+\definecolor{SoftGold}{HTML}{FFF8E8}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.32em}
+\setlist[itemize]{leftmargin=1.5em,itemsep=0.12em,topsep=0.2em}
+\setlist[enumerate]{leftmargin=1.7em,itemsep=0.12em,topsep=0.2em}
+\allowdisplaybreaks
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Stochastic Calculus and Option Pricing}
+\rhead{Lecture 2 Notes}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+
+\newcommand{\E}{\mathbb E}
+\newcommand{\Pbb}{\mathbb P}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\R}{\mathbb R}
+\newcommand{\1}{\mathbf 1}
+\newcommand{\cF}{\mathcal F}
+\newcommand{\dd}{\,\mathrm d}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{proposition}[definition]{Proposition}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{corollary}[definition]{Corollary}
+\newtheorem{remark}[definition]{Remark}
+
+\newtcolorbox{boardexample}[1]{
+  enhanced,breakable,colback=SoftBlue,colframe=CourseBlue,
+  boxrule=0.55pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.55em,after skip=0.55em,
+  title={Example --- #1},fonttitle=\bfseries}
+\newtcolorbox{studentexercise}[1]{
+  enhanced,breakable,colback=SoftGold,colframe=CourseGold,
+  boxrule=0.55pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.55em,after skip=0.35em,
+  title={Exercise --- #1},fonttitle=\bfseries}
+\newtcolorbox{shortsolution}[1][]{
+  enhanced,breakable,colback=SoftGreen,colframe=CourseGreen,
+  boxrule=0.55pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.25em,after skip=0.6em,
+  title={Short solution#1},fonttitle=\bfseries}
+\newtcolorbox{keyidea}[1]{
+  enhanced,breakable,colback=white,colframe=CourseGreen,
+  boxrule=0.7pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.5em,after skip=0.5em,
+  title={#1},fonttitle=\bfseries}
+
+\title{\textbf{Brownian Motion, Stopping Times, and Quadratic Variation}\\
+\large Lecture 2 Notes --- Class Support and Student Summary}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-1.4em}
+
+% ============================================================
+\section{From Random Walks to Brownian Motion}
+
+\subsection{Discrete intuition and scaling}
+
+Let \(\varepsilon_1,\varepsilon_2,\ldots\) be independent with
+\(\Pbb(\varepsilon_k=1)=\Pbb(\varepsilon_k=-1)=1/2\), and set
+\[
+S_n=\sum_{k=1}^n\varepsilon_k.
+\]
+Then \(\E[S_n]=0\) and \(\Var(S_n)=n\). A typical displacement therefore
+has order \(\sqrt n\), not order \(n\).
+
+\begin{proposition}[Mean and variance of the random walk]
+For every \(n\geq0\),
+\[
+\E[S_n]=0,
+\qquad
+\Var(S_n)=n.
+\]
+\end{proposition}
+
+\begin{proof}
+Linearity gives \(\E[S_n]=\sum_k\E[\varepsilon_k]=0\). Independence gives
+\(\Var(S_n)=\sum_k\Var(\varepsilon_k)=n\).
+\end{proof}
+
+To fit \(n\) shocks into one unit of time while keeping a non-degenerate
+variance, define
+\[
+W_t^{(n)}=\frac{S_{\lfloor nt\rfloor}}{\sqrt n},
+\]
+with linear interpolation between grid points. For grid times \(s<t\),
+\[
+\Var(W_t^{(n)}-W_s^{(n)})=t-s.
+\]
+
+\begin{theorem}[Donsker's invariance principle, informal]
+On every bounded time interval, the rescaled random-walk path \(W^{(n)}\)
+converges in distribution to a standard Brownian motion as \(n\to\infty\).
+\end{theorem}
+
+This is the functional counterpart of the central limit theorem: many small,
+centered, independent shocks produce a Gaussian continuous-time limit.
+
+\begin{studentexercise}{why the square-root normalization is unique}
+Suppose each of the \(n\) random-walk shocks is multiplied by \(n^{-\alpha}\).
+Find the variance after one unit of time. For which \(\alpha\) does it converge
+to a finite nonzero limit?
+\end{studentexercise}
+\begin{shortsolution}
+The variance is \(n(n^{-\alpha})^2=n^{1-2\alpha}\). It has a finite nonzero
+limit only when \(1-2\alpha=0\), hence \(\alpha=1/2\).
+\end{shortsolution}
+
+% ============================================================
+\section{Brownian Motion and Gaussian Structure}
+
+\subsection{Definition and finite-dimensional laws}
+
+\begin{definition}[Standard Brownian motion]
+A process \(W=(W_t)_{t\geq0}\) is a standard Brownian motion if:
+\begin{enumerate}[label=(BM\arabic*)]
+  \item \(W_0=0\) almost surely;
+  \item increments over disjoint intervals are independent;
+  \item \(W_t-W_s\sim\mathcal N(0,t-s)\) for \(0\leq s<t\);
+  \item its paths are continuous almost surely.
+\end{enumerate}
+\end{definition}
+
+Continuity means no jumps. It does not imply smoothness: Brownian paths are
+extremely irregular at every time scale.
+
+\begin{definition}[Gaussian vector and Gaussian process]
+A vector \(Z\in\R^m\) is Gaussian if \(a^\top Z\) is Gaussian for every
+\(a\in\R^m\). A process \(X\) is Gaussian if
+\((X_{t_1},\ldots,X_{t_m})\) is Gaussian for every finite collection of
+times.
+\end{definition}
+
+\begin{proposition}[Brownian motion is a centered Gaussian process]
+For every \(0<t_1<\cdots<t_m\), the vector
+\((W_{t_1},\ldots,W_{t_m})\) is centered Gaussian.
+\end{proposition}
+
+\begin{proof}
+Let \(\Delta_j=W_{t_j}-W_{t_{j-1}}\), with \(t_0=0\). The vector
+\((\Delta_1,\ldots,\Delta_m)\) has independent Gaussian coordinates, and
+\[
+W_{t_k}=\sum_{j=1}^k\Delta_j.
+\]
+The level vector is therefore a linear transformation of a Gaussian vector.
+\end{proof}
+
+\begin{proposition}[Brownian covariance kernel]
+For \(s,t\geq0\),
+\[
+\E[W_t]=0,
+\qquad
+K(s,t):=\Cov(W_s,W_t)=\min(s,t).
+\]
+The kernel \(K\) is positive semidefinite.
+\end{proposition}
+
+\begin{proof}
+If \(s\leq t\), write \(W_t=W_s+(W_t-W_s)\). The second term is centered
+and independent of \(W_s\), so
+\(\Cov(W_s,W_t)=\Var(W_s)=s\). Moreover,
+\[
+\sum_{i,j}a_ia_jK(t_i,t_j)
+=\Var\!\left(\sum_i a_iW_{t_i}\right)\geq0.
+\]
+\end{proof}
+
+A Gaussian law is determined by its mean vector and covariance matrix.
+Consequently, the zero mean and the kernel \(K(s,t)=\min(s,t)\) determine all
+finite-dimensional Brownian laws.
+
+\begin{boardexample}{a symbolic covariance matrix}
+For \(0<r<s<t\),
+\[
+\Cov\!\left((W_r,W_s,W_t)^\top\right)
+=\begin{pmatrix}
+r&r&r\\ r&s&s\\ r&s&t
+\end{pmatrix}.
+\]
+The repeated entries represent shared history.
+\end{boardexample}
+
+\subsection{Transformations and path properties}
+
+\begin{proposition}[Reusable Brownian transformations]
+Fix \(c>0\) and \(s>0\). The processes
+\[
+(-W_t)_{t\geq0},
+\qquad
+\left(\frac{W_{ct}}{\sqrt c}\right)_{t\geq0},
+\qquad
+(W_{s+t}-W_s)_{t\geq0}
+\]
+are standard Brownian motions. Moreover,
+\[
+(W_{s-t}-W_s)_{0\leq t\leq s}
+\]
+has the law of Brownian motion restricted to \([0,s]\).
+\end{proposition}
+
+\begin{proof}
+Each process starts from zero and is continuous. Its increments are linear
+transforms of Brownian increments over disjoint intervals, hence remain
+independent and Gaussian. Their variances are respectively \(t-u\),
+\((c(t-u))/c=t-u\), \(t-u\), and \(t-u\). These are the four defining
+properties.
+\end{proof}
+
+The scaling property gives the square-root-of-time rule:
+\[
+W_{ct}\overset d=\sqrt c\,W_t.
+\]
+
+\begin{theorem}[Brownian roughness]
+Almost surely, a Brownian path is nowhere differentiable and has infinite
+total variation on every nontrivial interval.
+\end{theorem}
+
+The useful heuristic is
+\[
+\frac{W_{t+h}-W_t}{h}\sim\mathcal N(0,1/h).
+\]
+The variance of the difference quotient explodes as \(h\downarrow0\), so a
+stable tangent is impossible. These pathwise theorems are stated without
+proof here.
+
+\begin{proposition}[Oscillation and the law of the iterated logarithm]
+Almost surely,
+\[
+\limsup_{t\to\infty}W_t=+\infty,
+\qquad
+\liminf_{t\to\infty}W_t=-\infty,
+\]
+and
+\[
+\begin{aligned}
+\limsup_{t\to\infty}\frac{W_t}{\sqrt{2t\log\log t}}&=1,
+&\liminf_{t\to\infty}\frac{W_t}{\sqrt{2t\log\log t}}&=-1,\\
+\limsup_{t\downarrow0}\frac{W_t}{\sqrt{2t\log\log(1/t)}}&=1,
+&\liminf_{t\downarrow0}\frac{W_t}{\sqrt{2t\log\log(1/t)}}&=-1.
+\end{aligned}
+\]
+\end{proposition}
+
+\begin{studentexercise}{time reversal}
+Fix \(s>0\) and set \(R_t=W_{s-t}-W_s\) for \(0\leq t\leq s\). Verify
+directly the distribution of \(R_t-R_u\) for \(u<t\), and explain why
+increments over disjoint intervals are independent.
+\end{studentexercise}
+\begin{shortsolution}
+\[
+R_t-R_u=W_{s-t}-W_{s-u}\sim\mathcal N(0,t-u).
+\]
+Disjoint intervals in reversed time correspond to disjoint intervals of the
+original Brownian path. Continuity is inherited, so \(R\) has Brownian law on
+\([0,s]\).
+\end{shortsolution}
+
+% ============================================================
+\section{Markov Renewal and Martingales}
+
+Let \(\cF_t=\sigma(W_u:0\leq u\leq t)\), completed in the usual way. It
+represents the entire observed Brownian path up to time \(t\).
+
+\begin{proposition}[Deterministic-time renewal]
+For fixed \(t\geq0\),
+\[
+\widetilde W_u=W_{t+u}-W_t,
+\qquad u\geq0,
+\]
+is a standard Brownian motion independent of \(\cF_t\).
+\end{proposition}
+
+\begin{proof}
+The Brownian properties follow from stationary independent increments and
+continuity. Every increment of \(\widetilde W\) occurs after time \(t\), so
+it is independent of the past \(\cF_t\).
+\end{proof}
+
+\begin{proposition}[Markov property in conditional-expectation form]
+For every bounded measurable \(f\) and \(h>0\),
+\[
+\boxed{
+\E[f(W_{t+h})\mid\cF_t]
+=\E[f(W_{t+h})\mid W_t]
+=(P_hf)(W_t),
+}
+\]
+where
+\[
+(P_hf)(x)=\int_{\R}f(x+y)
+\frac{e^{-y^2/(2h)}}{\sqrt{2\pi h}}\dd y.
+\]
+\end{proposition}
+
+\begin{proof}
+Write \(W_{t+h}=W_t+\widetilde W_h\), where
+\(\widetilde W_h\sim\mathcal N(0,h)\) is independent of \(\cF_t\). When
+conditioning on \(\cF_t\), \(W_t\) is known and the remaining expectation is
+the displayed Gaussian integral.
+\end{proof}
+
+The operators \((P_h)_{h\geq0}\) form a semigroup:
+\[
+P_{h+k}=P_hP_k.
+\]
+This follows either from Gaussian convolution or by applying the Markov
+property twice.
+
+\begin{proposition}[Brownian motion is a martingale]
+For \(0\leq s<t\),
+\[
+\E[W_t\mid\cF_s]=W_s.
+\]
+\end{proposition}
+
+\begin{proof}
+Use \(W_t=W_s+(W_t-W_s)\). The increment is centered and independent of
+\(\cF_s\).
+\end{proof}
+
+Markov and martingale are different statements. Markov says that the current
+state summarizes the past for the entire future law. Martingale says only that
+the current value is the conditional mean of a future value.
+
+\begin{boardexample}{a conditional Gaussian moment}
+For \(\theta\in\R\), renewal gives
+\[
+\E[e^{\theta W_{t+h}}\mid\cF_t]
+=e^{\theta W_t}\E[e^{\theta\widetilde W_h}]
+=\exp\!\left(\theta W_t+\frac12\theta^2h\right).
+\]
+\end{boardexample}
+
+\begin{studentexercise}{conditional second moment}
+For \(0\leq s<t\), compute \(\E[W_t^2\mid\cF_s]\). Deduce a second
+Brownian martingale.
+\end{studentexercise}
+\begin{shortsolution}
+Expanding \(W_t=W_s+(W_t-W_s)\) gives
+\[
+\E[W_t^2\mid\cF_s]=W_s^2+(t-s).
+\]
+Hence \(\E[W_t^2-t\mid\cF_s]=W_s^2-s\), so \(W_t^2-t\) is a martingale.
+\end{shortsolution}
+
+% ============================================================
+\section{Stopping Times and Strong Markov Property}
+
+\subsection{No look-ahead}
+
+In discrete time, a random integer \(\tau\) is a stopping time when
+\(\{\tau\leq n\}\in\cF_n\) for every \(n\). A first hit can be detected as
+the path unfolds; a last hit before a future horizon cannot.
+
+\begin{definition}[Stopping time]
+A random time \(\tau:\Omega\to[0,\infty]\) is a stopping time for
+\((\cF_t)\) if
+\[
+\{\tau\leq t\}\in\cF_t
+\qquad\text{for every }t\geq0.
+\]
+\end{definition}
+
+The event \(\{\tau\leq t\}\) asks whether the rule has already triggered.
+The answer may use the observed path through time \(t\), but not the future.
+
+\begin{proposition}[Canonical examples]
+The following are stopping times:
+\[
+t_0,
+\qquad
+\tau_a=\inf\{t\geq0:W_t=a\},
+\qquad
+\tau_{\ell,u}=\inf\{t\geq0:W_t\notin(\ell,u)\}.
+\]
+For fixed \(T>0\), the last zero
+\(\rho_T=\sup\{t\leq T:W_t=0\}\) and the time of the maximum on \([0,T]\)
+are not stopping times.
+\end{proposition}
+
+\begin{proof}
+The deterministic time is immediate. By continuity,
+\[
+\{\tau_a\leq t\}
+=\left\{\max_{0\leq v\leq t}W_v\geq a\right\}
+\]
+for \(a>0\), and the right-hand event is observable by time \(t\). The same
+argument works for first exit. Identifying a last zero or the global maximum
+requires checking that no later event occurs, which uses future information.
+\end{proof}
+
+\begin{definition}[Information available at a stopping time]
+For a stopping time \(\tau\),
+\[
+\cF_\tau
+=\{A\in\cF:A\cap\{\tau\leq t\}\in\cF_t
+\text{ for every }t\geq0\}.
+\]
+\end{definition}
+
+An event in \(\cF_\tau\) can be decided using only information revealed by
+the moment the rule triggers. For continuous adapted \(W\) and almost surely
+finite \(\tau\), the stopped value \(W_\tau\) is \(\cF_\tau\)-measurable.
+
+\begin{theorem}[Strong Markov property]
+If \(\tau\) is an almost surely finite stopping time, then
+\[
+(W_{\tau+u}-W_\tau)_{u\geq0}
+\]
+is a standard Brownian motion independent of \(\cF_\tau\).
+\end{theorem}
+
+\begin{remark}[Proof idea]
+Round \(\tau\) upward to dyadic stopping times
+\(\tau_n=2^{-n}\lceil2^n\tau\rceil\). On each event
+\(\{\tau_n=k2^{-n}\}\), apply deterministic renewal. Then let
+\(n\to\infty\) and use path continuity. The full measure-theoretic proof is
+not needed in this lecture.
+\end{remark}
+
+\begin{studentexercise}{first hit after a deterministic date}
+Fix \(s>0\) and define
+\[
+\tau=\inf\{t\geq s:W_t=0\}.
+\]
+Is \(\tau\) a stopping time? Contrast it with the last zero before a fixed
+horizon \(T\).
+\end{studentexercise}
+\begin{shortsolution}
+Yes. By time \(t\), one can inspect the observed path on \([s,t]\) and decide
+whether a zero occurred. The last zero before \(T\) is not a stopping time,
+because at time \(t<T\) one cannot rule out a later return to zero.
+\end{shortsolution}
+
+% ============================================================
+\section{Reflection Principle and Hitting Probabilities}
+
+Let
+\[
+M_t=\max_{0\leq u\leq t}W_u,
+\qquad
+\tau_a=\inf\{u\geq0:W_u=a\},
+\qquad a>0.
+\]
+By continuity, \(\{M_t\geq a\}=\{\tau_a\leq t\}\).
+
+On the event \(\{\tau_a\leq t\}\), define the reflected path
+\[
+W_u^*=\begin{cases}
+W_u,&u\leq\tau_a,\\
+2a-W_u,&u>\tau_a.
+\end{cases}
+\]
+Strong Markov says that the continuation after \(\tau_a\) is fresh Brownian
+motion; symmetry says that its negative has the same law. Therefore reflection
+preserves Brownian probability.
+
+\begin{theorem}[Reflection principle]
+For \(a>0\) and \(t>0\),
+\[
+\boxed{
+\Pbb(M_t\geq a)=2\Pbb(W_t\geq a)
+=2\left(1-\Phi\!\left(\frac{a}{\sqrt t}\right)\right).
+}
+\]
+\end{theorem}
+
+\begin{proof}
+Split \(\{M_t\geq a\}\) according to the terminal value:
+\[
+\{M_t\geq a\}
+=\{W_t\geq a\}\,\dot\cup\,
+\{M_t\geq a,W_t<a\}.
+\]
+Reflection after \(\tau_a\) is a bijection from the second event to
+\(\{W_t>a\}\) and preserves probability. Since \(\Pbb(W_t=a)=0\), the two
+pieces have the same probability.
+\end{proof}
+
+\begin{corollary}[First-passage distribution and density]
+For \(a>0\),
+\[
+\Pbb(\tau_a\leq t)
+=2\left(1-\Phi\!\left(\frac{a}{\sqrt t}\right)\right),
+\]
+and
+\[
+f_{\tau_a}(t)
+=\frac{a}{\sqrt{2\pi t^3}}
+\exp\!\left(-\frac{a^2}{2t}\right),
+\qquad t>0.
+\]
+\end{corollary}
+
+\begin{corollary}[Maximum and scaling of the hitting time]
+\[
+M_t\overset d=|W_t|,
+\qquad
+\E[M_t]=\sqrt{\frac{2t}{\pi}},
+\qquad
+\tau_a\overset d=a^2\tau_1.
+\]
+Moreover, \(\Pbb(\tau_a<\infty)=1\), while \(\E[\tau_a]=\infty\).
+\end{corollary}
+
+The infinite mean follows from
+\[
+\Pbb(\tau_a>t)
+=2\Phi(a/\sqrt t)-1
+\sim a\sqrt{\frac{2}{\pi t}},
+\]
+whose integral diverges at infinity.
+
+\begin{boardexample}{a symbolic barrier probability}
+Suppose a driftless log-price satisfies
+\(\log(S_t/S_0)=\sigma W_t\), and let \(H>S_0\). Then
+\[
+\Pbb\!\left(\max_{0\leq u\leq T}S_u\geq H\right)
+=2\left[1-\Phi\!\left(
+\frac{\log(H/S_0)}{\sigma\sqrt T}
+\right)\right].
+\]
+Reflection converts a path-dependent barrier event into a Gaussian tail.
+\end{boardexample}
+
+\begin{studentexercise}{distribution and mean of the maximum}
+Derive \(\Pbb(M_t\leq a)\) for \(a\geq0\), and compute \(\E[M_t]\).
+\end{studentexercise}
+\begin{shortsolution}
+\[
+\Pbb(M_t\leq a)=2\Phi(a/\sqrt t)-1.
+\]
+Thus \(M_t\overset d=|W_t|\), and the mean of a half-normal variable is
+\(\E[M_t]=\sqrt{2t/\pi}\).
+\end{shortsolution}
+
+% ============================================================
+\section{Quadratic Variation and Brownian Roughness}
+
+\subsection{Definition and basic properties}
+
+For a partition \(\pi=\{0=t_0<\cdots<t_n=t\}\), let
+\(|\pi|=\max_i(t_{i+1}-t_i)\).
+
+\begin{definition}[Quadratic variation]
+For a continuous process \(X\), define
+\[
+[X]_t
+=\lim_{|\pi|\to0}\sum_i(X_{t_{i+1}}-X_{t_i})^2,
+\]
+when the limit exists in probability.
+\end{definition}
+
+Quadratic variation measures accumulated fine-scale fluctuation. It ignores
+the direction of increments and is different from ordinary total variation.
+
+\begin{proposition}[Finite-variation paths have zero quadratic variation]
+If \(A\) is continuously differentiable on \([0,T]\), then \([A]_T=0\).
+More generally, the result holds for continuous finite-variation paths.
+\end{proposition}
+
+\begin{proof}
+For \(A\in C^1\), the mean value theorem gives
+\[
+\sum_i(\Delta_iA)^2
+\leq\|A'\|_\infty^2\sum_i(\Delta_it)^2
+\leq\|A'\|_\infty^2T|\pi|\longrightarrow0.
+\]
+\end{proof}
+
+\begin{theorem}[Brownian quadratic variation]
+For every \(T\geq0\),
+\[
+\boxed{[W]_T=T.}
+\]
+More precisely, for every partition \(\pi\) of \([0,T]\),
+\[
+\E\!\left[
+\left(\sum_i(\Delta_iW)^2-T\right)^2
+\right]
+\leq2T|\pi|.
+\]
+\end{theorem}
+
+\begin{proof}
+The independent increments satisfy
+\(\Delta_iW\sim\mathcal N(0,\Delta_it)\). Hence
+\[
+\E\!\left[\sum_i(\Delta_iW)^2\right]
+=\sum_i\Delta_it=T.
+\]
+For \(G\sim\mathcal N(0,v)\), \(\Var(G^2)=2v^2\). Therefore
+\[
+\Var\!\left(\sum_i(\Delta_iW)^2\right)
+=2\sum_i(\Delta_it)^2
+\leq2|\pi|\sum_i\Delta_it
+=2T|\pi|.
+\]
+The realized sum converges to \(T\) in \(L^2\), hence in probability.
+\end{proof}
+
+\begin{proposition}[Drift disappears from quadratic variation]
+If \(A\) is continuously differentiable and \(X=A+\sigma W\), then
+\[
+[X]_t=\sigma^2t.
+\]
+In particular, \([aX]_t=a^2[X]_t\) and \([X+A]_t=[X]_t\).
+\end{proposition}
+
+\begin{proof}
+Expand the squared increments. The sum of \((\Delta A)^2\) vanishes. For the
+cross-term, Cauchy--Schwarz gives
+\[
+\left|\sum_i\Delta_iA\,\Delta_iW\right|
+\leq
+\left(\sum_i(\Delta_iA)^2\right)^{1/2}
+\left(\sum_i(\Delta_iW)^2\right)^{1/2},
+\]
+which tends to zero in probability. The Brownian term tends to
+\(\sigma^2t\).
+\end{proof}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Process & Quadratic variation & Fine-scale component \\
+\midrule
+smooth or finite-variation \(A\) & \([A]_t=0\) & none \\
+Brownian motion \(W\) & \([W]_t=t\) & one variance unit per unit time \\
+\(A_t+\sigma W_t\) & \([X]_t=\sigma^2t\) & volatility, not drift \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{The bracket and the new calculus}
+
+\begin{proposition}[Quadratic-variation martingale]
+For a continuous square-integrable martingale \(X\), there is a unique
+increasing predictable process \(\langle X\rangle\), starting from zero, such
+that
+\[
+\boxed{X_t^2-\langle X\rangle_t\text{ is a martingale}.}
+\]
+For continuous martingales, \(\langle X\rangle=[X]\). In particular,
+\(\langle W\rangle_t=t\).
+\end{proposition}
+
+For Brownian motion this can be checked without general theory:
+\[
+\E[W_t^2-t\mid\cF_s]
+=W_s^2+(t-s)-t
+=W_s^2-s.
+\]
+
+The It\^o multiplication rules summarize the scale of the increments:
+\[
+(\dd W_t)^2=\dd t,
+\qquad
+\dd W_t\,\dd t=0,
+\qquad
+(\dd t)^2=0.
+\]
+These are shorthand for limiting statements about quadratic variation, not
+ordinary algebraic identities.
+
+\begin{studentexercise}{realized variance with drift}
+Let \(X_t=A_t+\sigma W_t\), where \(A\in C^1\), and observe \(X\) on a
+partition of \([0,T]\). Show that
+\[
+\widehat\sigma_\pi^2
+=\frac1T\sum_i(X_{t_{i+1}}-X_{t_i})^2
+\]
+converges in probability to \(\sigma^2\) as \(|\pi|\to0\).
+\end{studentexercise}
+\begin{shortsolution}
+The numerator is the realized quadratic variation of \(X\), which converges
+to \([X]_T=\sigma^2T\). Division by \(T\) gives the result.
+\end{shortsolution}
+
+\begin{keyidea}{Numerical interpretation}
+On observed data, \(\sum_i(\Delta_iX)^2\) is the realized variance. Refining
+the grid removes smooth drift and reveals accumulated volatility. In actual
+market data, extremely fine grids may be contaminated by bid--ask bounce and
+other microstructure noise, so ``finer'' is not automatically ``better.''
+\end{keyidea}
+
+% ============================================================
+\section{Geometric Brownian Motion}
+
+An additive model \(S_t=S_0+\mu t+\sigma W_t\) can become negative and has
+constant absolute volatility. A multiplicative model instead makes log-returns
+Gaussian.
+
+\begin{definition}[Geometric Brownian motion]
+For \(S_0>0\) and \(\sigma>0\),
+\[
+S_t=S_0\exp\!\left(
+\left(\mu-\frac12\sigma^2\right)t+\sigma W_t
+\right).
+\]
+Then \(S_t>0\) for every \(t\).
+\end{definition}
+
+\begin{proposition}[Laws and moments of GBM]
+For \(0\leq s<t\),
+\[
+\log(S_t/S_s)\mid\cF_s
+\sim\mathcal N\!\left(
+(\mu-\tfrac12\sigma^2)(t-s),\sigma^2(t-s)
+\right),
+\]
+independently of \(\cF_s\). Moreover,
+\[
+\E[S_t]=S_0e^{\mu t},
+\qquad
+\Var(S_t)=S_0^2e^{2\mu t}(e^{\sigma^2t}-1),
+\]
+and
+\[
+\operatorname{Median}(S_t)
+=S_0e^{(\mu-\sigma^2/2)t}.
+\]
+\end{proposition}
+
+\begin{proof}
+The log-return is a deterministic drift plus
+\(\sigma(W_t-W_s)\), giving the conditional normal law. For
+\(G\sim\mathcal N(0,t)\),
+\(\E[e^{\lambda G}]=e^{\lambda^2t/2}\). Applying this with
+\(\lambda=\sigma\) and \(2\sigma\) gives the first two moments and hence the
+variance. The median is obtained by setting the centered Gaussian term to its
+median zero.
+\end{proof}
+
+For \(K>0\),
+\[
+\Pbb(S_t>K)
+=1-\Phi\!\left(
+\frac{\log(K/S_0)-(\mu-\sigma^2/2)t}{\sigma\sqrt t}
+\right).
+\]
+
+\begin{proposition}[Quadratic variation of the log-price]
+\[
+[\log S]_t=\sigma^2t.
+\]
+\end{proposition}
+
+\begin{proof}
+The log-price is a continuously differentiable drift plus \(\sigma W_t\).
+The drift has zero quadratic variation and zero limiting cross-term with the
+Brownian part.
+\end{proof}
+
+GBM is tractable and preserves positivity, but it omits jumps, heavy tails,
+changing volatility, and volatility smiles. Brownian motion is a foundational
+building block rather than a complete market description.
+
+\begin{keyidea}{What to retain}
+Brownian motion is a centered Gaussian process with covariance
+\(\min(s,t)\), fresh increments, and continuous rough paths. Markov renewal
+describes what happens after a current or stopping time; reflection converts
+barrier events into Gaussian tails; quadratic variation records accumulated
+volatility and creates the correction terms of stochastic calculus.
+\end{keyidea}
+
+\end{document}

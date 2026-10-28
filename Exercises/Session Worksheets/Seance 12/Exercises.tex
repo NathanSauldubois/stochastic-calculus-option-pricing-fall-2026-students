@@ -1,0 +1,72 @@
+% Weekly exercise sheet for Lecture 12; also included in the synthesis sheet.
+\ifdefined\ExercisesSynthesis
+\else
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern,microtype}
+\usepackage[margin=0.9in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{enumitem,hyperref}
+\newcommand{\E}{\mathbb E}
+\newcommand{\Qbb}{\mathbb Q}
+\newcommand{\dd}{\,\mathrm d}
+\newcommand{\F}{\mathcal F}
+\theoremstyle{definition}
+\newtheorem{exercise}{Exercise}[section]
+\newlist{exparts}{enumerate}{1}
+\setlist[exparts,1]{label=\textbf{(\alph*)},itemsep=0.3em,topsep=0.4em,leftmargin=2em}
+\newcommand{\lecturesummary}[1]{\begin{quote}\small\textbf{Focus.} #1\end{quote}}
+\title{Stochastic Calculus and Option Pricing\\Lecture 12 Exercises}
+\author{}
+\date{}
+\begin{document}
+\maketitle
+\vspace{-1.2em}
+\setcounter{section}{11}
+\fi
+
+\section{Week 12 --- Beyond Black--Scholes}
+\lecturesummary{The questions isolate covariance in random discounting and
+the risk-spanning consequence of adding a volatility factor.}
+
+\begin{exercise}[Random discounting and conditional covariance]
+Under a risk-neutral measure, let
+\[
+D_{t,T}=\exp\left(-\int_t^T r_u\,\dd u\right)
+\]
+and let a claim pay \(H_T\geq0\) at \(T\).
+\begin{exparts}
+  \item Write its time-\(t\) value as a conditional expectation and
+  decompose it into a product of conditional means plus a conditional
+  covariance term.
+  \item Give a sufficient condition under which replacing the random
+  discount factor by its conditional mean times the expected payoff is
+  valid.
+  \item Explain why a positive covariance between discounting and payoff
+  raises the value relative to that product approximation.
+\end{exparts}
+\end{exercise}
+
+\begin{exercise}[A second Brownian shock adds a hedge direction]
+Suppose \(V_t>0\), and the stock and variance satisfy
+\[
+\frac{\dd S_t}{S_t}=r\dd t+\sqrt{V_t}\dd W_t^S,\qquad
+\dd V_t=b(t,V_t)\dd t+\eta(t,V_t)\dd W_t^V,
+\]
+with \(|\rho|<1\) between \(W^S\) and \(W^V\), and \(\eta\ne0\).
+\begin{exparts}
+  \item Explain why the two Brownian shocks span two independent local
+  risk directions.
+  \item A desk trades only the stock and cash. Which risk direction can it
+  hedge instantaneously, and which remains?
+  \item What feature would a second traded instrument need in order to
+  complete the local hedge? State the condition in terms of its exposure
+  vector, rather than naming a particular product.
+\end{exparts}
+\end{exercise}
+
+\ifdefined\ExercisesSynthesis\else
+\end{document}
+\fi

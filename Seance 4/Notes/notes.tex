@@ -1,0 +1,1597 @@
+% !TEX program = pdflatex
+\documentclass[10pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[margin=0.72in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage[most]{tcolorbox}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{CourseBlue}{HTML}{1A3C68}
+\definecolor{CourseGreen}{HTML}{216E39}
+\definecolor{CourseGold}{HTML}{B8860B}
+\definecolor{CourseRed}{HTML}{9A2C2C}
+\definecolor{SoftBlue}{HTML}{F2F6FA}
+\definecolor{SoftGreen}{HTML}{F1F8F3}
+\definecolor{SoftGold}{HTML}{FFF8E8}
+\definecolor{SoftRed}{HTML}{FFF3F3}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.32em}
+\setlist[itemize]{leftmargin=1.5em,itemsep=0.12em,topsep=0.2em}
+\setlist[enumerate]{leftmargin=1.7em,itemsep=0.12em,topsep=0.2em}
+\allowdisplaybreaks
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Stochastic Calculus and Option Pricing}
+\rhead{Lecture 4 Notes}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+
+\newcommand{\E}{\mathbb E}
+\newcommand{\Pp}{\mathbb P}
+\newcommand{\Q}{\mathbb Q}
+\newcommand{\R}{\mathbb R}
+\newcommand{\1}{\mathbf 1}
+\newcommand{\cF}{\mathcal F}
+\newcommand{\dd}{\,\mathrm d}
+\newcommand{\Ito}{\mathrm{It\hat{o}}}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\Med}{Med}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{proposition}[definition]{Proposition}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{corollary}[definition]{Corollary}
+\newtheorem{remark}[definition]{Remark}
+
+\newtcolorbox{boardexample}[1]{
+  enhanced,breakable,colback=SoftBlue,colframe=CourseBlue,
+  boxrule=0.55pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.55em,after skip=0.55em,
+  title={Example --- #1},fonttitle=\bfseries}
+\newtcolorbox{studentexercise}[1]{
+  enhanced,breakable,colback=SoftGold,colframe=CourseGold,
+  boxrule=0.55pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.55em,after skip=0.35em,
+  title={Exercise --- #1},fonttitle=\bfseries}
+\newtcolorbox{shortsolution}[1][]{
+  enhanced,breakable,colback=SoftGreen,colframe=CourseGreen,
+  boxrule=0.55pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.25em,after skip=0.6em,
+  title={Short solution#1},fonttitle=\bfseries}
+\newtcolorbox{keyidea}[1]{
+  enhanced,breakable,colback=white,colframe=CourseGreen,
+  boxrule=0.7pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.5em,after skip=0.5em,
+  title={#1},fonttitle=\bfseries}
+\newtcolorbox{warningbox}[1]{
+  enhanced,breakable,colback=SoftRed,colframe=CourseRed,
+  boxrule=0.65pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.5em,after skip=0.5em,
+  title={#1},fonttitle=\bfseries}
+
+\title{\textbf{The It\^o Formula: Intuition, Rules, and Applications}\\
+\large Lecture 4 Notes --- Class Support and Student Summary}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-1.4em}
+
+\begin{keyidea}{Goals and logical structure}
+Brownian quadratic variation turns the familiar chain rule into a second-order
+calculus. The lecture proceeds through one reusable sequence:
+\[
+\text{quadratic variation}
+\longrightarrow
+\text{multiplication table}
+\longrightarrow
+\text{\(\Ito\) formula}
+\longrightarrow
+\text{SDE transformations and finance}.
+\]
+By the end, we can transform one- and two-factor \(\Ito\) processes, solve GBM
+and OU models, compute the mean of a CIR process, and explain why correlation,
+convexity, discounting, and delta hedging all create or remove drift terms.
+Exercises are placed immediately after the relevant rule; complete short
+solutions follow them.
+\end{keyidea}
+
+% ============================================================
+\section{Quadratic Variation Becomes a Calculus}
+% ============================================================
+
+\subsection{The correction already appeared in Lecture 3}
+
+Lecture 3 established the identity
+\[
+\int_0^T W_t\dd W_t=\frac12(W_T^2-T),
+\]
+or equivalently
+\[
+W_T^2=2\int_0^T W_t\dd W_t+T.
+\]
+The first term is the one predicted by the ordinary chain rule. The extra
+\(T\) is the quadratic variation \([W]_T\).
+
+On one interval,
+\[
+(W_t+\Delta W)^2-W_t^2
+=2W_t\Delta W+(\Delta W)^2.
+\]
+Brownian scaling gives \(\Delta W=O_{\Pp}(\sqrt{\Delta t})\), so
+\((\Delta W)^2=O_{\Pp}(\Delta t)\). The second-order terms are individually
+small, but there are order \(1/\Delta t\) of them. Their accumulated effect is
+therefore order one.
+
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+One-step term & Typical size & Sum over \(n\) steps & Limit scale\\
+\midrule
+\(\Delta t\) & \(n^{-1}\) & \(1\) & survives\\
+\((\Delta W)^2\) & \(n^{-1}\) & \(1\) & survives\\
+\(\Delta t\,\Delta W\) & \(n^{-3/2}\) & \(n^{-1/2}\) & vanishes\\
+\((\Delta t)^2\) & \(n^{-2}\) & \(n^{-1}\) & vanishes\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{keyidea}{Bookkeeping principle}
+Retain every term whose sum can accumulate at order \(\dd t\). For a continuous
+diffusion this means keeping first-order terms and the quadratic products of
+Brownian increments.
+\end{keyidea}
+
+\subsection{Covariation and the differential tables}
+
+\begin{definition}[Quadratic covariation]
+For continuous processes \(X,Y\) and a partition
+\(\pi=\{0=t_0<\cdots<t_n=t\}\), define
+\[
+[X,Y]_t^\pi
+=\sum_{i=0}^{n-1}
+\bigl(X_{t_{i+1}}-X_{t_i}\bigr)
+\bigl(Y_{t_{i+1}}-Y_{t_i}\bigr).
+\]
+When these sums converge in probability as the mesh tends to zero, their
+limit is denoted by \([X,Y]_t\). We write \([X]_t=[X,X]_t\).
+\end{definition}
+
+The basic examples are
+\[
+[W]_t=t,\qquad [W,t]_t=0,\qquad [t]_t=0.
+\]
+The differential notation
+\(\dd X_t\dd Y_t:=\dd[X,Y]_t\) summarizes these limiting identities.
+For one Brownian driver,
+\[
+\begin{array}{c|cc}
+\toprule
+\times & \dd t & \dd W_t\\
+\midrule
+\dd t & 0 & 0\\
+\dd W_t & 0 & \dd t\\
+\bottomrule
+\end{array}
+\qquad\Longleftrightarrow\qquad
+(\dd t)^2=0,\quad
+\dd t\,\dd W_t=0,\quad
+(\dd W_t)^2=\dd t.
+\]
+
+\begin{warningbox}{The table is a mnemonic for limits}
+These are not literal algebraic infinitesimals. For example,
+\((\dd W_t)^2=\dd t\) means that accumulated squared Brownian increments
+converge to elapsed time.
+\end{warningbox}
+
+Let \(W,B\) be Brownian motions with constant correlation \(\rho\):
+\[
+[W,B]_t=\rho t,\qquad -1\leq\rho\leq1.
+\]
+The two-factor table is
+\[
+\begin{array}{c|ccc}
+\toprule
+\times & \dd t & \dd W_t & \dd B_t\\
+\midrule
+\dd t & 0 & 0 & 0\\
+\dd W_t & 0 & \dd t & \rho\,\dd t\\
+\dd B_t & 0 & \rho\,\dd t & \dd t\\
+\bottomrule
+\end{array}
+\]
+and, for a Brownian vector,
+\[
+\dd W_t^i\dd W_t^j=\rho_{ij}\dd t.
+\]
+
+\begin{boardexample}{correlation becomes drift in a product}
+The product identity gives
+\[
+\dd(W_tB_t)
+=W_t\dd B_t+B_t\dd W_t+\dd W_t\dd B_t
+=W_t\dd B_t+B_t\dd W_t+\rho\dd t.
+\]
+On a bounded horizon the stochastic integrals have mean zero, so
+\[
+\E[W_tB_t]=\rho t,
+\]
+which agrees with the covariance of the jointly Gaussian pair.
+\end{boardexample}
+
+\begin{studentexercise}{a first table drill}
+Let
+\[
+\dd X_t=2\dd t+3\dd W_t,\qquad
+\dd Y_t=-\dd t+4\dd W_t,\qquad
+\dd Z_t=-\dd t+4\dd B_t.
+\]
+Compute \((\dd X_t)^2\), \(\dd X_t\dd Y_t\), and
+\(\dd X_t\dd Z_t\). Treat first the independent case and then the case
+\(\dd W_t\dd B_t=-\tfrac12\dd t\).
+\end{studentexercise}
+\begin{shortsolution}
+Every product containing \(\dd t\) vanishes. Therefore
+\[
+(\dd X_t)^2=9\dd t,\qquad
+\dd X_t\dd Y_t=12\dd t,\qquad
+\dd X_t\dd Z_t=12\rho\dd t.
+\]
+The last answer is \(0\) under independence and \(-6\dd t\) when
+\(\rho=-1/2\). Only diffusion loadings and correlation enter covariation.
+\end{shortsolution}
+
+\begin{studentexercise}{general covariation formula}
+Suppose
+\[
+\dd X_t=a_t\dd t+b_t\dd W_t+c_t\dd B_t,\qquad
+\dd Y_t=p_t\dd t+q_t\dd W_t+r_t\dd B_t,
+\]
+with \(\dd W_t\dd B_t=\rho\dd t\). Find
+\(\dd[X,Y]_t\).
+\end{studentexercise}
+\begin{shortsolution}
+\[
+\boxed{
+\dd[X,Y]_t
+=\bigl(b_tq_t+c_tr_t+\rho b_tr_t+\rho c_tq_t\bigr)\dd t.}
+\]
+The coefficients \(a_t,p_t\) do not appear because finite-variation terms
+have zero covariation with continuous semimartingales.
+\end{shortsolution}
+
+% ============================================================
+\section{The It\^o Formula Is a Second-Order Chain Rule}
+% ============================================================
+
+\subsection{Heuristic and precise statement}
+
+For a smooth \(f(t,x)\), Taylor expansion suggests
+\[
+\Delta f
+\approx f_t\Delta t+f_x\Delta W+\frac12f_{xx}(\Delta W)^2.
+\]
+The mixed term \(\Delta t\Delta W\) and the cubic term
+\((\Delta W)^3\) have accumulated order tending to zero. Replacing the
+quadratic term by \(\Delta t\) leads to the correct formula.
+
+\begin{theorem}[Brownian \(\Ito\) formula]
+Let \(f\in C^{1,2}([0,T]\times\R)\). Then
+\[
+\begin{aligned}
+f(t,W_t)=f(0,W_0)
+&+\int_0^t f_t(s,W_s)\dd s
++\int_0^t f_x(s,W_s)\dd W_s\\
+&+\frac12\int_0^t f_{xx}(s,W_s)\dd s.
+\end{aligned}
+\]
+Equivalently,
+\[
+\boxed{
+\dd f(t,W_t)
+=\left(f_t+\frac12f_{xx}\right)(t,W_t)\dd t
++f_x(t,W_t)\dd W_t.}
+\]
+\end{theorem}
+
+\begin{proof}[Construction idea]
+On a partition \(0=t_0<\cdots<t_n=t\), telescope:
+\[
+f(t,W_t)-f(0,W_0)=\sum_i
+\bigl(f(t_{i+1},W_{t_{i+1}})-f(t_i,W_{t_i})\bigr).
+\]
+A Taylor expansion at \((t_i,W_{t_i})\) gives
+\[
+\Delta f_i
+=f_t\Delta t_i+f_x\Delta W_i
++\frac12f_{xx}(\Delta W_i)^2+r_i.
+\]
+The first sum converges to \(\int f_t\dd t\). The left-point second sum
+converges to the \(\Ito\) integral \(\int f_x\dd W\). Quadratic variation
+turns the third sum into \(\frac12\int f_{xx}\dd t\). After localization,
+smoothness controls the derivatives on compact sets and the accumulated
+remainder converges to zero in probability.
+\end{proof}
+
+\begin{keyidea}{Four-step calculation recipe}
+\begin{enumerate}
+  \item Treat \(t\) and \(x\) as deterministic variables.
+  \item Compute \(f_t(t,x)\), \(f_x(t,x)\), and \(f_{xx}(t,x)\).
+  \item Substitute \(x=W_t\).
+  \item Group the \(\dd t\) and \(\dd W_t\) terms separately.
+\end{enumerate}
+Differentiate with respect to the placeholder \(x\), then substitute the
+process. This simple notation discipline prevents many errors.
+\end{keyidea}
+
+\subsection{First examples and Brownian moments}
+
+\begin{boardexample}{three immediate transforms}
+For \(f(x)=x^2\),
+\[
+\dd(W_t^2)=2W_t\dd W_t+\dd t.
+\]
+Because
+\[
+\E\int_0^T(2W_s)^2\dd s
+=4\int_0^T s\dd s=2T^2<\infty,
+\]
+the process \(W_t^2-t\) is a true martingale.
+
+For \(f(x)=x^3\),
+\[
+\dd(W_t^3)=3W_t^2\dd W_t+3W_t\dd t.
+\]
+For \(f(x)=\sin x\),
+\[
+\dd(\sin W_t)
+=\cos(W_t)\dd W_t-\frac12\sin(W_t)\dd t.
+\]
+Even though \(W\) has zero drift, curvature can create drift in \(f(W)\).
+\end{boardexample}
+
+\begin{studentexercise}{manufacture a fourth-order martingale}
+Apply the formula to \(W_t^4\). Find \(c\) such that
+\[
+W_t^4-c\int_0^tW_s^2\dd s
+\]
+has zero drift, and recover \(\E[W_t^4]\).
+\end{studentexercise}
+\begin{shortsolution}
+\[
+\dd(W_t^4)=4W_t^3\dd W_t+6W_t^2\dd t.
+\]
+Thus
+\[
+M_t=W_t^4-6\int_0^tW_s^2\dd s
+\]
+has zero drift. Since
+\(\E\int_0^T16W_s^6\dd s<\infty\), it is a true martingale on
+\([0,T]\). Hence
+\[
+\E[W_t^4]
+=6\int_0^t\E[W_s^2]\dd s
+=6\int_0^t s\dd s
+=3t^2.
+\]
+\end{shortsolution}
+
+\begin{studentexercise}{one more step gives the sixth moment}
+Use \(\E[W_t^4]=3t^2\) and the \(\Ito\) formula for \(x^6\) to compute
+\(\E[W_T^6]\).
+\end{studentexercise}
+\begin{shortsolution}
+\[
+\dd(W_t^6)=6W_t^5\dd W_t+15W_t^4\dd t.
+\]
+The integrand is square-integrable on bounded horizons because Brownian
+motion has finite moments of every order. Taking expectations,
+\[
+\boxed{
+\E[W_T^6]
+=15\int_0^T\E[W_t^4]\dd t
+=45\int_0^Tt^2\dd t
+=15T^3.}
+\]
+More generally, \(m_n(t)=\E[W_t^n]\) satisfies
+\[
+m_n'(t)=\frac{n(n-1)}2m_{n-2}(t).
+\]
+\end{shortsolution}
+
+\subsection{Stopping turns martingales into exit-time identities}
+
+For \(a>0\), define the first exit time
+\[
+\tau_a=\inf\{t\geq0:|W_t|=a\}.
+\]
+The safe order of operations is to stop first at the bounded time
+\(\tau_t=t\wedge\tau_a\), apply optional sampling, and only then let
+\(t\to\infty\).
+
+\begin{studentexercise}{exit time and occupation inside an interval}
+Use
+\[
+W_t^2-t
+\qquad\text{and}\qquad
+W_t^4-6\int_0^tW_s^2\dd s
+\]
+to determine
+\[
+\E[\tau_a],
+\qquad
+\E\left[\int_0^{\tau_a}W_s^2\dd s\right].
+\]
+\end{studentexercise}
+\begin{shortsolution}
+Optional sampling at \(\tau_t\) gives
+\[
+\E[W_{\tau_t}^2]=\E[\tau_t]\leq a^2.
+\]
+Monotone convergence yields \(\E[\tau_a]\leq a^2\), hence
+\(\tau_a<\infty\) almost surely. Brownian continuity gives
+\(|W_{\tau_a}|=a\). Since \(|W_{\tau_t}|\leq a\), dominated convergence
+then yields
+\[
+\boxed{\E[\tau_a]=a^2.}
+\]
+Stopping the fourth-order martingale gives
+\[
+\E[W_{\tau_t}^4]
+=6\E\left[\int_0^{\tau_t}W_s^2\dd s\right].
+\]
+Dominated convergence on the left and monotone convergence on the right give
+\[
+\boxed{
+\E\left[\int_0^{\tau_a}W_s^2\dd s\right]=\frac{a^4}{6}.}
+\]
+\end{shortsolution}
+
+\subsection{Exponentials and the backward heat equation}
+
+\begin{proposition}[Exponential martingale]
+For \(\lambda\in\R\),
+\[
+M_t=\exp\left(\lambda W_t-\frac12\lambda^2t\right)
+\]
+satisfies
+\[
+\dd M_t=\lambda M_t\dd W_t.
+\]
+Moreover \(M_t\geq0\) and a direct Gaussian calculation gives
+\(\E[M_t]=1\), so \(M\) is a true martingale.
+\end{proposition}
+
+\begin{proof}
+For \(f(t,x)=e^{\lambda x-\lambda^2t/2}\),
+\[
+f_t=-\frac12\lambda^2f,\qquad
+f_x=\lambda f,\qquad
+f_{xx}=\lambda^2f.
+\]
+The two drift terms cancel in the \(\Ito\) formula. Also,
+\[
+\E[M_t]
+=e^{-\lambda^2t/2}\E[e^{\lambda W_t}]
+=e^{-\lambda^2t/2}e^{\lambda^2t/2}=1.
+\]
+\end{proof}
+
+More generally, for \(Y_t=u(t,W_t)\),
+\[
+\dd Y_t
+=\left(u_t+\frac12u_{xx}\right)(t,W_t)\dd t
++u_x(t,W_t)\dd W_t.
+\]
+Thus the drift vanishes when
+\[
+\boxed{u_t+\frac12u_{xx}=0.}
+\]
+This is the backward heat equation. Suitable growth or integrability
+conditions are still needed to upgrade the resulting local martingale to a
+true martingale.
+
+\begin{studentexercise}{which transforms have zero drift?}
+For fixed \(T>0\), test
+\[
+u_1(t,x)=x^2-t,\quad
+u_2(t,x)=x^2+t,\quad
+u_3(t,x)=x^2+T-t,\quad
+u_4(t,x)=e^{\lambda x-\lambda^2t/2}.
+\]
+Compute \(u_t+\tfrac12u_{xx}\) and interpret \(u_3(t,W_t)\).
+\end{studentexercise}
+\begin{shortsolution}
+\[
+\begin{array}{lcc}
+\toprule
+u & u_t+\frac12u_{xx} & \text{conclusion}\\
+\midrule
+x^2-t & 0 & \text{martingale}\\
+x^2+t & 2 & \text{drift }2\dd t\\
+x^2+T-t & 0 & \text{martingale}\\
+e^{\lambda x-\lambda^2t/2} & 0 & \text{martingale}\\
+\bottomrule
+\end{array}
+\]
+Since the third process equals \(W_T^2\) at \(t=T\),
+\[
+W_t^2+T-t=\E[W_T^2\mid\cF_t].
+\]
+\end{shortsolution}
+
+\begin{studentexercise}{a conditional fourth moment}
+Find a polynomial \(u(t,x)\) such that
+\[
+u(T,x)=x^4,\qquad u_t+\frac12u_{xx}=0.
+\]
+Deduce a formula for \(\E[W_T^4\mid\cF_t]\).
+\end{studentexercise}
+\begin{shortsolution}
+Let \(h=T-t\). Direct differentiation shows that
+\[
+u(t,x)=x^4+6hx^2+3h^2
+\]
+solves the backward heat equation and has terminal value \(x^4\). Therefore
+\[
+\boxed{
+\E[W_T^4\mid\cF_t]
+=W_t^4+6(T-t)W_t^2+3(T-t)^2.}
+\]
+This also follows by expanding
+\(W_T=W_t+(W_T-W_t)\) and using Gaussian moments.
+\end{shortsolution}
+
+% ============================================================
+\section{From Brownian Motion to It\^o Processes}
+% ============================================================
+
+\subsection{Definition, quadratic variation, and the general formula}
+
+\begin{definition}[\(\Ito\) process]
+On a fixed horizon \([0,T]\), an \(\Ito\) process has the representation
+\[
+X_t=X_0+\int_0^t a_s\dd s+\int_0^t b_s\dd W_s,
+\]
+where, for example, \(a,b\) are progressively measurable and
+\[
+\int_0^T|a_s|\dd s<\infty\quad\text{a.s.},
+\qquad
+\E\left[\int_0^Tb_s^2\dd s\right]<\infty.
+\]
+We use the shorthand
+\[
+\dd X_t=a_t\dd t+b_t\dd W_t.
+\]
+\end{definition}
+
+\begin{keyidea}{Differential form versus integral form}
+The differential notation is a compact way to record the local drift and
+diffusion coefficients. Its precise meaning is the integral identity
+\[
+\boxed{
+\dd X_t=a_t\dd t+b_t\dd W_t
+\quad\Longleftrightarrow\quad
+X_t-X_s=\int_s^t a_u\dd u+\int_s^t b_u\dd W_u,}
+\]
+valid for every \(0\leq s\leq t\leq T\) (up to the usual almost-sure
+qualification). For example,
+\[
+\dd X_t=(m-X_t)\dd t+\sigma\dd W_t
+\]
+means
+\[
+X_t=X_0+\int_0^t(m-X_u)\dd u+\sigma W_t.
+\]
+The differential form is convenient for It\^o calculations; the integral
+form is the actual equality defining the process. In particular, one should
+not divide by \(\dd t\): Brownian paths are not differentiable, so
+\(\dd W_t/\dd t\) is not an ordinary random function.
+\end{keyidea}
+
+\begin{proposition}[Uniqueness of the drift--noise decomposition]
+Fix the filtration and the Brownian motion \(W\). Suppose that the same
+continuous process admits two representations
+\[
+\begin{aligned}
+X_t
+&=X_0+\int_0^t a_s\dd s+\int_0^t b_s\dd W_s\\
+&=X_0+\int_0^t\widetilde a_s\dd s
+       +\int_0^t\widetilde b_s\dd W_s,
+\end{aligned}
+\]
+under the integrability assumptions in the preceding definition. Then
+\[
+\boxed{
+a=\widetilde a,\qquad b=\widetilde b,
+\qquad \dd t\otimes\dd\Pp\text{-almost everywhere}.}
+\]
+\end{proposition}
+
+\begin{proof}
+Subtract the two decompositions and set
+\[
+A_t:=\int_0^t(a_s-\widetilde a_s)\dd s,
+\qquad
+M_t:=\int_0^t(b_s-\widetilde b_s)\dd W_s.
+\]
+Then \(A_t+M_t=0\) for every \(t\). The process \(A\) has continuous
+finite-variation paths, whereas \(M\) is a continuous local martingale.
+Consequently, \(M=-A\) is a continuous local martingale of finite variation.
+Such a process is constant. Since \(A_0=M_0=0\), we obtain
+\[
+A_t=M_t=0
+\qquad\text{for every }t,\quad\text{a.s.}
+\]
+The quadratic variation of \(M\) is therefore zero:
+\[
+0=[M]_t
+=\int_0^t(b_s-\widetilde b_s)^2\dd s.
+\]
+It follows that \(b=\widetilde b\),
+\(\dd t\otimes\dd\Pp\)-almost everywhere. Finally, \(A\equiv0\) and the
+absolute continuity of \(A\) imply
+\(a=\widetilde a\), \(\dd t\otimes\dd\Pp\)-almost everywhere.
+\end{proof}
+
+\begin{remark}
+The underlying principle is the uniqueness of the canonical continuous
+semimartingale decomposition into a finite-variation part and a local
+martingale part. Equality of the coefficients is an almost-everywhere
+statement; changing \(a\) or \(b\) on a
+\(\dd t\otimes\dd\Pp\)-null set does not change \(X\).
+\end{remark}
+
+The drift \(a_t\dd t\) is the local trend; the diffusion
+\(b_t\dd W_t\) is the local random shock. Applying the multiplication table,
+\[
+(\dd X_t)^2
+=a_t^2(\dd t)^2+2a_tb_t\dd t\dd W_t+b_t^2(\dd W_t)^2
+=b_t^2\dd t.
+\]
+Hence
+\[
+\boxed{
+\dd[X]_t=b_t^2\dd t,\qquad
+[X]_t=\int_0^tb_s^2\dd s.}
+\]
+Quadratic variation records volatility, not drift.
+
+\begin{theorem}[One-dimensional \(\Ito\) formula]
+Let
+\[
+\dd X_t=a_t\dd t+b_t\dd W_t,
+\qquad f\in C^{1,2}([0,T]\times\R).
+\]
+Then
+\[
+\boxed{
+\dd f(t,X_t)
+=\left(f_t+a_tf_x+\frac12b_t^2f_{xx}\right)(t,X_t)\dd t
++b_tf_x(t,X_t)\dd W_t.}
+\]
+Equivalently,
+\[
+\dd f=f_t\dd t+f_x\dd X+\frac12f_{xx}\dd[X].
+\]
+\end{theorem}
+
+\begin{boardexample}{the square of a general diffusion}
+For \(f(x)=x^2\),
+\[
+\boxed{
+\dd(X_t^2)
+=(2X_ta_t+b_t^2)\dd t+2X_tb_t\dd W_t.}
+\]
+Whenever the stochastic integral is a true martingale,
+\[
+X_t^2-X_0^2-\int_0^t(2X_sa_s+b_s^2)\dd s
+\]
+is a martingale.
+\end{boardexample}
+
+\begin{studentexercise}{arithmetic diffusion and its second moment}
+Let
+\[
+X_t=x+\mu t+\sigma W_t.
+\]
+Compute \(\dd(X_t^2)\), find a compensated process with zero drift, and
+calculate \(\E[X_t^2]\).
+\end{studentexercise}
+\begin{shortsolution}
+\[
+\dd(X_t^2)
+=(2\mu X_t+\sigma^2)\dd t+2\sigma X_t\dd W_t.
+\]
+The stochastic integrand is square-integrable on bounded horizons because
+\(\int_0^T\E[X_s^2]\dd s<\infty\). Taking expectations and either solving
+the resulting integral equation or using the known Gaussian law gives
+\[
+\boxed{\E[X_t^2]=(x+\mu t)^2+\sigma^2t.}
+\]
+This is \((\text{mean})^2+\text{variance}\).
+\end{shortsolution}
+
+\begin{warningbox}{When may a stochastic integral be erased in expectation?}
+If
+\[
+\E\left[\int_0^TH_s^2\dd s\right]<\infty,
+\]
+then \(\int_0^tH_s\dd W_s\) is an \(L^2\)-martingale and has expectation
+zero. Pathwise local square-integrability normally gives only a local
+martingale. Zero drift alone is not enough. Absolute integrability is also
+needed before exchanging expectation with a drift integral.
+\end{warningbox}
+
+\subsection{Logarithms and inverses}
+
+\begin{proposition}[Reusable log rule]
+Suppose \(X_t>0\) and
+\[
+\frac{\dd X_t}{X_t}=\alpha_t\dd t+\beta_t\dd W_t.
+\]
+Then
+\[
+\boxed{
+\dd\log X_t
+=\left(\alpha_t-\frac12\beta_t^2\right)\dd t
++\beta_t\dd W_t.}
+\]
+\end{proposition}
+
+\begin{proof}
+For \(f(x)=\log x\),
+\[
+f'(x)=\frac1x,\qquad f''(x)=-\frac1{x^2}.
+\]
+Substitution into the general formula gives the claim. The term
+\(-\beta_t^2/2\) is often called volatility drag.
+\end{proof}
+
+If strict positivity is not known globally, the identity is valid only up to
+the first hitting time of zero.
+
+\begin{studentexercise}{invert an \(\Ito\) process}
+Let \(X_t\neq0\) and
+\[
+\dd X_t=a_t\dd t+b_t\dd W_t.
+\]
+Find \(\dd(1/X_t)\), then specialize to
+\(\dd X_t/X_t=\mu\dd t+\sigma\dd W_t\).
+\end{studentexercise}
+\begin{shortsolution}
+With \(f(x)=x^{-1}\),
+\[
+f'(x)=-x^{-2},\qquad f''(x)=2x^{-3}.
+\]
+Therefore
+\[
+\boxed{
+\dd\left(\frac1{X_t}\right)
+=\left(-\frac{a_t}{X_t^2}+\frac{b_t^2}{X_t^3}\right)\dd t
+-\frac{b_t}{X_t^2}\dd W_t.}
+\]
+For geometric dynamics and \(R_t=1/X_t\),
+\[
+\boxed{
+\frac{\dd R_t}{R_t}
+=(\sigma^2-\mu)\dd t-\sigma\dd W_t.}
+\]
+The \(+\sigma^2\) term is the correction that an ordinary quotient rule
+would miss. The product rule applied to \(X_tR_t=1\) verifies the answer.
+\end{shortsolution}
+
+% ============================================================
+\section{Transformations Solve Canonical SDEs}
+% ============================================================
+
+\subsection{Geometric Brownian motion}
+
+Consider
+\[
+\dd S_t=\mu S_t\dd t+\sigma S_t\dd W_t,
+\qquad S_0>0,\quad \sigma>0.
+\]
+The logarithm converts relative shocks into additive shocks:
+\[
+\dd\log S_t
+=\left(\mu-\frac12\sigma^2\right)\dd t+\sigma\dd W_t.
+\]
+Integration yields the explicit solution
+\[
+\boxed{
+S_t=S_0\exp\left\{
+\left(\mu-\frac12\sigma^2\right)t+\sigma W_t
+\right\}.}
+\]
+It is strictly positive, which justifies the logarithmic transformation.
+Moreover,
+\[
+\log S_t\sim
+N\left(
+\log S_0+\left(\mu-\frac12\sigma^2\right)t,\,
+\sigma^2t
+\right),
+\]
+so \(S_t\) is lognormal.
+
+\begin{proposition}[Mean, median, and a target probability]
+\[
+\E[S_t]=S_0e^{\mu t},
+\qquad
+\Med(S_t)=S_0e^{(\mu-\sigma^2/2)t}.
+\]
+For \(K>0\),
+\[
+\Pp(S_T>K)
+=1-\Phi\left(
+\frac{\log(K/S_0)-(\mu-\sigma^2/2)T}
+{\sigma\sqrt T}
+\right).
+\]
+\end{proposition}
+
+\begin{boardexample}{one year of GBM in numbers}
+Let
+\[
+S_0=100,\qquad \mu=8\%,\qquad \sigma=20\%,\qquad T=1.
+\]
+Then
+\[
+\E[S_1]=100e^{0.08}\approx108.33,
+\qquad
+\Med(S_1)=100e^{0.06}\approx106.18.
+\]
+For the target \(K=110\),
+\[
+\Pp(S_1>110)
+=1-\Phi\left(\frac{\log(1.10)-0.06}{0.20}\right)
+\approx43.0\%.
+\]
+The mean, median, and target probability answer different questions. A
+positive expected return does not eliminate downside uncertainty.
+\end{boardexample}
+
+\begin{studentexercise}{powers of a GBM}
+For \(p\in\R\), let \(Y_t=S_t^p\).
+\begin{enumerate}
+  \item Find \(\dd Y_t/Y_t\).
+  \item Choose \(k\) such that \(e^{-kt}S_t^p\) has zero drift.
+  \item Check \(p=0,1,2,-1\).
+\end{enumerate}
+\end{studentexercise}
+\begin{shortsolution}
+\[
+\boxed{
+\frac{\dd(S_t^p)}{S_t^p}
+=\left[p\mu+\frac12p(p-1)\sigma^2\right]\dd t
++p\sigma\dd W_t.}
+\]
+Thus
+\[
+k=p\mu+\frac12p(p-1)\sigma^2.
+\]
+For constant coefficients, \(e^{-kt}S_t^p\) is a constant multiple of an
+exponential Brownian martingale and is therefore a true martingale. For
+\(p=-1\), the drift is \(\sigma^2-\mu\), matching the inverse calculation.
+\end{shortsolution}
+
+If coefficients vary through time,
+\[
+\frac{\dd S_t}{S_t}
+=\mu_t\dd t+\sigma_t\dd W_t,
+\]
+the same log transform gives
+\[
+\boxed{
+S_t=S_0\exp\left\{
+\int_0^t\left(\mu_s-\frac12\sigma_s^2\right)\dd s
++\int_0^t\sigma_s\dd W_s
+\right\}.}
+\]
+This holds under the usual progressive measurability and local integrability
+conditions. If \(\mu,\sigma\) are deterministic, the log price remains
+Gaussian.
+
+\subsection{Ornstein--Uhlenbeck and Vasicek mean reversion}
+
+The OU SDE is
+\[
+\dd X_t=\kappa(m-X_t)\dd t+\sigma\dd W_t,
+\qquad \kappa>0.
+\]
+Above \(m\), the drift is negative; below \(m\), it is positive. Multiplying
+by \(e^{\kappa t}\) removes the linear drift. Because this integrating factor
+has finite variation,
+\[
+\begin{aligned}
+\dd(e^{\kappa t}X_t)
+&=e^{\kappa t}\dd X_t+\kappa e^{\kappa t}X_t\dd t\\
+&=\kappa m e^{\kappa t}\dd t+\sigma e^{\kappa t}\dd W_t.
+\end{aligned}
+\]
+Integrating between \(s\) and \(t\) gives
+\[
+\boxed{
+X_t=m+(X_s-m)e^{-\kappa(t-s)}
++\sigma\int_s^t e^{-\kappa(t-u)}\dd W_u.}
+\]
+Conditionally on \(\cF_s\), the stochastic integral is centered Gaussian.
+Therefore
+\[
+\E[X_t\mid\cF_s]
+=m+(X_s-m)e^{-\kappa(t-s)}
+\]
+and
+\[
+\Var(X_t\mid\cF_s)
+=\sigma^2\int_s^te^{-2\kappa(t-u)}\dd u
+=\frac{\sigma^2}{2\kappa}
+\left(1-e^{-2\kappa(t-s)}\right).
+\]
+
+\begin{studentexercise}{read the long-run behavior from the OU formula}
+Find the limiting conditional mean, limiting conditional variance, and
+half-life of the deviation from \(m\). Evaluate the half-life at
+\(\kappa=0.7\) per year.
+\end{studentexercise}
+\begin{shortsolution}
+\[
+\E[X_t\mid\cF_s]\longrightarrow m,
+\qquad
+\Var(X_t\mid\cF_s)\longrightarrow\frac{\sigma^2}{2\kappa}.
+\]
+The half-life \(h\) solves \(e^{-\kappa h}=1/2\), hence
+\[
+\boxed{h=\frac{\log2}{\kappa}.}
+\]
+When \(\kappa=0.7\), \(h\approx0.99\) year. After two years,
+\[
+e^{-0.7\times2}\approx24.7\%
+\]
+of the current deviation remains in the conditional mean.
+\end{shortsolution}
+
+\subsection{The first moment of a CIR process}
+
+Assume a nonnegative process satisfies
+\[
+\dd R_t=(\alpha-\beta R_t)\dd t
++\sigma\sqrt{R_t}\dd W_t,
+\qquad
+R_0=r_0,\quad \alpha,\beta,\sigma>0.
+\]
+The integrating factor \(e^{\beta t}\) gives
+\[
+\dd(e^{\beta t}R_t)
+=\alpha e^{\beta t}\dd t
++\sigma e^{\beta t}\sqrt{R_t}\dd W_t.
+\]
+After localization and the usual integrability check, the stochastic
+integral has mean zero. Hence
+\[
+\E[e^{\beta t}R_t]
+=r_0+\frac{\alpha}{\beta}(e^{\beta t}-1),
+\]
+so
+\[
+\boxed{
+\E[R_t]
+=r_0e^{-\beta t}
++\frac{\alpha}{\beta}(1-e^{-\beta t})
+\longrightarrow\frac{\alpha}{\beta}.}
+\]
+The square-root volatility controls dispersion, but it does not enter the
+first-moment ODE.
+
+\begin{studentexercise}{optional extension: the CIR second moment}
+Apply the \(\Ito\) formula to \(R_t^2\). Obtain an ODE for
+\(m_2(t)=\E[R_t^2]\) in terms of \(m_1(t)=\E[R_t]\), and find the limiting
+variance.
+\end{studentexercise}
+\begin{shortsolution}
+\[
+\dd(R_t^2)
+=\left((2\alpha+\sigma^2)R_t-2\beta R_t^2\right)\dd t
++2\sigma R_t^{3/2}\dd W_t.
+\]
+Thus
+\[
+m_2'(t)+2\beta m_2(t)=(2\alpha+\sigma^2)m_1(t).
+\]
+Using the integrating factor \(e^{2\beta t}\),
+\[
+\begin{aligned}
+m_2(t)
+={}&r_0^2e^{-2\beta t}\\
+&+(2\alpha+\sigma^2)
+\left[
+\frac{\alpha}{2\beta^2}(1-e^{-2\beta t})
++\frac{r_0-\alpha/\beta}{\beta}
+(e^{-\beta t}-e^{-2\beta t})
+\right].
+\end{aligned}
+\]
+Therefore
+\[
+\lim_{t\to\infty}\Var(R_t)
+=\frac{\alpha\sigma^2}{2\beta^2}.
+\]
+\end{shortsolution}
+
+% ============================================================
+\section{Products, Ratios, and Several Risk Factors}
+% ============================================================
+
+\subsection{The multidimensional formula and product rule}
+
+\begin{theorem}[Two-dimensional \(\Ito\) formula]
+Let \(f\in C^{1,2}([0,T]\times\R^2)\) and let \(X,Y\) be continuous
+\(\Ito\) processes. Then
+\[
+\begin{aligned}
+\dd f(t,X_t,Y_t)
+={}&f_t\dd t+f_x\dd X_t+f_y\dd Y_t\\
+&+\frac12f_{xx}\dd[X]_t
++f_{xy}\dd[X,Y]_t
++\frac12f_{yy}\dd[Y]_t.
+\end{aligned}
+\]
+\end{theorem}
+
+The mixed derivative has no factor \(1/2\): it appears twice in the symmetric
+Hessian sum. If the Brownian drivers have correlation \(\rho\), the mixed
+term carries that correlation.
+
+Choosing \(f(x,y)=xy\) gives the stochastic product rule
+\[
+\boxed{
+\dd(X_tY_t)
+=X_t\dd Y_t+Y_t\dd X_t+\dd[X,Y]_t.}
+\]
+For
+\[
+\dd X_t=a_t\dd t+b_t\dd W_t,\qquad
+\dd Y_t=c_t\dd t+d_t\dd B_t,
+\]
+we have
+\[
+\dd[X,Y]_t=\rho b_td_t\dd t.
+\]
+
+\begin{boardexample}{product of two correlated assets}
+Suppose
+\[
+\frac{\dd S_t}{S_t}
+=\mu_S\dd t+\sigma_S\dd W_t,\qquad
+\frac{\dd V_t}{V_t}
+=\mu_V\dd t+\sigma_V\dd B_t,
+\]
+and \(\dd W_t\dd B_t=\rho\dd t\). Then
+\[
+\boxed{
+\frac{\dd(S_tV_t)}{S_tV_t}
+=\left(\mu_S+\mu_V+\rho\sigma_S\sigma_V\right)\dd t
++\sigma_S\dd W_t+\sigma_V\dd B_t.}
+\]
+Positive correlation increases the product drift through covariation;
+negative correlation decreases it.
+\end{boardexample}
+
+\begin{studentexercise}{normalize a sum of Brownian motions}
+Let \(W,B\) be jointly Brownian with correlation \(\rho>-1\). Find a
+constant \(c\) such that \(c(W+B)\) is a standard Brownian motion. What
+happens at \(\rho=-1\)?
+\end{studentexercise}
+\begin{shortsolution}
+\[
+\dd[W+B]_t
+=(\dd W_t+\dd B_t)^2
+=2(1+\rho)\dd t.
+\]
+Hence
+\[
+\boxed{
+\widetilde W_t=\frac{W_t+B_t}{\sqrt{2(1+\rho)}}}
+\]
+has quadratic variation \(t\). Joint Gaussianity, or Levy's characterization,
+shows that it is Brownian. At \(\rho=-1\), \(B=-W\) up to
+indistinguishability and the sum is identically zero.
+\end{shortsolution}
+
+\subsection{Ratios and inverse corrections}
+
+\begin{studentexercise}{ratio of two risky assets}
+With the asset dynamics above, let \(R_t=S_t/V_t\). Find
+\(\dd R_t/R_t\) using \(R=S(1/V)\).
+\end{studentexercise}
+\begin{shortsolution}
+First apply the inverse rule:
+\[
+\frac{\dd(1/V_t)}{1/V_t}
+=(\sigma_V^2-\mu_V)\dd t-\sigma_V\dd B_t.
+\]
+Then use the product rule:
+\[
+\begin{aligned}
+\frac{\dd R_t}{R_t}
+={}&\frac{\dd S_t}{S_t}
++\frac{\dd(1/V_t)}{1/V_t}
++\frac{\dd S_t}{S_t}
+  \frac{\dd(1/V_t)}{1/V_t}\\
+={}&\left(
+\mu_S-\mu_V+\sigma_V^2-\rho\sigma_S\sigma_V
+\right)\dd t\\
+&+\sigma_S\dd W_t-\sigma_V\dd B_t.
+\end{aligned}
+\]
+Thus
+\[
+\boxed{
+\frac{\dd R_t}{R_t}
+=\left(
+\mu_S-\mu_V+\sigma_V^2-\rho\sigma_S\sigma_V
+\right)\dd t
++\sigma_S\dd W_t-\sigma_V\dd B_t.}
+\]
+If \(S=V\), every term vanishes. If \(V\) is deterministic,
+\(\sigma_V=0\), ordinary quotient calculus returns.
+\end{shortsolution}
+
+\begin{studentexercise}{log ratio as a consistency check}
+Compute \(\dd\log(S_t/V_t)\) directly from the two log-price dynamics.
+Why does \(\rho\) not appear in its drift, even though it appears in the
+level-ratio drift?
+\end{studentexercise}
+\begin{shortsolution}
+\[
+\boxed{
+\dd\log\frac{S_t}{V_t}
+=\left[
+\mu_S-\mu_V-\frac12(\sigma_S^2-\sigma_V^2)
+\right]\dd t
++\sigma_S\dd W_t-\sigma_V\dd B_t.}
+\]
+Correlation affects the quadratic variation of the final diffusion:
+\[
+\dd\left[\log(S/V)\right]_t
+=\left(\sigma_S^2+\sigma_V^2
+-2\rho\sigma_S\sigma_V\right)\dd t.
+\]
+Applying the exponential rule to the log ratio recreates the
+\(-\rho\sigma_S\sigma_V\) term in the level-ratio drift.
+\end{shortsolution}
+
+\subsection{Minimum-variance hedging}
+
+Consider the instantaneous shock
+\[
+\sigma_X\dd W_t-h\sigma_Y\dd B_t,
+\qquad \sigma_Y>0,
+\qquad
+\dd W_t\dd B_t=\rho\dd t.
+\]
+Its variance rate is
+\[
+q(h)=\sigma_X^2+h^2\sigma_Y^2
+-2h\rho\sigma_X\sigma_Y.
+\]
+Differentiating,
+\[
+q'(h)=2h\sigma_Y^2-2\rho\sigma_X\sigma_Y.
+\]
+Since \(q''(h)=2\sigma_Y^2>0\), the unique minimizer is
+\[
+\boxed{
+h^*=\rho\frac{\sigma_X}{\sigma_Y},
+\qquad
+q(h^*)=\sigma_X^2(1-\rho^2).}
+\]
+Only the correlated component can be hedged; orthogonal noise remains.
+
+\begin{boardexample}{numerical hedge ratio}
+If
+\[
+\sigma_X=25\%,\qquad \sigma_Y=20\%,\qquad \rho=0.8,
+\]
+then
+\[
+h^*=0.8\frac{0.25}{0.20}=1,
+\qquad
+\sqrt{q(h^*)}=25\%\sqrt{1-0.8^2}=15\%.
+\]
+The hedge removes the correlated component in this simplified instantaneous
+calculation, but it cannot remove the \(15\%\) orthogonal component.
+\end{boardexample}
+
+\subsection{Optional extension: predictable rotations}
+
+Let \(W\) be a standard \(d\)-dimensional Brownian motion and \(H_t\) a
+predictable matrix satisfying
+\[
+H_tH_t^\top=I_d.
+\]
+Define
+\[
+B_t=\int_0^tH_s\dd W_s.
+\]
+Then \(B\) is a continuous local martingale and
+\[
+\dd[B^i,B^j]_t
+=(H_tH_t^\top)_{ij}\dd t
+=\delta_{ij}\dd t.
+\]
+Levy's characterization implies that \(B\) is again a standard
+\(d\)-dimensional Brownian motion. In one dimension,
+\[
+\int_0^t\operatorname{sgn}(W_s)\dd W_s
+\]
+is Brownian even though its integrand depends on the observed path.
+
+\section{Finance Applications of It\^o Calculus}
+% ============================================================
+
+\subsection{Discounting and the probability measure}
+
+Let the bank account and risky asset satisfy
+\[
+\dd A_t=rA_t\dd t,\qquad
+\dd S_t=\mu S_t\dd t+\sigma S_t\dd W_t^{\Pp}.
+\]
+Since \(A_t^{-1}=A_0^{-1}e^{-rt}\) has finite variation,
+\[
+\dd(A_t^{-1})=-rA_t^{-1}\dd t
+\]
+and \(\dd[A^{-1},S]_t=0\). For
+\(\widetilde S_t=S_t/A_t\),
+\[
+\boxed{
+\frac{\dd\widetilde S_t}{\widetilde S_t}
+=(\mu-r)\dd t+\sigma\dd W_t^{\Pp}.}
+\]
+Discounting by the bank account does not generally remove the physical drift.
+
+Under a pricing measure \(\Q\), the model is written
+\[
+\frac{\dd S_t}{S_t}
+=r\dd t+\sigma\dd W_t^{\Q},
+\]
+so
+\[
+\frac{\dd\widetilde S_t}{\widetilde S_t}
+=\sigma\dd W_t^{\Q}.
+\]
+The discounted price is then a local martingale; standard integrability
+conditions make it a true martingale.
+
+\begin{warningbox}{Always state the measure}
+The same asset can have drift \(\mu\) under the physical measure and drift
+\(r\) under a pricing measure. The martingale property of discounted prices
+is a risk-neutral statement, not an automatic physical-measure identity.
+\end{warningbox}
+
+\subsection{Option dynamics and delta hedging}
+
+Suppose \(V_t=v(t,S_t)\), with
+\[
+\dd S_t=\mu S_t\dd t+\sigma S_t\dd W_t.
+\]
+The \(\Ito\) formula gives
+\[
+\boxed{
+\dd V_t
+=\left(
+v_t+\mu S_tv_s+\frac12\sigma^2S_t^2v_{ss}
+\right)\dd t
++\sigma S_tv_s\dd W_t.}
+\]
+The first two state derivatives have financial names:
+\[
+\Delta=v_s,\qquad \Gamma=v_{ss}.
+\]
+Delta is the first-order price exposure; gamma is curvature.
+
+Choose \(\Delta_t=v_s(t,S_t)\). If changes in the stock holding are financed
+through the cash account, the self-financing hedged gain is
+\[
+\dd\Pi_t:=\dd V_t-\Delta_t\dd S_t.
+\]
+Substitution gives
+\[
+\boxed{
+\dd\Pi_t
+=\left(v_t+\frac12\sigma^2S_t^2v_{ss}\right)\dd t.}
+\]
+Both the instantaneous Brownian shock and the unknown physical drift
+\(\mu\) cancel.
+
+\begin{warningbox}{A bookkeeping point about dynamic delta}
+Because \(\Delta_t\) changes through time, it is generally false that
+\[
+\dd(V_t-\Delta_tS_t)=\dd V_t-\Delta_t\dd S_t.
+\]
+The right-hand side is the gain of a dynamically financed strategy. Changes
+in the cost of the stock position are offset by the cash account.
+\end{warningbox}
+
+\begin{boardexample}{curvature creates hedged profit and loss}
+For the toy claim \(V_t=S_t^2\),
+\[
+\Delta_t=2S_t,\qquad \Gamma_t=2.
+\]
+The \(\Ito\) formula gives
+\[
+\dd(S_t^2)=2S_t\dd S_t+\sigma^2S_t^2\dd t.
+\]
+Therefore
+\[
+\boxed{
+\dd V_t-2S_t\dd S_t=\sigma^2S_t^2\dd t.}
+\]
+Continuous rebalancing converts quadratic price variation into a
+finite-variation term.
+\end{boardexample}
+
+\begin{boardexample}{one-day gamma scale}
+For \(\Gamma=0.02\), \(S=100\), \(\sigma=20\%\), and
+\(\Delta t=1/252\),
+\[
+\frac12\Gamma\sigma^2S^2\Delta t
+=\frac12(0.02)(0.20)^2(100)^2\frac1{252}
+\approx \$0.016
+\]
+per option, before theta and financing. The number is small for one day but
+accumulates and is highly sensitive to gamma, volatility, and the asset level.
+\end{boardexample}
+
+\subsection{Preview of the Black--Scholes equation}
+
+If the delta-hedged position is locally riskless, no-arbitrage requires it to
+earn the bank-account rate on its value \(V_t-\Delta_tS_t\):
+\[
+\dd V_t-\Delta_t\dd S_t
+=r(V_t-\Delta_tS_t)\dd t.
+\]
+Using \(\Delta=v_s\) gives
+\[
+\boxed{
+v_t+\frac12\sigma^2s^2v_{ss}+rsv_s-rv=0.}
+\]
+Quadratic variation supplies the gamma term; no-arbitrage determines the
+growth rate of the locally riskless position. The full pricing argument is
+the subject of Lecture 5.
+
+\subsection{Convexity and realized variance}
+
+For \(f\) with no explicit time dependence and
+\[
+\dd X_t=a_t\dd t+b_t\dd W_t,
+\]
+the transformed drift is
+\[
+f'(X_t)a_t+\frac12b_t^2f''(X_t).
+\]
+Hence
+\[
+\begin{array}{lcc}
+\toprule
+\text{shape of }f & \text{sign of }f'' & \text{volatility correction}\\
+\midrule
+\text{convex} & f''\geq0 & \text{nonnegative}\\
+\text{linear} & f''=0 & 0\\
+\text{concave} & f''\leq0 & \text{nonpositive}\\
+\bottomrule
+\end{array}
+\]
+Volatility raises the drift of a convex transform and lowers the drift of a
+concave transform. The examples \(x^2\) and \(\log x\) display the two signs.
+
+For a positive asset,
+\[
+\frac{\dd S_t}{S_t}
+=\mu_t\dd t+\sigma_t\dd W_t,
+\qquad
+\dd\log S_t
+=\left(\mu_t-\frac12\sigma_t^2\right)\dd t
++\sigma_t\dd W_t.
+\]
+Consequently,
+\[
+\boxed{
+[\log S]_T=\int_0^T\sigma_t^2\dd t.}
+\]
+Squared high-frequency log returns estimate this integrated variance.
+
+\begin{boardexample}{four-day realized variance}
+For log returns
+\[
+1.0\%,\quad -0.5\%,\quad 0.7\%,\quad -0.2\%,
+\]
+the realized variance is
+\[
+\widehat{RV}
+=0.01^2+(-0.005)^2+0.007^2+(-0.002)^2
+=1.78\times10^{-4}.
+\]
+Annualizing over four trading days,
+\[
+\boxed{
+\widehat\sigma_{\mathrm{ann}}
+=\sqrt{\frac{252}{4}\widehat{RV}}
+\approx10.6\%.}
+\]
+\end{boardexample}
+
+% ============================================================
+\section{Guided Practice and Common Traps}
+% ============================================================
+
+\subsection{Rapid practice}
+
+\begin{studentexercise}{three transformations}
+Compute:
+\begin{enumerate}
+  \item \(\dd Y_t\) for \(Y_t=e^{\alpha t+\beta W_t}\);
+  \item \(\dd Z_t\) for \(Z_t=W_tB_t\) and
+        \(\dd W_t\dd B_t=\rho\dd t\);
+  \item an expression without a stochastic integral for
+        \(\int_0^te^{W_s}\dd W_s\).
+\end{enumerate}
+\end{studentexercise}
+\begin{shortsolution}
+\[
+\dd Y_t
+=Y_t\left(\alpha+\frac12\beta^2\right)\dd t
++\beta Y_t\dd W_t,
+\]
+\[
+\dd Z_t
+=W_t\dd B_t+B_t\dd W_t+\rho\dd t,
+\]
+and
+\[
+\boxed{
+\int_0^te^{W_s}\dd W_s
+=e^{W_t}-1-\frac12\int_0^te^{W_s}\dd s.}
+\]
+The last identity comes from integrating
+\(\dd(e^{W_t})=e^{W_t}\dd W_t+\tfrac12e^{W_t}\dd t\).
+\end{shortsolution}
+
+\begin{studentexercise}{manufacture a trigonometric martingale}
+Let
+\[
+M_t=e^{at}\cos(bW_t).
+\]
+Choose \(a\) to remove the drift, then verify that \(M\) is a true
+martingale on every bounded horizon.
+\end{studentexercise}
+\begin{shortsolution}
+\[
+\dd M_t
+=e^{at}\left(a-\frac12b^2\right)\cos(bW_t)\dd t
+-be^{at}\sin(bW_t)\dd W_t.
+\]
+Thus \(a=b^2/2\). On \([0,T]\),
+\[
+\E\int_0^Tb^2e^{b^2t}\sin^2(bW_t)\dd t
+\leq b^2\int_0^Te^{b^2t}\dd t<\infty.
+\]
+The stochastic integral is therefore in \(L^2\), so \(M\) is a true
+martingale.
+\end{shortsolution}
+
+\begin{studentexercise}{quadratic variation after a nonlinear transform}
+Let \(X_t=W_t^2-t\). Find \(\dd X_t\) and \([X]_t\). Is \(X\) a true
+martingale on bounded horizons?
+\end{studentexercise}
+\begin{shortsolution}
+\[
+\dd X_t=2W_t\dd W_t,
+\qquad
+\boxed{[X]_t=4\int_0^tW_s^2\dd s.}
+\]
+Since \(\E\int_0^T4W_s^2\dd s=2T^2<\infty\), \(X\) is a square-integrable
+martingale on every bounded horizon.
+\end{shortsolution}
+
+\subsection{Error diagnosis}
+
+\begin{studentexercise}{find and correct four mistakes}
+Suppose
+\(\dd X_t=a_t\dd t+b_t\dd W_t\),
+\(\dd W_t\dd B_t=\rho\dd t\),
+\(\dd S_t/S_t=\mu\dd t+\sigma\dd W_t^{\Pp}\), and
+\(\dd A_t/A_t=r\dd t\). Correct:
+\[
+\begin{aligned}
+\dd f(t,X_t)
+&=f_x\dd X_t+\frac12b_tf_{xx}\dd t,\\
+\dd(W_tB_t)
+&=W_t\dd B_t+B_t\dd W_t,\\
+\text{zero drift}
+&\Longrightarrow\text{true martingale},\\
+\frac{\dd(S_t/A_t)}{S_t/A_t}
+&=\sigma\dd W_t^{\Pp}.
+\end{aligned}
+\]
+\end{studentexercise}
+\begin{shortsolution}
+\[
+\begin{aligned}
+\dd f(t,X_t)
+&=\left(f_t+a_tf_x+\frac12b_t^2f_{xx}\right)\dd t
++b_tf_x\dd W_t,\\
+\dd(W_tB_t)
+&=W_t\dd B_t+B_t\dd W_t+\rho\dd t,\\
+\text{zero drift}
+&\Longrightarrow\text{local martingale first},\\
+\frac{\dd(S_t/A_t)}{S_t/A_t}
+&=(\mu-r)\dd t+\sigma\dd W_t^{\Pp}.
+\end{aligned}
+\]
+The missing ingredients were, respectively: the time derivative and squared
+diffusion coefficient; covariation; an integrability check; and the
+physical excess-return drift.
+\end{shortsolution}
+
+\subsection{A compact end-of-lecture checklist}
+
+\begin{keyidea}{Eight checks for every \(\Ito\) calculation}
+\begin{enumerate}
+  \item Identify the time and state variables.
+  \item Compute \(f_t,f_x,f_{xx}\) before substituting the process.
+  \item Write every driving SDE and covariation.
+  \item Use \((\dd W)^2=\dd t\) and
+        \(\dd W\dd B=\rho\dd t\).
+  \item Retain every term of order \(\dd t\).
+  \item Group the final answer into drift and diffusion.
+  \item Check the domain, regularity, and integrability assumptions.
+  \item In a financial argument, state the probability measure and explain
+        the financing convention.
+\end{enumerate}
+\end{keyidea}
+
+\begin{warningbox}{When the classical formula is not enough}
+The formula in this lecture assumes \(f\in C^{1,2}\). It does not apply
+directly at the kink of
+\[
+f(x)=|x|
+\qquad\text{or}\qquad
+f(s)=(s-K)^+.
+\]
+For nonsmooth convex functions, a local-time term appears in the generalized
+\(\Ito\)--Tanaka formula. Before differentiating, locate singularities and
+ask whether the process can reach them.
+\end{warningbox}
+
+\begin{keyidea}{Final synthesis}
+\begin{itemize}
+  \item Brownian quadratic variation makes stochastic calculus second order.
+  \item Covariation turns correlation into a \(\dd t\)-term.
+  \item The \(\Ito\) formula is a chain rule plus a curvature correction.
+  \item Logarithms and integrating factors solve GBM, OU, and moment problems
+        for CIR.
+  \item Products, ratios, discounting, realized variance, and delta hedging
+        all use the same multiplication table.
+  \item Zero drift implies a local martingale first; suitable integrability
+        upgrades it to a true martingale.
+\end{itemize}
+\end{keyidea}
+
+\end{document}

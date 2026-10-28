@@ -1,0 +1,243 @@
+% !TEX program = pdflatex
+\documentclass[10pt]{article}
+\usepackage[utf8]{inputenc}\usepackage[T1]{fontenc}\usepackage[english]{babel}
+\usepackage{lmodern,microtype}\usepackage[margin=.72in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools,booktabs,array,xcolor,enumitem}
+\usepackage[most]{tcolorbox}\usepackage{fancyhdr}\usepackage[hidelinks]{hyperref}
+\definecolor{CourseBlue}{HTML}{1A3C68}\definecolor{CourseGreen}{HTML}{216E39}
+\definecolor{CourseGold}{HTML}{B8860B}\definecolor{CourseRed}{HTML}{9A2C2C}
+\definecolor{SoftBlue}{HTML}{F2F6FA}\definecolor{SoftGreen}{HTML}{F1F8F3}
+\definecolor{SoftGold}{HTML}{FFF8E8}\definecolor{SoftRed}{HTML}{FFF3F3}
+\setlength{\parindent}{0pt}\setlength{\parskip}{.32em}
+\setlist[itemize]{leftmargin=1.5em,itemsep=.12em,topsep=.2em}
+\setlist[enumerate]{leftmargin=1.7em,itemsep=.12em,topsep=.2em}
+\pagestyle{fancy}\fancyhf{}\lhead{Stochastic Calculus and Option Pricing}
+\rhead{Lecture 12 Notes}\cfoot{\thepage}\renewcommand{\headrulewidth}{.3pt}
+\newcommand{\E}{\mathbb E}\newcommand{\Q}{\mathbb Q}\newcommand{\cF}{\mathcal F}
+\newcommand{\dd}{\,\mathrm d}\newcommand{\Var}{\operatorname{Var}}
+\theoremstyle{definition}\newtheorem{definition}{Definition}[section]
+\newtheorem{proposition}[definition]{Proposition}
+\newtcolorbox{boardexample}[1]{enhanced,breakable,colback=SoftBlue,colframe=CourseBlue,boxrule=.55pt,arc=1mm,title={Example --- #1},fonttitle=\bfseries}
+\newtcolorbox{studentexercise}[1]{enhanced,breakable,colback=SoftGold,colframe=CourseGold,boxrule=.55pt,arc=1mm,title={Exercise --- #1},fonttitle=\bfseries}
+\newtcolorbox{shortsolution}[1][]{enhanced,breakable,colback=SoftGreen,colframe=CourseGreen,boxrule=.55pt,arc=1mm,title={Short solution#1},fonttitle=\bfseries}
+\newtcolorbox{keyidea}[1]{enhanced,breakable,colback=white,colframe=CourseGreen,boxrule=.7pt,arc=1mm,title={#1},fonttitle=\bfseries}
+\newtcolorbox{warningbox}[1]{enhanced,breakable,colback=SoftRed,colframe=CourseRed,boxrule=.65pt,arc=1mm,title={#1},fonttitle=\bfseries}
+\title{\textbf{Beyond Black--Scholes}\\\large Lecture 12 Notes --- Local Volatility, Stochastic Volatility, and Stochastic Rates}
+\author{}\date{}
+\begin{document}\maketitle\vspace{-1.4em}
+\begin{keyidea}{Goals and logical structure}
+A useful model must explain the prices and risks that matter:
+\[
+\text{implied-volatility surface}\longrightarrow\text{local volatility}
+\longrightarrow\text{random volatility}\longrightarrow\text{random discounting}.
+\]
+The trade-off is fit, realism, hedging, and tractability.
+\end{keyidea}
+
+\section{Why Black--Scholes is not enough}
+Under Black--Scholes,
+\[
+\frac{\dd S_t}{S_t}=r\dd t+\sigma\dd W_t^\Q,
+\qquad\sigma\text{ constant}.
+\]
+If this were exact, implied volatility would be constant across strikes and
+maturities. Markets instead quote a surface
+\((K,T)\mapsto\sigma_{\rm imp}(K,T)\), with smiles, skews, and term
+structure.
+\begin{boardexample}{equity skew}
+For a fixed maturity, equity implied volatility typically satisfies
+\[
+\sigma_{\rm imp}(K_{\rm low})>
+\sigma_{\rm imp}(K_{\rm ATM})>
+\sigma_{\rm imp}(K_{\rm high}).
+\]
+Low-strike puts insure severe declines; their demand and price are high.
+Implied volatility is the Black--Scholes parameter matching a quote, not a
+literal historical volatility of that option.
+\end{boardexample}
+\begin{keyidea}{Three extensions, three questions}
+\begin{center}
+\begin{tabular}{p{.27\textwidth}|p{.28\textwidth}|p{.28\textwidth}}
+\toprule
+Observed issue & Extension & Main purpose\\\midrule
+Static vanilla smile & local volatility & fit prices today\\
+Volatility dynamics & stochastic volatility & model future smile and vol risk\\
+Yield-curve risk & stochastic rates & model bonds and discounting\\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{keyidea}
+
+\section{Local volatility fits today's surface}
+\subsection{One-factor state-dependent variance}
+\begin{definition}[Local-volatility model]
+Under \(\Q\),
+\[
+\frac{\dd S_t}{S_t}=r\dd t+
+\sigma_{\rm loc}(t,S_t)\dd W_t.
+\]
+The instantaneous variance depends deterministically on time and current
+spot. The model remains one-factor Markovian.
+\end{definition}
+For European payoff \(g(S_T)\), the price solves
+\[
+u_t+rsu_s+\frac12\sigma_{\rm loc}(t,s)^2s^2u_{ss}-ru=0,
+\qquad u(T,s)=g(s).
+\]
+Only the constant variance of Black--Scholes has been replaced.
+
+\subsection{Dupire calibration}
+With constant rates and no dividends, an arbitrage-free call-price surface
+\(C(T,K)\) gives formally
+\[
+\boxed{
+\sigma_{\rm loc}(T,K)^2=
+\frac{C_T(T,K)+rK C_K(T,K)}
+{\frac12K^2C_{KK}(T,K)}.}
+\]
+Strike convexity is crucial:
+\[
+C_{KK}(T,K)=e^{-rT}p_{S_T}^{\Q}(K)\geq0.
+\]
+\begin{warningbox}{Differentiate a clean surface, not raw quotes}
+Dupire uses a second strike derivative. Noise in a sparse quote table is
+amplified and can give negative or unstable local variance. First build a
+smooth, arbitrage-free price or implied-volatility surface.
+\end{warningbox}
+\begin{studentexercise}{local or extra state?}
+Does local volatility introduce an additional random factor besides \(S_t\)?
+\end{studentexercise}
+\begin{shortsolution}
+No. \(\sigma_{\rm loc}(t,S_t)\) is a deterministic function of the current
+time and stock. The state remains \((t,S_t)\).
+\end{shortsolution}
+\begin{keyidea}{Strength and limitation}
+Local volatility can reproduce a clean grid of vanilla prices today. It
+also prescribes future smile motion through a deterministic spot-time rule;
+that future dynamics need not be realistic for exotic hedging.
+\end{keyidea}
+
+\section{Stochastic volatility makes variance a risk factor}
+\subsection{A two-factor model}
+A generic specification is
+\[
+\frac{\dd S_t}{S_t}=r\dd t+\sqrt{V_t}\dd W_t^{(1)},\qquad
+\dd V_t=b(t,V_t)\dd t+a(t,V_t)\dd W_t^{(2)},
+\]
+\[
+\dd\langle W^{(1)},W^{(2)}\rangle_t=\rho\dd t.
+\]
+The Markov state is now \((S_t,V_t)\). Two paths with the same spot can have
+different option values if their current variance levels differ.
+
+\begin{boardexample}{Heston}
+\[
+\frac{\dd S_t}{S_t}=r\dd t+\sqrt{V_t}\dd W_t^{(1)},\qquad
+\dd V_t=\kappa(\theta-V_t)\dd t+\eta\sqrt{V_t}\dd W_t^{(2)}.
+\]
+\(\theta\) is the long-run variance, \(\kappa\) mean-reversion speed,
+\(\eta\) volatility of volatility, and \(\rho\) spot-variance correlation.
+\end{boardexample}
+
+The conditional mean illustrates mean reversion:
+\[
+\E[V_T\mid V_t=v]=\theta+(v-\theta)e^{-\kappa(T-t)}.
+\]
+In equities, \(\rho<0\) captures the leverage effect: a negative stock
+shock tends to accompany higher variance, making downside puts relatively
+expensive and generating skew.
+
+\begin{warningbox}{Richer dynamics imply hedging risk}
+There are two sources of randomness but often only stock and cash are
+traded. The model is generally incomplete: stock delta alone cannot
+perfectly hedge variance risk. Liquid vanilla options are often used as
+additional risk-management instruments.
+\end{warningbox}
+\begin{studentexercise}{choose a volatility model}
+Which model is more natural for a payoff sensitive to future realized
+volatility: local or stochastic volatility?
+\end{studentexercise}
+\begin{shortsolution}
+Stochastic volatility, because it retains a random variance state whose
+future dynamics can affect the payoff and hedge.
+\end{shortsolution}
+
+\section{Stochastic rates make discounting random}
+\subsection{Bonds and the yield curve}
+With short rate \(r_t\),
+\[
+D(t,T)=\exp\left(-\int_t^T r_s\dd s\right),\qquad
+P(t,T)=\E^\Q[D(t,T)\mid\cF_t].
+\]
+The curve can be parameterized equivalently by
+\[
+P(t,T)=e^{-R(t,T)(T-t)},\qquad
+R(t,T)=-\frac{\log P(t,T)}{T-t},\qquad
+f(t,T)=-\partial_T\log P(t,T).
+\]
+\begin{boardexample}{a curve calculation}
+If \(P(0,1)=.96\) and \(P(0,2)=.90\), then
+\[
+R(0,2)=-\tfrac12\log(.90)=5.27\%,
+\qquad L(0;1,2)=\frac{.96}{.90}-1=6.67\%.
+\]
+The second-year forward rate exceeds the two-year average zero rate.
+\end{boardexample}
+
+\subsection{Short-rate and forward-rate models}
+A short-rate model specifies \(r_t\) and derives bond prices. Examples:
+\[
+\dd r_t=a(b-r_t)\dd t+\sigma\dd W_t\quad\text{(Vasicek)},
+\]
+\[
+\dd r_t=a(b-r_t)\dd t+\sigma\sqrt{r_t}\dd W_t\quad\text{(CIR)}.
+\]
+HJM starts directly from the forward curve,
+\[
+\dd f(t,T)=\alpha(t,T)\dd t+\sigma(t,T)\dd W_t.
+\]
+Under the risk-neutral measure, no-arbitrage determines the drift
+\(\alpha\) once forward-rate volatility is chosen.
+
+\begin{studentexercise}{when are rates material?}
+Is deterministic discounting a more defensible approximation for a
+one-month vanilla equity option or for a five-year callable bond?
+\end{studentexercise}
+\begin{shortsolution}
+The short-dated equity option is the more defensible case. A callable bond
+is directly exposed to the future yield curve and an exercise decision, so
+stochastic rates are material.
+\end{shortsolution}
+
+\section{Calibration and model choice}
+\begin{keyidea}{Calibration is a market-pricing step}
+Local volatility fits an arbitrage-free vanilla surface. Stochastic
+volatility fits it through parameters such as
+\(\kappa,\theta,\eta,\rho,V_0\). Rate models fit the initial curve together
+with liquid caps, swaptions, or bond-option prices. Calibration aligns a
+model with tradable prices before it is used for valuation or risk.
+\end{keyidea}
+\begin{warningbox}{Use the least complex model that captures material risk}
+Local volatility is a natural first benchmark for accurate current vanilla
+fit. A long-dated equity-linked payoff with rate exposure may need
+stochastic volatility and stochastic rates. More factors mean more
+calibration burden and more hedging uncertainty.
+\end{warningbox}
+\begin{studentexercise}{final model choice}
+A desk must hedge a barrier option and reproduce the current vanilla smile
+surface accurately. What is the natural first benchmark, and what caveat
+remains?
+\end{studentexercise}
+\begin{shortsolution}
+Local volatility is the natural first benchmark because it fits today's
+vanilla surface. Its future smile dynamics can be unrealistic, so hedge
+performance remains model dependent.
+\end{shortsolution}
+\begin{keyidea}{Final synthesis}
+\[
+\boxed{\text{Market prices}\longrightarrow\text{model assumptions}
+\longrightarrow\text{calibration}\longrightarrow\text{pricing and hedging}.}
+\]
+A richer model earns its place only by explaining a material source of risk.
+\end{keyidea}
+\end{document}

@@ -1,0 +1,1306 @@
+% !TEX program = pdflatex
+\documentclass[10pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[margin=0.72in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage[most]{tcolorbox}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{CourseBlue}{HTML}{1A3C68}
+\definecolor{CourseGreen}{HTML}{216E39}
+\definecolor{CourseGold}{HTML}{B8860B}
+\definecolor{CourseRed}{HTML}{9A2C2C}
+\definecolor{SoftBlue}{HTML}{F2F6FA}
+\definecolor{SoftGreen}{HTML}{F1F8F3}
+\definecolor{SoftGold}{HTML}{FFF8E8}
+\definecolor{SoftRed}{HTML}{FFF3F3}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.32em}
+\setlist[itemize]{leftmargin=1.5em,itemsep=0.12em,topsep=0.2em}
+\setlist[enumerate]{leftmargin=1.7em,itemsep=0.12em,topsep=0.2em}
+\allowdisplaybreaks
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Stochastic Calculus and Option Pricing}
+\rhead{Lecture 3 Notes}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+
+\newcommand{\E}{\mathbb E}
+\newcommand{\Pbb}{\mathbb P}
+\newcommand{\R}{\mathbb R}
+\newcommand{\1}{\mathbf 1}
+\newcommand{\cF}{\mathcal F}
+\newcommand{\dd}{\,\mathrm d}
+\newcommand{\Ito}{\mathrm{It\hat{o}}}
+\newcommand{\norm}[1]{\left\lVert #1\right\rVert}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\Cov}{Cov}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{proposition}[definition]{Proposition}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{corollary}[definition]{Corollary}
+\newtheorem{remark}[definition]{Remark}
+
+\newtcolorbox{boardexample}[1]{
+  enhanced,breakable,colback=SoftBlue,colframe=CourseBlue,
+  boxrule=0.55pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.55em,after skip=0.55em,
+  title={Example --- #1},fonttitle=\bfseries}
+\newtcolorbox{studentexercise}[1]{
+  enhanced,breakable,colback=SoftGold,colframe=CourseGold,
+  boxrule=0.55pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.55em,after skip=0.35em,
+  title={Exercise --- #1},fonttitle=\bfseries}
+\newtcolorbox{shortsolution}[1][]{
+  enhanced,breakable,colback=SoftGreen,colframe=CourseGreen,
+  boxrule=0.55pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.25em,after skip=0.6em,
+  title={Short solution#1},fonttitle=\bfseries}
+\newtcolorbox{keyidea}[1]{
+  enhanced,breakable,colback=white,colframe=CourseGreen,
+  boxrule=0.7pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.5em,after skip=0.5em,
+  title={#1},fonttitle=\bfseries}
+\newtcolorbox{warningbox}[1]{
+  enhanced,breakable,colback=SoftRed,colframe=CourseRed,
+  boxrule=0.65pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.5em,after skip=0.5em,
+  title={#1},fonttitle=\bfseries}
+
+\title{\textbf{Stochastic Integration: Intuition, Construction, and Applications}\\
+\large Lecture 3 Notes --- Class Support and Student Summary}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-1.4em}
+
+\begin{keyidea}{Goals and logical structure}
+The stochastic integral is built from left-point trading gains. The construction
+has three layers:
+\begin{enumerate}
+  \item define the integral for simple predictable processes;
+  \item prove the \(\Ito\) isometry;
+  \item extend by completion in \(L^2(\Omega\times[0,T])\).
+\end{enumerate}
+Under the expected finite-energy condition, the resulting gain process is a
+square-integrable martingale. Deterministic integrands then give explicit
+Gaussian applications, while the example \(\int W\dd W\) reveals the role of
+Brownian quadratic variation. The final section translates the construction
+into reliable simulation rules.
+\end{keyidea}
+
+% ============================================================
+\section{Why Brownian Motion Needs a New Integral}
+% ============================================================
+
+\subsection{From discrete trading gains to a continuous-time target}
+
+Fix a grid
+\[
+0=t_0<t_1<\cdots<t_n=T.
+\]
+If \(\phi_{t_i}\) is the number of shares selected at time \(t_i\) and held
+over \((t_i,t_{i+1}]\), the self-financing gain is
+\[
+G_T^\pi=\sum_{i=0}^{n-1}\phi_{t_i}
+\bigl(S_{t_{i+1}}-S_{t_i}\bigr).
+\]
+The continuous-time notation
+\[
+\int_0^T\phi_t\dd S_t
+\]
+should preserve this economic meaning: position chosen before a price move,
+multiplied by that fresh move, and then summed through time.
+
+For a differentiable path \(S\), ordinary calculus would give
+\[
+\int_0^T\phi_t\dd S_t=\int_0^T\phi_tS'_t\dd t.
+\]
+More generally, Riemann--Stieltjes integration works well when the integrator
+has finite variation. Brownian paths have neither property: almost surely they
+are nowhere differentiable and have infinite total variation on every
+nontrivial interval.
+
+The scaling already explains the difficulty. Over an interval of length
+\(\Delta t\),
+\[
+\Delta W\sim\mathcal N(0,\Delta t),
+\qquad |\Delta W|\text{ is typically of order }\sqrt{\Delta t}.
+\]
+On a uniform grid with \(n\) intervals, the sum of absolute increments is
+therefore heuristically of order
+\[
+n\sqrt{T/n}=\sqrt{nT}\longrightarrow\infty.
+\]
+
+\subsection{Quadratic variation is the surviving scale}
+
+For a partition \(\pi\), define
+\[
+Q_T^\pi(W)=\sum_i\bigl(W_{t_{i+1}}-W_{t_i}\bigr)^2.
+\]
+
+\begin{theorem}[Quadratic variation on a uniform grid]
+If \(t_i=iT/n\), then
+\[
+Q_T^{(n)}(W)\xrightarrow[n\to\infty]{L^2}T.
+\]
+In particular, the convergence holds in probability.
+\end{theorem}
+
+\begin{proof}
+Write \(\Delta W_i=W_{t_{i+1}}-W_{t_i}\) and \(\Delta t=T/n\). The
+increments are independent and \(\Delta W_i\sim\mathcal N(0,\Delta t)\).
+Thus
+\[
+\E[Q_T^{(n)}]=\sum_i\E[(\Delta W_i)^2]=n\Delta t=T.
+\]
+For a centered Gaussian variable with variance \(\sigma^2\),
+\(\Var(Z^2)=2\sigma^4\). Hence
+\[
+\Var(Q_T^{(n)})
+=\sum_i\Var((\Delta W_i)^2)
+=2n(\Delta t)^2
+=\frac{2T^2}{n}\longrightarrow0.
+\]
+Therefore \(\E[(Q_T^{(n)}-T)^2]\to0\).
+\end{proof}
+
+The key point is the change of scale:
+\[
+\sum_i|\Delta W_i|\longrightarrow\infty,
+\qquad
+\sum_i(\Delta W_i)^2\longrightarrow T.
+\]
+The second-order term does not disappear under refinement. It will create the
+correction terms characteristic of stochastic calculus.
+
+\subsection{The sampling convention matters}
+
+Take the random integrand \(\phi_t=W_t\) and compare the left- and right-point
+sums
+\[
+L^\pi=\sum_iW_{t_i}\Delta W_i,
+\qquad
+R^\pi=\sum_iW_{t_{i+1}}\Delta W_i.
+\]
+Since \(W_{t_{i+1}}=W_{t_i}+\Delta W_i\),
+\[
+R^\pi-L^\pi=\sum_i(\Delta W_i)^2\longrightarrow T.
+\]
+Thus the two natural-looking conventions differ by an order-one quantity.
+There is no convention-free object called \(\int W\dd W\). The \(\Ito\)
+integral chooses left endpoints.
+
+\subsection{Filtration and predictability}
+
+Work on a filtered probability space
+\((\Omega,\cF,(\cF_t)_{t\geq0},\Pbb)\) supporting Brownian motion \(W\).
+At time \(t_i\), the trader knows \(\cF_{t_i}\). A legal position for the
+next interval must be \(\cF_{t_i}\)-measurable.
+
+\begin{definition}[Discrete predictability]
+The coefficient used on \((t_i,t_{i+1}]\) is predictable when it is determined
+by the information available at \(t_i\). Equivalently, it may depend on the
+past and present, but not on \(\Delta W_i=W_{t_{i+1}}-W_{t_i}\).
+\end{definition}
+
+This is why left endpoints are not a cosmetic convention. They encode the
+information constraint of non-anticipative trading.
+
+\begin{studentexercise}{which rules are admissible?}
+On the grid \(0,1,2\), decide whether each rule is predictable:
+\begin{enumerate}
+  \item \(\phi_0=1\), \(\phi_1=1+W_1^2\);
+  \item \(\phi_0=\operatorname{sign}(W_1)\), \(\phi_1=0\);
+  \item \(\phi_0=0\), \(\phi_1=\1_{\{W_1>0\}}\);
+  \item \(\phi_i=\operatorname{sign}(\Delta W_i)\).
+\end{enumerate}
+\end{studentexercise}
+
+\begin{shortsolution}
+Rules 1 and 3 are admissible. In rule 1, \(1+W_1^2\) is known at time 1;
+in rule 3, \(\{W_1>0\}\in\cF_1\). Rule 2 uses \(W_1\) at time 0, and rule
+4 uses the future increment itself, so both anticipate.
+\end{shortsolution}
+
+If \(\phi_{t_i}\in\cF_{t_i}\) and the products are integrable, then
+\[
+\E[\phi_{t_i}\Delta W_i\mid\cF_{t_i}]
+=\phi_{t_i}\E[\Delta W_i\mid\cF_{t_i}]=0.
+\]
+Consequently, \(\E[G_T^\pi]=0\). A predictable strategy can reshape risk,
+but cannot manufacture an average drift from Brownian increments.
+
+% ============================================================
+\section{Construction from Simple Predictable Processes}
+% ============================================================
+
+\subsection{The integrability class}
+
+The intended integrands satisfy two conditions:
+\[
+\phi\text{ is predictable},
+\qquad
+\E\int_0^T\phi_t^2\dd t<\infty.
+\]
+The second assumption is called the \emph{expected finite-energy condition}.
+It means precisely that
+\[
+\phi\in L^2(\Omega\times[0,T],\Pbb\otimes\dd t).
+\]
+The square is natural because a Brownian increment over length \(\Delta t\)
+has variance \(\Delta t\): the contribution of a position \(\phi\) to gain
+variance is therefore proportional to \(\phi^2\Delta t\).
+
+\begin{warningbox}{Integrability is part of the definition, not an afterthought}
+Predictability controls information; square integrability controls size. Both
+are needed for the \(L^2\) construction. Later, the same assumption will imply
+that the gain at every time belongs to \(L^2\subset L^1\), which is essential
+before one may call the gain process a martingale.
+\end{warningbox}
+
+\subsection{Definition for simple processes}
+
+\begin{definition}[Simple predictable process]
+Fix \(0=t_0<t_1<\cdots<t_n=T\). A simple predictable process has the form
+\[
+\phi_t=\sum_{i=0}^{n-1}\xi_i\1_{(t_i,t_{i+1}]}(t),
+\qquad
+\xi_i\in\cF_{t_i},
+\]
+with \(\E[\xi_i^2]<\infty\). The coefficient \(\xi_i\) is selected at time
+\(t_i\) and held over the next interval.
+\end{definition}
+
+\begin{definition}[\(\Ito\) integral of a simple process]
+For such a process, define
+\[
+\boxed{
+\int_0^T\phi_t\dd W_t
+:=\sum_{i=0}^{n-1}\xi_i
+\bigl(W_{t_{i+1}}-W_{t_i}\bigr).}
+\]
+\end{definition}
+
+The definition is literally the discrete gain formula. It immediately gives
+the sanity checks
+\[
+\int_0^Tc\dd W_t=cW_T,
+\qquad
+\int_0^T\1_{(a,b]}(t)\dd W_t=W_b-W_a,
+\]
+and time additivity
+\[
+\int_s^t\phi_r\dd W_r
+=\int_s^u\phi_r\dd W_r+\int_u^t\phi_r\dd W_r,
+\qquad s\leq u\leq t.
+\]
+The map is linear in the integrand. Processes that agree
+\((\Pbb\otimes\dd t)\)-almost everywhere have the same integral almost surely.
+
+\begin{boardexample}{a deterministic step strategy}
+Let \(T=3\) and
+\[
+\phi_t=2\1_{(0,1]}(t)-\1_{(1,3]}(t).
+\]
+Then
+\[
+I=\int_0^3\phi_t\dd W_t
+=2W_1-(W_3-W_1).
+\]
+The two increments are independent, so
+\[
+I\sim\mathcal N(0,4\cdot1+1\cdot2)=\mathcal N(0,6).
+\]
+Each interval contributes
+\((\text{position})^2\times(\text{interval length})\) to the variance.
+\end{boardexample}
+
+\begin{studentexercise}{switch after observing \(W_1\)}
+Let \(A=\{W_1>0\}\) and
+\[
+\phi_t=\1_A\1_{(1,2]}(t).
+\]
+Explain why \(\phi\) is predictable, write its integral without integral
+notation, compute its first two moments, and determine whether its law is
+Gaussian.
+\end{studentexercise}
+
+\begin{shortsolution}
+Since \(A\in\cF_1\), the position is known before \((1,2]\), and
+\[
+I=\int_0^2\phi_t\dd W_t=\1_A(W_2-W_1).
+\]
+The event \(A\) is independent of the fresh increment
+\(W_2-W_1\sim\mathcal N(0,1)\). Hence
+\[
+\E[I]=0,
+\qquad
+\E[I^2]=\Pbb(A)\E[(W_2-W_1)^2]=\frac12.
+\]
+However, \(\Pbb(I=0)=\Pbb(A^c)=1/2\). Thus
+\[
+\mathcal L(I)=\frac12\delta_0+\frac12\mathcal N(0,1),
+\]
+which is not Gaussian. Random predictable integrands do not generally produce
+Gaussian stochastic integrals.
+\end{shortsolution}
+
+\subsection{The accumulated gain process}
+
+For a simple process, define
+\[
+M_t=\int_0^t\phi_s\dd W_s.
+\]
+On \((t_i,t_{i+1}]\),
+\[
+M_t=M_{t_i}+\xi_i(W_t-W_{t_i}).
+\]
+Thus the gain already accumulated is carried forward, while the current
+position multiplies the fresh Brownian move. This interpretation survives the
+\(L^2\) extension below.
+
+% ============================================================
+\section{The \texorpdfstring{\(\Ito\)}{Ito} Isometry and the
+\texorpdfstring{\(L^2\)}{L2} Extension}
+% ============================================================
+
+\subsection{Orthogonality of fresh increments}
+
+Let \(\Delta W_i=W_{t_{i+1}}-W_{t_i}\). Brownian increments on disjoint
+intervals are independent, so
+\[
+\E[\Delta W_i\Delta W_j]=0\quad(i\neq j),
+\qquad
+\E[(\Delta W_i)^2]=t_{i+1}-t_i.
+\]
+For random predictable coefficients, the operational identity is
+\[
+\E[\xi_i\Delta W_i\mid\cF_{t_i}]
+=\xi_i\E[\Delta W_i\mid\cF_{t_i}]=0.
+\]
+The later Brownian increment is fresh after conditioning on everything known
+before it. This conditional centering is what removes every off-diagonal term
+in the second-moment calculation.
+
+\begin{theorem}[\(\Ito\) isometry for simple predictable processes]
+If \(\phi\) is simple, predictable, and square-integrable, then
+\[
+\boxed{
+\E\left[\left(\int_0^T\phi_t\dd W_t\right)^2\right]
+=\E\int_0^T\phi_t^2\dd t.}
+\]
+Equivalently,
+\[
+\norm{\int_0^T\phi_t\dd W_t}_{L^2(\Omega)}
+=\norm{\phi}_{L^2(\Omega\times[0,T])}.
+\]
+\end{theorem}
+
+\begin{proof}
+Write \(I=\sum_i\xi_i\Delta W_i\). Expanding the square gives
+\[
+\E[I^2]
+=\sum_i\E[\xi_i^2(\Delta W_i)^2]
++2\sum_{i<j}\E[\xi_i\Delta W_i\,\xi_j\Delta W_j].
+\]
+If \(i<j\), then \(\xi_i\Delta W_i\xi_j\) is
+\(\cF_{t_j}\)-measurable. Hence
+\begin{align*}
+\E[\xi_i\Delta W_i\,\xi_j\Delta W_j]
+&=\E\!\left[
+\xi_i\Delta W_i\xi_j
+\E[\Delta W_j\mid\cF_{t_j}]
+\right]\\
+&=0.
+\end{align*}
+On the diagonal, \(\Delta W_i\) is independent of \(\cF_{t_i}\), so
+\[
+\E[\xi_i^2(\Delta W_i)^2]
+=\E[\xi_i^2](t_{i+1}-t_i).
+\]
+Therefore
+\[
+\E[I^2]
+=\sum_i\E[\xi_i^2](t_{i+1}-t_i)
+=\E\int_0^T\phi_t^2\dd t.
+\]
+\end{proof}
+
+\begin{keyidea}{Geometric interpretation}
+The stochastic integral is an isometry: it transforms an exposure profile in
+\(L^2(\Omega\times[0,T])\) into a terminal random gain in \(L^2(\Omega)\)
+without changing its squared norm. Integrand energy becomes gain variance.
+\end{keyidea}
+
+\subsection{Mean, covariance, and risk bounds}
+
+The same conditioning argument gives
+\[
+\E\left[\int_0^T\phi_t\dd W_t\right]=0.
+\]
+Applying the isometry to \(\phi+\psi\) and \(\phi-\psi\), or expanding
+directly, gives the polarization identity.
+
+\begin{proposition}[Covariance identity]
+For square-integrable predictable \(\phi\) and \(\psi\),
+\[
+\boxed{
+\E\left[
+\left(\int_0^T\phi_t\dd W_t\right)
+\left(\int_0^T\psi_t\dd W_t\right)
+\right]
+=\E\int_0^T\phi_t\psi_t\dd t.}
+\]
+\end{proposition}
+
+Define the pathwise exposure and its expected energy by
+\[
+\mathcal E_T(\phi)=\int_0^T\phi_t^2\dd t,
+\qquad
+\E[\mathcal E_T(\phi)]=\E\int_0^T\phi_t^2\dd t.
+\]
+The isometry implies:
+\begin{itemize}
+  \item multiplying the position by \(c\) multiplies gain variance by \(c^2\);
+  \item holding a fixed position twice as long doubles its variance contribution;
+  \item moving exposure across time may preserve terminal variance while changing
+        the whole gain path.
+\end{itemize}
+If \(|\phi_t|\leq L\), then
+\[
+\Var\left(\int_0^T\phi_t\dd W_t\right)
+=\E\int_0^T\phi_t^2\dd t\leq L^2T.
+\]
+
+\begin{studentexercise}{same terminal risk, different timing}
+On \([0,1]\), compare
+\[
+\phi_t=1,
+\qquad
+\psi_t=\sqrt2\,\1_{(0,1/2]}(t).
+\]
+Compute their energies and stochastic integrals. Compare their terminal laws
+and their gain processes before time 1.
+\end{studentexercise}
+
+\begin{shortsolution}
+Both strategies have unit energy:
+\[
+\int_0^1\phi_t^2\dd t=1,
+\qquad
+\int_0^1\psi_t^2\dd t=2\cdot\frac12=1.
+\]
+Moreover,
+\[
+\int_0^1\phi_t\dd W_t=W_1,
+\qquad
+\int_0^1\psi_t\dd W_t=\sqrt2\,W_{1/2}.
+\]
+Both terminal gains are \(\mathcal N(0,1)\). Their paths are not identical:
+the second gain stops changing after time \(1/2\), while the first remains
+exposed until time 1.
+\end{shortsolution}
+
+\subsection{Completion in \texorpdfstring{\(L^2\)}{L2}}
+
+Let \(\phi\) be predictable with
+\[
+\E\int_0^T\phi_t^2\dd t<\infty.
+\]
+Choose simple predictable processes \(\phi^n\) such that
+\[
+\E\int_0^T|\phi_t^n-\phi_t|^2\dd t\longrightarrow0.
+\]
+The isometry gives
+\begin{align*}
+\E\left[
+\left|
+\int_0^T\phi_t^n\dd W_t-
+\int_0^T\phi_t^m\dd W_t
+\right|^2
+\right]
+&=\E\int_0^T|\phi_t^n-\phi_t^m|^2\dd t.
+\end{align*}
+The right-hand side tends to zero, so the sequence of integrals is Cauchy in
+the complete space \(L^2(\Omega)\).
+
+\begin{definition}[General \(\Ito\) integral]
+For a square-integrable predictable process \(\phi\), define
+\[
+\boxed{
+\int_0^T\phi_t\dd W_t
+:=L^2\text{-}\lim_{n\to\infty}
+\int_0^T\phi_t^n\dd W_t.}
+\]
+\end{definition}
+
+The definition does not depend on the approximating sequence. Indeed, if
+\(\psi^n\to\phi\) as well, the isometry yields
+\[
+\E\left[
+\left|
+\int_0^T\phi_t^n\dd W_t-
+\int_0^T\psi_t^n\dd W_t
+\right|^2
+\right]
+=\E\int_0^T|\phi_t^n-\psi_t^n|^2\dd t\longrightarrow0.
+\]
+Linearity, zero mean, the isometry, and the covariance identity all pass to
+the limit.
+
+\begin{keyidea}{The construction in one sentence}
+Approximate the predictable exposure, integrate the simple approximations, and
+take the \(L^2\) limit. The isometry simultaneously proves convergence,
+uniqueness, and stability.
+\end{keyidea}
+
+% ============================================================
+\section{The Integral as a Martingale Gain Process}
+% ============================================================
+
+For a predictable process \(\phi\) satisfying
+\[
+\E\int_0^T\phi_s^2\dd s<\infty,
+\]
+define the accumulated gain
+\[
+M_t=\int_0^t\phi_s\dd W_s,
+\qquad 0\leq t\leq T.
+\]
+
+\subsection{The integrability audit}
+
+Before calling \(M\) a martingale, three points must be checked:
+\begin{enumerate}
+  \item \(M_t\) is \(\cF_t\)-measurable;
+  \item \(M_t\in L^1\) for every \(t\);
+  \item \(\E[M_t\mid\cF_s]=M_s\) for \(s\leq t\).
+\end{enumerate}
+Adaptedness follows first for simple integrands and then by approximation. The
+second point is exactly where the expected finite-energy condition matters.
+The isometry and Cauchy--Schwarz give
+\begin{align*}
+\E|M_t|
+&\leq \bigl(\E[M_t^2]\bigr)^{1/2}\\
+&=\left(\E\int_0^t\phi_s^2\dd s\right)^{1/2}<\infty.
+\end{align*}
+Thus \(M_t\in L^2\subset L^1\). In particular, the conditional expectation
+\(\E[M_t\mid\cF_s]\) is well defined.
+
+\begin{warningbox}{True martingale versus local martingale}
+There are two distinct assumptions:
+\[
+\boxed{\E\int_0^T\phi_s^2\dd s<\infty}
+\qquad\text{and}\qquad
+\boxed{\int_0^T\phi_s^2\dd s<\infty\quad\text{a.s.}}
+\]
+The first gives the square-integrable, hence true, martingale used throughout
+this lecture. If only the second holds locally on every finite horizon, the
+stochastic integral is in general only a continuous local martingale. A local
+martingale need not be integrable at every time and need not preserve its
+expectation. One must never silently replace the expected \(L^2\) condition by
+pathwise finiteness.
+\end{warningbox}
+
+\subsection{Martingale property and proof}
+
+\begin{theorem}[Square-integrable martingale property]
+If \(\phi\) is predictable and
+\(\E\int_0^T\phi_s^2\dd s<\infty\), then
+\[
+M_t=\int_0^t\phi_s\dd W_s
+\]
+has a continuous adapted version, \(M_t\in L^2\), and
+\[
+\boxed{\E[M_t\mid\cF_s]=M_s,
+\qquad 0\leq s\leq t\leq T.}
+\]
+Equivalently,
+\[
+\E\left[\int_s^t\phi_u\dd W_u\middle|\cF_s\right]=0.
+\]
+\end{theorem}
+
+\begin{proof}
+First suppose that \(\phi\) is simple and use a grid containing \(s\) and
+\(t\). Splitting past and future gains gives
+\[
+M_t=M_s+\sum_{t_i\geq s}\xi_i\Delta W_i.
+\]
+For each future term,
+\[
+\E[\xi_i\Delta W_i\mid\cF_{t_i}]
+=\xi_i\E[\Delta W_i\mid\cF_{t_i}]=0.
+\]
+Successive applications of the tower property yield
+\[
+\E[M_t-M_s\mid\cF_s]=0.
+\]
+
+For a general integrand, choose simple \(\phi^n\to\phi\) in
+\(L^2(\Omega\times[0,T])\), and let
+\(M_t^n=\int_0^t\phi_u^n\dd W_u\). The isometry gives
+\(M_t^n\to M_t\) in \(L^2\), hence in \(L^1\). Conditional expectation is an
+\(L^1\)-contraction:
+\[
+\E\left|
+\E[M_t^n-M_t\mid\cF_s]
+\right|
+\leq\E|M_t^n-M_t|\longrightarrow0.
+\]
+Therefore one may pass to the limit in
+\(\E[M_t^n\mid\cF_s]=M_s^n\), proving the claim. The continuous version follows
+from the standard construction of the Brownian stochastic integral.
+\end{proof}
+
+The proof contains the reusable mechanism of stochastic integration:
+\[
+\text{predictable coefficient}\times
+\text{fresh centered increment}
+\quad\Longrightarrow\quad
+\text{zero conditional mean}.
+\]
+
+\subsection{Conditional variance and state-dependent risk}
+
+The conditional version of the isometry is
+\[
+\boxed{
+\E\left[
+\left(\int_s^t\phi_u\dd W_u\right)^2
+\middle|\cF_s
+\right]
+=\E\left[
+\int_s^t\phi_u^2\dd u
+\middle|\cF_s
+\right].}
+\]
+Because the future integral has conditional mean zero, this identity is also
+its conditional variance. The mean forecast is unchanged, while the amount of
+risk still ahead may depend strongly on the current state.
+
+\begin{studentexercise}{a state-dependent position}
+On \([0,2]\), define
+\[
+\phi_t=\1_{(0,1]}(t)
++\bigl(1+\1_{\{W_1>0\}}\bigr)\1_{(1,2]}(t),
+\qquad
+M_t=\int_0^t\phi_s\dd W_s.
+\]
+Compute \(M_1\), \(\E[M_2\mid\cF_1]\), and
+\(\Var(M_2-M_1\mid\cF_1)\).
+\end{studentexercise}
+
+\begin{shortsolution}
+Up to time 1, the position is one, so \(M_1=W_1\). Since \(M\) is a
+martingale,
+\[
+\E[M_2\mid\cF_1]=M_1=W_1.
+\]
+Over \((1,2]\), the position is already known at time 1. Therefore
+\begin{align*}
+\Var(M_2-M_1\mid\cF_1)
+&=\bigl(1+\1_{\{W_1>0\}}\bigr)^2\\
+&=\begin{cases}
+1,&W_1\leq0,\\
+4,&W_1>0.
+\end{cases}
+\end{align*}
+Adaptation changes conditional variance without creating conditional drift.
+\end{shortsolution}
+
+\subsection{Quadratic variation as a random clock}
+
+\begin{proposition}[Quadratic variation of a stochastic integral]
+For
+\[
+M_t=\int_0^t\phi_s\dd W_s,
+\]
+one has
+\[
+\boxed{[M]_t=\int_0^t\phi_s^2\dd s.}
+\]
+\end{proposition}
+
+For a simple strategy, the formula is already visible from
+\[
+\sum_i(\Delta M_i)^2
+=\sum_i\xi_i^2(\Delta W_i)^2
+\approx\sum_i\xi_i^2\Delta t_i.
+\]
+The process \(M\) therefore runs on the exposure clock generated by
+\(\phi^2\). Calendar time advances uniformly, while the stochastic gain
+accumulates variation faster when the absolute position is larger.
+
+\subsection{Stopping an exposure}
+
+Let \(\tau\) be a stopping time. The predictable strategy
+\(\phi_s=\1_{\{s\leq\tau\}}\) holds one unit until \(\tau\) and zero afterward.
+For every finite \(t\),
+\[
+\boxed{
+\int_0^t\1_{\{s\leq\tau\}}\dd W_s=W_{t\wedge\tau}.}
+\]
+Crucially, its integrability is automatic on a bounded horizon:
+\[
+\E\int_0^t\1_{\{s\leq\tau\}}^2\dd s
+=\E[t\wedge\tau]\leq t<\infty.
+\]
+The martingale property and isometry may therefore be applied legitimately:
+\[
+\boxed{
+\E[W_{t\wedge\tau}]=0,
+\qquad
+\E[W_{t\wedge\tau}^2]=\E[t\wedge\tau].}
+\]
+
+\begin{boardexample}{stopping at an upper barrier}
+Let
+\[
+\tau_a=\inf\{t\geq0:W_t=a\},
+\qquad a>0.
+\]
+The stopped exposure is
+\[
+M_t=\int_0^t\1_{\{s\leq\tau_a\}}\dd W_s
+=W_{t\wedge\tau_a}.
+\]
+Without using the density of \(\tau_a\),
+\[
+\E[M_t]=0,
+\qquad
+\E[M_t^2]=\E[t\wedge\tau_a].
+\]
+The first statement comes from the true-martingale property; the second comes
+from the isometry.
+\end{boardexample}
+
+\begin{keyidea}{What predictability and integrability buy us}
+For every predictable \(\phi\) satisfying
+\(\E\int_0^T\phi_t^2\dd t<\infty\), the gain process is a
+square-integrable martingale and
+\[
+\E\left[\int_0^T\phi_t\dd W_t\right]=0,
+\qquad
+\E\left[\left(\int_0^T\phi_t\dd W_t\right)^2\right]
+=\E\int_0^T\phi_t^2\dd t.
+\]
+The distribution may nevertheless be Gaussian, a mixture, stopped, skewed, or
+state-dependent. Zero conditional drift does not mean zero risk.
+\end{keyidea}
+
+% ============================================================
+\section{Deterministic Integrands and Gaussian Applications}
+% ============================================================
+
+\subsection{Gaussianity and the \texorpdfstring{\(L^2\)}{L2} inner product}
+
+When the integrand is deterministic, the stochastic integral has additional
+structure.
+
+\begin{theorem}[Distribution for a deterministic integrand]
+If \(f\in L^2(0,T)\) is deterministic, then
+\[
+I_f=\int_0^Tf(t)\dd W_t
+\sim\mathcal N\left(0,\int_0^Tf(t)^2\dd t\right).
+\]
+\end{theorem}
+
+\begin{proof}
+For a deterministic step function, the integral is a linear combination of
+independent Gaussian increments and is therefore Gaussian. Choose deterministic
+step functions \(f_n\to f\) in \(L^2(0,T)\). The isometry gives
+\[
+\int_0^Tf_n(t)\dd W_t\longrightarrow
+\int_0^Tf(t)\dd W_t
+\quad\text{in }L^2(\Omega),
+\]
+and the variances converge to \(\int_0^Tf(t)^2\dd t\). The characteristic
+functions consequently converge to that of the stated centered Gaussian law.
+\end{proof}
+
+The same reasoning for linear combinations gives joint Gaussianity.
+
+\begin{proposition}[Covariance and independence]
+For deterministic \(f,g\in L^2(0,T)\),
+\[
+\Cov\left(\int_0^Tf\dd W,\int_0^Tg\dd W\right)
+=\int_0^Tf(t)g(t)\dd t.
+\]
+The pair is jointly Gaussian. Therefore
+\[
+\int_0^Tf(t)g(t)\dd t=0
+\quad\Longrightarrow\quad
+\int_0^Tf\dd W\ \text{and}\ \int_0^Tg\dd W
+\text{ are independent}.
+\]
+\end{proposition}
+
+The map
+\[
+f\longmapsto\int_0^Tf\dd W
+\]
+turns the deterministic \(L^2(0,T)\) inner product into covariance. Ordinary
+orthogonality of exposure profiles becomes independence of Gaussian risks.
+
+\begin{boardexample}{a linearly increasing exposure}
+Take \(f(t)=t\). Then
+\[
+I_T=\int_0^Tt\dd W_t
+\]
+is centered Gaussian with
+\[
+\Var(I_T)=\int_0^Tt^2\dd t=\frac{T^3}{3}.
+\]
+Thus
+\[
+\boxed{I_T\sim\mathcal N\left(0,\frac{T^3}{3}\right).}
+\]
+The standard deviation scales like \(T^{3/2}\), which is consistent with a
+position of order \(T\) multiplied by Brownian noise of order \(T^{1/2}\).
+\end{boardexample}
+
+\subsection{Conditioning as orthogonal projection}
+
+Let
+\[
+I_T=\int_0^Tt\dd W_t.
+\]
+Since
+\[
+W_T=\int_0^T1\dd W_t,
+\]
+the covariance identity gives
+\[
+\Cov(I_T,W_T)=\int_0^Tt\dd t=\frac{T^2}{2}.
+\]
+For a centered jointly Gaussian pair \((X,Y)\),
+\[
+\E[X\mid Y]=\frac{\Cov(X,Y)}{\Var(Y)}Y,
+\qquad
+\Var(X\mid Y)=\Var(X)-\frac{\Cov(X,Y)^2}{\Var(Y)}.
+\]
+Using \(\Var(W_T)=T\), we obtain
+\[
+\boxed{\E[I_T\mid W_T]=\frac{T}{2}W_T}
+\]
+and
+\[
+\boxed{
+\Var(I_T\mid W_T)
+=\frac{T^3}{3}-\frac{(T^2/2)^2}{T}
+=\frac{T^3}{12}.}
+\]
+
+Geometrically, conditioning on \(W_T\) reveals the component of
+\(t\mapsto t\) parallel to the constant function \(1\). Indeed,
+\[
+t=\frac{T}{2}+\left(t-\frac{T}{2}\right),
+\qquad
+\int_0^T\left(t-\frac{T}{2}\right)\dd t=0.
+\]
+
+\begin{studentexercise}{construct a Gaussian risk independent of \(W_T\)}
+Find a nonzero affine function \(g(t)=t-c\) such that
+\[
+Y=\int_0^Tg(t)\dd W_t
+\]
+is independent of \(W_T\). Compute \(\Var(Y)\).
+\end{studentexercise}
+
+\begin{shortsolution}
+Because \(W_T=\int_0^T1\dd W_t\), independence is equivalent to
+\[
+0=\Cov(Y,W_T)=\int_0^Tg(t)\dd t.
+\]
+For \(g(t)=t-c\), this gives \(T^2/2-cT=0\), hence \(c=T/2\). Therefore
+\[
+g(t)=t-\frac{T}{2},
+\qquad
+\Var(Y)=\int_0^T\left(t-\frac{T}{2}\right)^2\dd t
+=\frac{T^3}{12}.
+\]
+The pair is jointly Gaussian and uncorrelated, so it is independent.
+\end{shortsolution}
+
+\subsection{Deterministic exposure as a time change}
+
+For deterministic \(f\), define
+\[
+M_t=\int_0^tf(s)\dd W_s,
+\qquad
+q(t)=\int_0^tf(s)^2\dd s.
+\]
+Then \(M\) is centered Gaussian. For \(s<t\),
+\[
+M_t-M_s=\int_s^tf(u)\dd W_u
+\]
+depends only on Brownian increments over \((s,t]\), so disjoint increments of
+\(M\) are independent. Moreover,
+\[
+\Var(M_t-M_s)=q(t)-q(s).
+\]
+Consequently,
+\[
+\boxed{(M_t)_{t\geq0}\overset{\mathrm{law}}=
+(B_{q(t)})_{t\geq0}}
+\]
+for a Brownian motion \(B\). For \(f(t)=t\), the stochastic clock is
+\(q(t)=t^3/3\).
+
+This time-change statement is special to deterministic integrands. For a
+random integrand, \(\int_0^t\phi_s^2\dd s\) is a random clock, but independent
+increments and Gaussianity generally disappear.
+
+\subsection{Integration by parts with a deterministic integrand}
+
+The useful integration-by-parts formula in this lecture does not require
+\(\Ito\)'s formula.
+
+\begin{proposition}[Deterministic integration by parts]
+Let \(f:[0,T]\to\R\) be deterministic and continuously differentiable. More
+generally, assume that \(f\) is absolutely continuous with
+\(f'\in L^2(0,T)\). Then
+\[
+f(T)W_T-f(0)W_0
+=\int_0^Tf(t)\dd W_t+\int_0^TW_tf'(t)\dd t.
+\]
+Since \(W_0=0\),
+\[
+\boxed{
+\int_0^Tf(t)\dd W_t
+=f(T)W_T-\int_0^TW_tf'(t)\dd t.}
+\]
+\end{proposition}
+
+\begin{proof}
+The assumption \(f'\in L^2(0,T)\) implies \(f'\in L^1(0,T)\) on the finite
+interval. Thus \(f\) has finite variation and belongs to \(L^2(0,T)\). On a
+partition, discrete summation by parts gives
+\[
+f(T)W_T-f(0)W_0
+=\sum_i f(t_i)\Delta W_i
++\sum_iW_{t_{i+1}}\bigl(f(t_{i+1})-f(t_i)\bigr).
+\]
+As the mesh tends to zero, the first sum converges in \(L^2\) to
+\(\int_0^Tf(t)\dd W_t\). Since \(W\) is continuous and \(f\) has finite
+variation, the second converges pathwise to
+\[
+\int_0^TW_t\dd f(t)=\int_0^TW_tf'(t)\dd t.
+\]
+This proves the formula directly from summation by parts.
+\end{proof}
+
+\begin{remark}[Why there is no correction term]
+The deterministic path \(f\) has finite variation, so its quadratic
+covariation with \(W\) is zero. No \(\Ito\) formula is needed for this result.
+\end{remark}
+
+\begin{boardexample}{the Brownian area}
+Set
+\[
+A_T=\int_0^TW_t\dd t.
+\]
+Apply deterministic integration by parts with \(f(t)=t\):
+\[
+A_T=TW_T-\int_0^Tt\dd W_t.
+\]
+The right-hand side is a linear combination of jointly Gaussian stochastic
+integrals, so \(A_T\) is centered Gaussian. Using
+\[
+\Var(W_T)=T,
+\quad
+\Var\left(\int_0^Tt\dd W_t\right)=\frac{T^3}{3},
+\quad
+\Cov\left(W_T,\int_0^Tt\dd W_t\right)=\frac{T^2}{2},
+\]
+we find
+\begin{align*}
+\Var(A_T)
+&=T^2\Var(W_T)
++\Var\left(\int_0^Tt\dd W_t\right)
+-2T\Cov\left(W_T,\int_0^Tt\dd W_t\right)\\
+&=T^3+\frac{T^3}{3}-T^3
+=\frac{T^3}{3}.
+\end{align*}
+Therefore
+\[
+\boxed{A_T\sim\mathcal N\left(0,\frac{T^3}{3}\right).}
+\]
+\end{boardexample}
+
+% ============================================================
+\section{Left, Right, and Midpoint Conventions}
+% ============================================================
+
+\subsection{One integrand, three sums}
+
+For a partition \(\pi\) and the integrand \(\phi_t=W_t\), define
+\begin{align*}
+L^\pi&=\sum_iW_{t_i}\Delta W_i,\\
+M^\pi&=\sum_i\frac{W_{t_i}+W_{t_{i+1}}}{2}\Delta W_i,\\
+R^\pi&=\sum_iW_{t_{i+1}}\Delta W_i.
+\end{align*}
+Their information content is different:
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Sum & Evaluation rule & Interpretation \\
+\midrule
+left & value known before the move & \(\Ito\) \\
+midpoint & uses both endpoints & Stratonovich \\
+right & value known after the move & anticipative here \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The exact identity
+\[
+W_{t_{i+1}}^2-W_{t_i}^2
+=2W_{t_i}\Delta W_i+(\Delta W_i)^2
+\]
+telescopes to
+\[
+W_T^2=2L^\pi+\sum_i(\Delta W_i)^2.
+\]
+Since Brownian quadratic variation converges to \(T\),
+\[
+\boxed{
+\int_0^TW_t\dd W_t
+=\lim_{|\pi|\to0}L^\pi
+=\frac12(W_T^2-T).}
+\]
+This is the first nontrivial stochastic integral. The term \(-T/2\) is not
+obtained from the general \(\Ito\) formula here; it follows directly from the
+telescoping identity and quadratic variation.
+
+Furthermore,
+\[
+R^\pi=L^\pi+\sum_i(\Delta W_i)^2,
+\qquad
+M^\pi=\frac12(L^\pi+R^\pi).
+\]
+Therefore the three limits are
+\begin{center}
+\begin{tabular}{lc}
+\toprule
+Convention & Limit \\
+\midrule
+left / \(\Ito\) & \(\frac12(W_T^2-T)\) \\
+midpoint / Stratonovich & \(\frac12W_T^2\) \\
+right & \(\frac12(W_T^2+T)\) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{studentexercise}{verify the isometry for \(\int W\dd W\)}
+Let
+\[
+I_T=\int_0^TW_t\dd W_t=\frac12(W_T^2-T).
+\]
+Compute \(\E[I_T]\) and \(\E[I_T^2]\), using
+\(\E[W_T^4]=3T^2\). Check the answer with the \(\Ito\) isometry.
+\end{studentexercise}
+
+\begin{shortsolution}
+Since \(\E[W_T^2]=T\),
+\[
+\E[I_T]=\frac12(\E[W_T^2]-T)=0.
+\]
+Moreover,
+\[
+\E[I_T^2]
+=\frac14\E[(W_T^2-T)^2]
+=\frac14(3T^2-2T^2+T^2)
+=\frac{T^2}{2}.
+\]
+The isometry gives exactly the same result:
+\[
+\E[I_T^2]
+=\E\int_0^TW_t^2\dd t
+=\int_0^T\E[W_t^2]\dd t
+=\int_0^Tt\dd t
+=\frac{T^2}{2}.
+\]
+\end{shortsolution}
+
+\subsection{Why anticipation creates a fake arbitrage}
+
+Suppose illegally that one could choose
+\[
+\phi_{t_i}=\operatorname{sign}(\Delta W_i)
+\]
+before reporting the gain. Then
+\[
+\sum_i\phi_{t_i}\Delta W_i=\sum_i|\Delta W_i|\geq0,
+\]
+and the gain is strictly positive almost surely on every nontrivial grid.
+Under grid refinement, this sum even reflects the infinite total variation of
+Brownian paths.
+
+The apparent opportunity comes entirely from hindsight:
+\(\phi_{t_i}\notin\cF_{t_i}\). Predictability is therefore both the
+mathematical boundary of the \(\Ito\) integral and the economic boundary of a
+legal self-financing strategy.
+
+% ============================================================
+\clearpage
+\section{Simulation of Stochastic Integrals}
+% ============================================================
+
+\subsection{The left-point algorithm}
+
+Let \(t_i=i\Delta t\), where \(\Delta t=T/n\). Generate independent standard
+normal variables \(Z_0,\ldots,Z_{n-1}\) and set
+\[
+\Delta W_i=\sqrt{\Delta t}\,Z_i.
+\]
+Starting from \(W_0=0\) and \(I_0=0\), repeat for \(i=0,\ldots,n-1\):
+\begin{enumerate}
+  \item compute \(\phi_i\) from information available at \(t_i\);
+  \item set \(I_{i+1}=I_i+\phi_i\Delta W_i\);
+  \item set \(W_{t_{i+1}}=W_{t_i}+\Delta W_i\).
+\end{enumerate}
+Then
+\[
+I_n=\sum_{i=0}^{n-1}\phi_i\Delta W_i
+\]
+is the left-point approximation of \(\int_0^T\phi_t\dd W_t\).
+
+\begin{warningbox}{The update order encodes the filtration}
+The value \(\phi_i\) must be fully determined before \(\Delta W_i\) is used.
+If it is computed from \(W_{t_{i+1}}\), or from the newly generated increment,
+the scheme is a right-point or otherwise anticipative sum rather than an
+\(\Ito\) approximation.
+\end{warningbox}
+
+For a target integrand \(\phi\), define the left-step approximation
+\[
+\phi_t^{(n)}=\sum_{i=0}^{n-1}\phi_{t_i}\1_{(t_i,t_{i+1}]}(t).
+\]
+Whenever \(\phi^{(n)}\to\phi\) in
+\(L^2(\Omega\times[0,T])\), the isometry gives the exact mean-square error
+identity
+\[
+\boxed{
+\E\left[
+\left|
+\int_0^T\phi_t\dd W_t-
+\sum_{i=0}^{n-1}\phi_{t_i}\Delta W_i
+\right|^2
+\right]
+=\E\int_0^T|\phi_t-\phi_t^{(n)}|^2\dd t.}
+\]
+Thus the numerical approximation is controlled by approximation of the
+integrand in the same \(L^2\) norm used in the theoretical construction.
+
+\subsection{An exact benchmark}
+
+For
+\[
+I=\int_0^TW_t\dd W_t,
+\qquad
+I^{(n)}=\sum_{i=0}^{n-1}W_{t_i}\Delta W_i,
+\]
+the identity \(I=\frac12(W_T^2-T)\) gives
+\[
+I-I^{(n)}
+=\frac12\sum_{i=0}^{n-1}\bigl((\Delta W_i)^2-\Delta t\bigr).
+\]
+For a uniform grid,
+\[
+\Var((\Delta W_i)^2)=2(\Delta t)^2.
+\]
+The centered summands are independent, so
+\begin{align*}
+\E[(I-I^{(n)})^2]
+&=\frac14\sum_{i=0}^{n-1}2(\Delta t)^2\\
+&=\frac12n\left(\frac{T}{n}\right)^2
+=\boxed{\frac{T^2}{2n}}.
+\end{align*}
+The root-mean-square error is therefore
+\[
+\boxed{\operatorname{RMSE}(I^{(n)})=\frac{T}{\sqrt{2n}}.}
+\]
+This supplies a clean convergence-rate test for an implementation.
+
+\subsection{Diagnostics and classic traps}
+
+\begin{center}
+\small
+\begin{tabular}{p{0.25\linewidth}p{0.35\linewidth}p{0.30\linewidth}}
+\toprule
+Mistake & Consequence & Check or correction \\
+\midrule
+Use \(\Delta t\,Z_i\) for \(\Delta W_i\)
+& Brownian variance is too small and has the wrong time scaling
+& Verify \(\Delta W_i=\sqrt{\Delta t}\,Z_i\) and empirical variance \(\Delta t\) \\
+\addlinespace
+Compute \(\phi_i\) from \(W_{t_{i+1}}\)
+& The scheme anticipates and can introduce an order-one bias
+& Freeze \(\phi_i\) from the state at \(t_i\) \\
+\addlinespace
+Use fresh independent noise for a jointly driven integrand
+& The covariance structure and joint law are changed
+& Reuse the same Brownian increments whenever the model specifies the same driver \\
+\addlinespace
+Replace \(\Delta W_i\) by \(\Delta t\)
+& A stochastic integral is replaced by an ordinary time integral
+& Track \(\dd W\) and \(\dd t\) terms separately \\
+\addlinespace
+Check only the empirical mean
+& Variance or dependence errors remain invisible
+& Test the isometry, covariance, and several grid sizes \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+A single plausible-looking path is not validation. Useful checks include:
+\begin{itemize}
+  \item sample mean close to zero when the hypotheses imply a true martingale;
+  \item sample second moment close to
+        \(\E\int_0^T\phi_t^2\dd t\);
+  \item covariance checks when several integrals use the same Brownian driver;
+  \item error decay under successive grid refinements;
+  \item comparison with an exact identity when one is available.
+\end{itemize}
+
+\begin{keyidea}{Final checklist}
+\begin{enumerate}
+  \item The \(\Ito\) integral is the \(L^2\) limit of left-point,
+        non-anticipative gains.
+  \item Predictability controls information; expected finite energy controls
+        integrability.
+  \item Under \(\E\int_0^T\phi_t^2\dd t<\infty\), the gain process is a
+        square-integrable martingale with quadratic variation
+        \(\int_0^t\phi_s^2\dd s\).
+  \item Deterministic integrands produce jointly Gaussian variables, and
+        \(L^2\) inner products become covariances.
+  \item Deterministic integration by parts follows from summation by parts and
+        requires no \(\Ito\) formula.
+  \item Brownian quadratic variation produces
+        \(\int_0^TW_t\dd W_t=\frac12(W_T^2-T)\).
+  \item A correct simulation respects the same filtration and \(L^2\)
+        structure as the theoretical integral.
+\end{enumerate}
+\end{keyidea}
+
+\end{document}

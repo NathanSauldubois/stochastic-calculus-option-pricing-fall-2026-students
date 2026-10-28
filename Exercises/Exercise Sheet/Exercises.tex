@@ -1,0 +1,69 @@
+% !TEX program = pdflatex
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+
+\newcommand{\Pb}{\mathbb{P}}
+\newcommand{\Qbb}{\mathbb{Q}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\1}{\mathbf{1}}
+\newcommand{\dd}{\,\mathrm{d}}
+\newcommand{\norm}[1]{\left\lVert #1\right\rVert}
+\newcommand{\Ito}{\mathrm{It\hat{o}}}
+
+\theoremstyle{definition}
+\newtheorem{exercise}{Exercise}[section]
+\newtheorem{remark}{Remark}[section]
+
+\newlist{exparts}{enumerate}{1}
+\setlist[exparts,1]{label=\textbf{(\alph*)},itemsep=0.25em,topsep=0.4em,leftmargin=2em}
+
+\title{Stochastic Calculus and Option Pricing\\Synthesis Exercise Sheet}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-1.2em}
+
+\input{Week_1_Exercises}
+\input{Week_2_Exercises}
+\clearpage
+\input{Week_3_Exercises}
+\clearpage
+\input{Week_4_Exercises}
+\clearpage
+\input{Week_5_Exercises}
+\clearpage
+\input{Week_6_Exercises}
+\clearpage
+\input{Week_7_Exercises}
+\clearpage
+\input{Week_8_Exercises}
+% Weeks 9--14 are excluded from the current synthesis sheet.
+%\clearpage
+%\def\ExercisesSynthesis{true}
+%\input{../Session Worksheets/Seance 9/Exercises.tex}
+%\clearpage
+%\input{../Session Worksheets/Seance 10/Exercises.tex}
+%\clearpage
+%\input{../Session Worksheets/Seance 11/Exercises.tex}
+%\clearpage
+%\input{../Session Worksheets/Seance 12/Exercises.tex}
+%\clearpage
+%\input{../Session Worksheets/Seance 13/Exercises.tex}
+%\clearpage
+%\input{../Session Worksheets/Seance 14/Exercises.tex}
+
+\end{document}

@@ -1,0 +1,173 @@
+% Week 6 section of the synthesis exercise sheet, included by Exercises.tex.
+\section{Week 6 --- Densities, Girsanov, and Measure Changes}
+
+Throughout, all density processes are assumed adapted to the stated
+filtration. Whenever a stochastic exponential is used, distinguish the
+formal drift calculation from the condition that makes it a true martingale.
+
+\subsection*{Part I --- What a Density Really Encodes}
+
+\begin{exercise}[Easy to medium --- Reversing a change of measure]
+Let \(Z>0\) satisfy \(\E^{\Pb}[Z]=1\), and define
+\(\dd\Qbb=Z\,\dd\Pb\).
+\begin{exparts}
+  \item Prove that
+  \[
+  \frac{\dd\Pb}{\dd\Qbb}=\frac1Z
+  \qquad\text{and}\qquad
+  \E^{\Qbb}\!\left[\frac1Z\right]=1.
+  \]
+  \item Show that for every integrable \(Y\),
+  \[
+  \E^{\Pb}[Y]=\E^{\Qbb}\!\left[\frac{Y}{Z}\right].
+  \]
+  Explain why the random variable itself has not changed.
+  \item Use Jensen's inequality to prove
+  \[
+  \E^{\Pb}[\log Z]\leq0.
+  \]
+  Assuming the relevant integrability, prove also
+  \(\E^{\Qbb}[\log Z]\geq0\).
+  \item Characterize the equality case in both inequalities. What does it
+  say about the relation between \(\Pb\) and \(\Qbb\)?
+\end{exparts}
+\end{exercise}
+
+\begin{exercise}[Medium --- A density process in a two-period tree]
+Let
+\[
+\Omega=\{UU,UD,DU,DD\},
+\]
+where the first letter is observed at time \(1\) and the second at time \(2\).
+Under \(\Pb\), all four paths have probability \(1/4\). Under \(\Qbb\), their
+probabilities in the displayed order are
+\[
+\frac38,\qquad\frac18,\qquad\frac18,\qquad\frac38.
+\]
+Let \(\F_1\) reveal only the first letter, and let
+\(Z_2=\dd\Qbb/\dd\Pb\).
+\begin{exparts}
+  \item Compute \(Z_2\) on every terminal path and verify
+  \(\E^{\Pb}[Z_2]=1\).
+  \item Compute \(Z_1=\E^{\Pb}[Z_2\mid\F_1]\). Explain why \(Z_1\) is the
+  density of the time-\(1\) information under \(\Qbb\) relative to \(\Pb\).
+  \item Compute under \(\Qbb\) the conditional probability that the second
+  letter is \(U\), first given that the first letter is \(U\), then given
+  that it is \(D\).
+  \item Recover both answers from Bayes' formula
+  \[
+  \Qbb(A\mid\F_1)
+  =\frac{\E^{\Pb}[Z_2\1_A\mid\F_1]}{Z_1}.
+  \]
+  Does the second step remain independent of the first under \(\Qbb\)?
+\end{exparts}
+\end{exercise}
+
+\subsection*{Part II --- Tilting Beyond the Classroom Examples}
+
+\begin{exercise}[Medium --- Tilting a correlated Gaussian vector]
+Under \(\Pb\), let \((X,Y)\) be centered jointly Gaussian with
+\[
+\operatorname{Var}(X)=\sigma_X^2,\qquad
+\operatorname{Var}(Y)=\sigma_Y^2,\qquad
+\operatorname{Cov}(X,Y)=\rho\sigma_X\sigma_Y.
+\]
+For \(\theta\in\R\), define
+\[
+Z=\exp\!\left(\theta X-\frac12\theta^2\sigma_X^2\right),
+\qquad \dd\Qbb=Z\,\dd\Pb.
+\]
+\begin{exparts}
+  \item Verify that \(\E^{\Pb}[Z]=1\).
+  \item Use the joint moment-generating function to compute
+  \(\E^{\Qbb}[e^{uX+vY}]\).
+  \item Identify the mean vector and covariance matrix of \((X,Y)\) under
+  \(\Qbb\). Explain why tilting with \(X\) also moves the mean of \(Y\)
+  when \(\rho\neq0\).
+  \item Determine for which \(\rho\) the law of \(Y\) is unchanged by this
+  measure change.
+\end{exparts}
+\end{exercise}
+
+\begin{exercise}[Medium --- An adapted tilt made safe by stopping]
+Let
+\[
+\tau_a=\inf\{t\geq0:|W_t|\geq a\}\wedge T,
+\qquad
+\phi_t=\theta W_t\1_{\{t\leq\tau_a\}},
+\]
+where \(a,T>0\) and \(\theta\in\R\). Define
+\[
+Z_t=\exp\!\left(
+\int_0^t\phi_s\dd W_s-\frac12\int_0^t\phi_s^2\dd s
+\right).
+\]
+\begin{exparts}
+  \item Show that \(|\phi_t|\leq|\theta|a\), and verify Novikov's condition.
+  Conclude that \(Z\) is a true martingale.
+  \item Define \(\Qbb\) by \(Z_T\). Identify the \(\Qbb\)-Brownian motion
+  \(B\) and write the \(\Qbb\)-dynamics of \(W\).
+  \item Describe the drift of \(W\) before and after \(\tau_a\). For
+  \(\theta>0\), does the pre-stopping drift push the process toward or away
+  from zero?
+  \item Explain why stopping is doing genuine mathematical work here rather
+  than merely shortening the notation.
+\end{exparts}
+\end{exercise}
+
+\subsection*{Part III --- Designing and Testing a Measure Change}
+
+\begin{exercise}[Medium --- Changing one mean-reversion model into another]
+Under \(\Pb\), suppose
+\[
+\dd X_t=\kappa(m-X_t)\dd t+\sigma\dd W_t^{\Pb},
+\qquad \kappa,\sigma>0.
+\]
+We would like \(X\) to satisfy under \(\Qbb\)
+\[
+\dd X_t=\widetilde\kappa(\widetilde m-X_t)\dd t
++\sigma\dd W_t^{\Qbb},
+\qquad \widetilde\kappa>0.
+\]
+\begin{exparts}
+  \item Find the candidate process \(\lambda_t\) in
+  \(W_t^{\Qbb}=W_t^{\Pb}+\int_0^t\lambda_s\dd s\).
+  \item Write the corresponding candidate density process, with the correct
+  sign.
+  \item Explain why the volatility must remain \(\sigma\). Could an
+  equivalent Girsanov change turn it into a different constant
+  \(\widetilde\sigma\neq\sigma\)?
+  \item The candidate \(\lambda_t\) is generally unbounded. Explain why the
+  algebraic drift match does not by itself prove that \(\Qbb\) exists, and
+  describe how localization by
+  \(\tau_n=\inf\{t:|X_t|\geq n\}\wedge T\) helps.
+\end{exparts}
+\end{exercise}
+
+\begin{exercise}[Medium --- Can one Brownian shift price two stocks?]
+Two traded stocks are driven by the same Brownian motion:
+\[
+\frac{\dd S_t^1}{S_t^1}=\mu_1\dd t+\sigma_1\dd W_t,
+\qquad
+\frac{\dd S_t^2}{S_t^2}=\mu_2\dd t+\sigma_2\dd W_t,
+\]
+where \(\sigma_1,\sigma_2\neq0\), and the short rate is \(r\).
+\begin{exparts}
+  \item If \(W_t^{\Qbb}=W_t+\lambda t\), derive the condition on
+  \(\lambda\) that makes each discounted stock driftless.
+  \item Show that a common equivalent martingale measure of this form can
+  exist only if
+  \[
+  \frac{\mu_1-r}{\sigma_1}
+  =
+  \frac{\mu_2-r}{\sigma_2}.
+  \]
+  Interpret this equality economically.
+  \item When the equality holds, identify the density process and explain
+  why the Brownian risk premium is unique.
+  \item Suppose the equality fails. Find dollar exposures $x_1,x_2$ in the
+  two stocks such that $x_1\sigma_1+x_2\sigma_2=0$, while
+  $x_1(\mu_1-r)+x_2(\mu_2-r)\neq0$. Explain why this is an instantaneous
+  arbitrage signal and how the sign of the position can be chosen.
+\end{exparts}
+\end{exercise}

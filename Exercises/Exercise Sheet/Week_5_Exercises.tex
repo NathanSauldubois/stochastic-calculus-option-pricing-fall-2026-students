@@ -1,0 +1,114 @@
+% Week 5 section of the synthesis exercise sheet, included by Exercises.tex.
+\section{Week 5 --- Self-Financing, Dividend Replication, and Greeks}
+
+Throughout, the money-market account is \(B_t=e^{rt}\), with constant
+\(r\in\R\). Under the historical measure \(\Pb\), the ex-dividend stock
+price has dynamics
+\[
+\dd S_t=\mu S_t\dd t+\sigma S_t\dd W_t^{\Pb},
+\qquad \sigma>0,
+\]
+while one share pays the separate cash dividend \(qS_t\dd t\), with
+\(q\geq0\). Thus \(\mu\) is the historical drift of the \emph{price}; the
+shareholder's gain is \(\dd S_t+qS_t\dd t\). Take \(q=0\) when an exercise
+specifies a non-dividend-paying stock.
+
+\subsection*{Part I --- Self-Financing and Dividend-Aware Replication}
+
+\begin{exercise}[Medium --- Derive self-financing from rebalancing]
+First set \(q=0\). Trade at dates \(0=t_0<\cdots<t_n=T\), holding
+\(\Delta_i\) shares and \(\beta_i\) bank-account units on
+\((t_i,t_{i+1}]\). Let \(X_i=\Delta_iS_{t_i}+\beta_iB_{t_i}\).
+Rebalancing takes place at the \emph{observed} prices at \(t_{i+1}\).
+\begin{exparts}
+  \item Write the portfolio value just before and just after rebalancing at
+  \(t_{i+1}\). If no cash enters or leaves, show that
+  \[
+  S_{t_{i+1}}(\Delta_{i+1}-\Delta_i)
+  +B_{t_{i+1}}(\beta_{i+1}-\beta_i)=0.
+  \]
+  What pays for an increase in the stock holding?
+  \item Deduce the exact wealth increment
+  \(X_{i+1}-X_i=\Delta_i(S_{t_{i+1}}-S_{t_i})
+  +\beta_i(B_{t_{i+1}}-B_{t_i})\). Explain why the old holdings appear.
+  \item Pass to continuous time and state the self-financing gain equation
+  \[
+  \dd X_t=\Delta_t\dd S_t+\beta_t\dd B_t.
+  \]
+  If \(\Delta,\beta\) are continuous finite-variation processes, also
+  apply the product rule to \(X_t=\Delta_tS_t+\beta_tB_t\) and identify
+  the equivalent rebalancing constraint.
+  \item Restore the dividend yield \(q\). Write the gain of one share and
+  the self-financing equation. Explain why changing \(\Delta\) without a
+  compensating cash-account trade would require outside money.
+\end{exparts}
+\end{exercise}
+
+\begin{exercise}[Medium --- Derive the PDE for a dividend-paying stock]
+Let \(V_t=v(t,S_t)\), where
+\(v\in C^{1,2}([0,T)\times(0,\infty))\), and let a self-financing
+replicating portfolio hold \(\Delta_t\) shares and \(\beta_t\) bank
+account units.
+\begin{exparts}
+  \item Apply It\^o's formula to \(V_t\) under the historical price dynamics
+  specified above.
+  \item Explain why the portfolio gain is
+  \[
+  \dd X_t
+  =\Delta_t\bigl(\dd S_t+qS_t\dd t\bigr)+\beta_t\dd B_t.
+  \]
+  \item Match the Brownian coefficients to identify \(\Delta_t\). Then
+  use \(\beta_tB_t=v(t,S_t)-\Delta_tS_t\) to derive
+  \[
+  \boxed{v_t+(r-q)s v_s+\tfrac12\sigma^2s^2v_{ss}-rv=0.}
+  \]
+  Locate precisely where the historical price drift \(\mu\)
+  cancels.
+  \item Redo only the drift matching after incorrectly omitting the dividend
+  gain \(q\Delta_tS_t\dd t\). Which term disappears from the PDE, and
+  what economic cash flow has been lost?
+\end{exparts}
+\end{exercise}
+
+\clearpage
+\subsection*{Part II --- PDE Applications and No-Dividend Greeks}
+
+\begin{exercise}[Medium --- Power payoffs reveal the roles of \(r\) and \(q\)]
+For the terminal payoff \(g(s)=s^p\), with \(p\in\R\), seek a solution
+of the dividend-adjusted Black--Scholes PDE of the form
+\(v(t,s)=A(t)s^p\).
+\begin{exparts}
+  \item Derive the ODE for \(A\), including \(A(T)=1\), and solve it.
+  \item Check the special cases \(p=0\) and \(p=1\). Interpret the two
+  prices as the value of one unit of cash at \(T\) and the value of one
+  share delivered at \(T\), respectively.
+  \item Compute the replicating holdings
+  \(\Delta_t=v_s(t,S_t)\) and
+  \(\beta_t=(v-\Delta S)/B_t\).
+  \item For \(p>1\), explain from the formula why curvature introduces a
+  volatility contribution even though the physical drift \(\mu\) is
+  absent.
+\end{exparts}
+\end{exercise}
+
+\begin{exercise}[Medium --- Derive the no-dividend call Greeks]
+For this exercise set \(q=0\), \(\tau=T-t>0\), and use
+\[
+C(t,s)=s\Phi(d_1)-Ke^{-r\tau}\Phi(d_2),\qquad
+d_1=\frac{\log(s/K)+(r+\tfrac12\sigma^2)\tau}{\sigma\sqrt\tau},
+\qquad d_2=d_1-\sigma\sqrt\tau.
+\]
+Write \(\phi=\Phi'\), and hold the other model parameters fixed in each
+partial derivative.
+\begin{exparts}
+  \item Show that \(s\phi(d_1)=Ke^{-r\tau}\phi(d_2)\). Compute
+  \(\partial_s d_1\) and \(\partial_s d_2\).
+  \item Differentiate \(C\) with respect to \(s\) once and twice. Show
+  every density term that cancels, and obtain delta and gamma.
+  \item Compute \(\partial_\sigma d_1\) and \(\partial_\sigma d_2\),
+  then derive vega. Derive rho by differentiating with respect to \(r\).
+  \item Differentiate first in \(\tau\), then use
+  \(\Theta=\partial_tC=-\partial_\tau C\) to derive calendar-time theta.
+  State all five Greeks explicitly.
+\end{exparts}
+\end{exercise}

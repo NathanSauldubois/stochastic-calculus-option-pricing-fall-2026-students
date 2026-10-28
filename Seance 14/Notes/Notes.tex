@@ -1,0 +1,185 @@
+% !TEX program = pdflatex
+\documentclass[10pt]{article}
+\usepackage[utf8]{inputenc}\usepackage[T1]{fontenc}\usepackage[english]{babel}
+\usepackage{lmodern,microtype}\usepackage[margin=.72in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools,booktabs,array,xcolor,enumitem}
+\usepackage[most]{tcolorbox}\usepackage{fancyhdr}\usepackage[hidelinks]{hyperref}
+\definecolor{CourseBlue}{HTML}{1A3C68}\definecolor{CourseGreen}{HTML}{216E39}
+\definecolor{CourseGold}{HTML}{B8860B}\definecolor{CourseRed}{HTML}{9A2C2C}
+\definecolor{SoftBlue}{HTML}{F2F6FA}\definecolor{SoftGreen}{HTML}{F1F8F3}
+\definecolor{SoftGold}{HTML}{FFF8E8}\definecolor{SoftRed}{HTML}{FFF3F3}
+\setlength{\parindent}{0pt}\setlength{\parskip}{.32em}
+\setlist[itemize]{leftmargin=1.5em,itemsep=.12em,topsep=.2em}
+\pagestyle{fancy}\fancyhf{}\lhead{Stochastic Calculus and Option Pricing}
+\rhead{Lecture 14 Notes}\cfoot{\thepage}\renewcommand{\headrulewidth}{.3pt}
+\newcommand{\E}{\mathbb E}\newcommand{\Q}{\mathbb Q}\newcommand{\cF}{\mathcal F}
+\newcommand{\dd}{\,\mathrm d}\newcommand{\PhiN}{\Phi}
+\newtcolorbox{boardexample}[1]{enhanced,breakable,colback=SoftBlue,colframe=CourseBlue,boxrule=.55pt,arc=1mm,title={Example --- #1},fonttitle=\bfseries}
+\newtcolorbox{studentexercise}[1]{enhanced,breakable,colback=SoftGold,colframe=CourseGold,boxrule=.55pt,arc=1mm,title={Exercise --- #1},fonttitle=\bfseries}
+\newtcolorbox{shortsolution}[1][]{enhanced,breakable,colback=SoftGreen,colframe=CourseGreen,boxrule=.55pt,arc=1mm,title={Short solution#1},fonttitle=\bfseries}
+\newtcolorbox{keyidea}[1]{enhanced,breakable,colback=white,colframe=CourseGreen,boxrule=.7pt,arc=1mm,title={#1},fonttitle=\bfseries}
+\newtcolorbox{warningbox}[1]{enhanced,breakable,colback=SoftRed,colframe=CourseRed,boxrule=.65pt,arc=1mm,title={#1},fonttitle=\bfseries}
+\title{\textbf{Pricing Toolbox: A Guided Refresher}\\\large Lecture 14 Notes --- It\^o, Girsanov, Path Dependence, and Early Exercise}
+\author{}\date{}
+\begin{document}\maketitle\vspace{-1.4em}
+\begin{keyidea}{The four questions}
+\[
+\begin{array}{c|c}
+\text{Question}&\text{Tool}\\\hline
+\text{How do we simplify a nonlinear Brownian quantity?}&\text{It\^o formula}\\
+\text{How do we remove a drift?}&\text{Girsanov}\\
+\text{What information must a payoff remember?}&\text{state augmentation}\\
+\text{When should the holder stop?}&\text{dynamic programming}
+\end{array}
+\]
+The methods change a representation while preserving the pricing problem.
+\end{keyidea}
+
+\section{It\^o calculus turns integrals into identities}
+For \(f(t,B_t)\),
+\[
+\dd f(t,B_t)=f_t\dd t+f_x\dd B_t+\frac12f_{xx}\dd t.
+\]
+Taking \(f(x)=e^x\) gives
+\[
+\dd e^{B_t}=e^{B_t}\dd B_t+\frac12e^{B_t}\dd t,
+\]
+hence
+\[
+\boxed{\int_0^T e^{B_s}\dd B_s=e^{B_T}-1-\frac12\int_0^T e^{B_s}\dd s.}
+\]
+\begin{boardexample}{the stochastic exponential}
+\[
+\mathcal E_t(\theta)=\exp\left(\theta B_t-\frac12\theta^2t\right)
+\]
+satisfies \(\dd\mathcal E_t=\theta\mathcal E_t\dd B_t\). The compensating
+quadratic-variation term is why it is a martingale rather than merely an
+exponential function of Brownian motion.
+\end{boardexample}
+\begin{studentexercise}{It\^o correction}
+Why is \(\exp(\theta B_t)\) not a martingale for \(\theta\ne0\)?
+\end{studentexercise}
+\begin{shortsolution}
+It\^o gives a positive drift
+\(\frac12\theta^2\exp(\theta B_t)\dd t\). Subtracting
+\(\frac12\theta^2t\) in the exponent cancels that drift.
+\end{shortsolution}
+
+\section{Girsanov removes drift by changing measure}
+If \(W^\Q_t=W_t+\int_0^t\lambda_s\dd s\) is Brownian motion under a new
+measure \(\Q\), then a process with drift under the old measure can become a
+driftless Brownian motion under \(\Q\). The density is a stochastic
+exponential, subject to an integrability condition.
+\begin{keyidea}{The purpose of the change}
+Changing measure reweights paths; it does not change observed path values.
+For pricing, choose the measure under which discounted traded assets are
+martingales. For hitting problems, choose the measure under which the
+underlying Brownian calculation is simple.
+\end{keyidea}
+\begin{boardexample}{first hitting time}
+For \(X_t=\mu t+B_t\), the event of hitting level \(a>0\) can be related by
+Girsanov to a driftless Brownian hitting event. Reflection then yields the
+inverse-Gaussian density
+\[
+f_{\tau_a}(t)=\frac{a}{\sqrt{2\pi t^3}}
+\exp\left(-\frac{(a-\mu t)^2}{2t}\right),\qquad t>0.
+\]
+\end{boardexample}
+
+\section{Path-dependent claims need an enlarged state}
+For an arithmetic-average Asian call,
+\[
+\left(\frac1T\int_0^TS_u\dd u-K\right)^+,
+\]
+define
+\[
+I_t=\int_0^tS_u\dd u,\qquad \dd I_t=S_t\dd t.
+\]
+The stock alone is not Markov for this payoff; the state is
+\((t,S_t,I_t)\). Under Black--Scholes, the value solves
+\[
+v_t+rs v_s+s v_i+\frac12\sigma^2s^2v_{ss}-rv=0,
+\]
+with terminal payoff \((I/T-K)^+\).
+
+\begin{warningbox}{Simulation has two errors here}
+A Monte Carlo Asian estimator has sampling error and numerical integration
+error for the time integral. A geometric Asian option is often a useful
+control variate because its price is tractable while it is strongly
+correlated with the arithmetic payoff.
+\end{warningbox}
+\begin{studentexercise}{a barrier-monitoring bias}
+Why can a discretely monitored up-and-in option be underpriced relative to
+continuous monitoring?
+\end{studentexercise}
+\begin{shortsolution}
+A path may cross the barrier between observation dates and return below it
+before the next observation. The discrete estimator misses that activation;
+refining the grid reduces the bias.
+\end{shortsolution}
+
+\section{Barrier events combine maxima and measure changes}
+For an up-and-in one-touch with barrier \(H>S_0\), the payoff is
+\[
+\mathbf 1_{\{\sup_{0\leq u\leq T}S_u\geq H\}}.
+\]
+With \(X_t=\log(S_t/S_0)=\mu t+\sigma B_t\), the barrier becomes
+\(a=\log(H/S_0)\). Girsanov handles drift and reflection handles the maximum.
+The price is the discounted hitting probability.
+
+\section{American options are stopping decisions}
+In a binomial model with gross return \(R\) and risk-neutral probability
+\(p\),
+\[
+\boxed{V_t=\max\left\{g(S_t),
+\frac{pV_{t+1}^u+(1-p)V_{t+1}^d}{R}\right\}.}
+\]
+The first term is exercise value and the second is continuation value.
+\begin{boardexample}{a three-step American put}
+Let \(S_0=100\), \(u=1.1\), \(d=.9\), \(R=1.02\), \(K=100\). Then
+\(p=.6\). At node \(S_2=81\),
+\[
+\text{exercise}=19,\qquad
+\text{continuation}=\frac{.6(10.9)+.4(27.1)}{1.02}=17.04.
+\]
+Exercise is optimal. Working backward gives approximately
+\[
+V_0^{\rm Eur}=4.59,\qquad V_0^{\rm Am}=4.91.
+\]
+The difference is the early-exercise premium.
+\end{boardexample}
+
+\begin{studentexercise}{the correct operation}
+At a node, a put has exercise value \(8\) and continuation value \(9.2\).
+What is its American value and action?
+\end{studentexercise}
+\begin{shortsolution}
+The value is \(\max\{8,9.2\}=9.2\). Continue; exercise and continuation
+are alternative policies, not cash flows to add.
+\end{shortsolution}
+
+\section{Numerical habits complete the toolbox}
+\begin{keyidea}{First diagnostic by contract feature}
+\begin{center}
+\begin{tabular}{p{.30\textwidth}|p{.52\textwidth}}
+\toprule
+Problem&First check\\\midrule
+Asian Monte Carlo&integration grid and sampling error\\
+Barrier simulation&monitoring bias and bridge correction\\
+American tree&time-step refinement and exercise region\\
+PDE or local-volatility grid&boundary placement and mesh convergence\\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{keyidea}
+\begin{warningbox}{A number is not yet a result}
+Before trusting a numerical price, apply a relevant refinement or
+no-arbitrage check. A formula can be correct while its discretization,
+simulation, or implementation is not.
+\end{warningbox}
+\begin{keyidea}{Final synthesis}
+The payoff tells us what information must be carried forward: quadratic
+variation, a probability density, a state variable, a path maximum, or a
+stopping rule.
+\end{keyidea}
+\end{document}

@@ -1,0 +1,1384 @@
+\documentclass[11pt]{article}
+
+% ============================================================
+% Packages
+% ============================================================
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,mathtools,amsthm}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{cleveref}
+
+% ============================================================
+% Hyperref setup
+% ============================================================
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!60!black,
+  citecolor=blue!60!black,
+  urlcolor=blue!60!black
+}
+
+% ============================================================
+% Macros
+% ============================================================
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\Pbb}{\mathbb{P}}
+\newcommand{\Qbb}{\mathbb{Q}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\dd}{\,\mathrm{d}}
+\newcommand{\1}{\mathbf{1}}
+\newcommand{\esssup}{\operatorname*{ess\,sup}}
+
+% Stochastic calc notations
+\newcommand{\Ito}{It\^o}
+\newcommand{\bracket}[2]{\langle #1,#2\rangle}
+\newcommand{\qvar}[1]{\langle #1\rangle}
+
+% ============================================================
+% Theorem environments
+% ============================================================
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{exercise}[theorem]{Exercise}
+
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% ============================================================
+% Minimal lecture header helpers
+% ============================================================
+\newcommand{\lecture}[2]{%
+\section{Lecture #1 --- #2}%
+}
+\newcommand{\lecturesummary}[1]{%
+\begin{center}
+\begin{minipage}{0.95\linewidth}
+\small\textbf{Summary.} #1
+\end{minipage}
+\end{center}
+\vspace{0.5em}
+}
+
+% ============================================================
+% Title
+% ============================================================
+\title{Stochastic Calculus \& Option Pricing --- Synthesis (Weeks 1--7)}
+\author{Nathan Sauldubois}
+\date{\today}
+
+\begin{document}
+\maketitle
+\vspace{-0.8em}
+
+\noindent\textbf{How to use these notes (Weeks 1--7).}
+\begin{itemize}[leftmargin=1.4em, itemsep=0.2em]
+  \item These are \emph{synthetic} lecture notes: definitions, key results, and the computations you actually use.
+  \item Each lecture ends with a short checklist: ``what you must be able to do''.
+  \item Notation: all processes are defined on a filtered probability space $(\Omega,\F,(\F_t)_{t\ge 0},\Pbb)$ satisfying the usual conditions.
+\end{itemize}
+
+\tableofcontents
+\bigskip
+
+% ===========================================================
+
+\section{Lecture 1 --- Probability refresher and core mathematical tools}
+
+\lecturesummary{Random variables and their laws; CDFs and densities; moments,
+variance, and covariance; dominated convergence; LLN and CLT; characteristic
+functions; information and conditional expectation; Gaussian conditioning;
+filtrations and martingales; and the differential-calculus formulas used later.}
+
+\paragraph{Reference.}
+S.~E. Shreve, \textit{Stochastic Calculus for Finance II}, Chapters~1--2.
+
+% ============================================================
+\subsection{Random variables, laws, CDFs, and densities}
+
+\paragraph{Random variable and law.}
+On a probability space $(\Omega,\F,\Pbb)$, a real random variable is a
+measurable map $X:(\Omega,\F)\to(\R,\mathcal B(\R))$. Its law is the
+probability measure
+\[
+\Pbb_X(A)=\Pbb(X\in A),
+\qquad A\in\mathcal B(\R).
+\]
+The random variable maps states to numbers; its law records the probabilities
+of those numbers.
+
+\paragraph{CDF and density.}
+The cumulative distribution function of $X$ is
+\[
+F_X(x)=\Pbb(X\le x).
+\]
+Every CDF is nondecreasing and right-continuous, with limits $0$ at
+$-\infty$ and $1$ at $+\infty$. For $a<b$,
+\[
+\Pbb(a<X\le b)=F_X(b)-F_X(a).
+\]
+If $X$ has density $f_X$, then
+\[
+F_X(x)=\int_{-\infty}^x f_X(u)\dd u,
+\qquad
+\Pbb(a<X\le b)=\int_a^b f_X(u)\dd u,
+\]
+and $f_X=F_X'$ wherever the CDF is differentiable. A law and a CDF always
+exist; a density need not exist.
+
+\paragraph{Joint and marginal laws.}
+The joint law of $(X,Y)$ contains both marginal laws and their dependence.
+In the discrete case,
+\[
+p_X(x)=\sum_y p_{X,Y}(x,y),
+\qquad
+p_Y(y)=\sum_x p_{X,Y}(x,y),
+\]
+whereas for a joint density,
+\[
+f_X(x)=\int_{\R}f_{X,Y}(x,y)\dd y,
+\qquad
+f_Y(y)=\int_{\R}f_{X,Y}(x,y)\dd x.
+\]
+Independence is equivalent to factorization of the joint law:
+$p_{X,Y}=p_Xp_Y$ or $f_{X,Y}=f_Xf_Y$.
+
+\paragraph{Common one-dimensional laws.}
+\begin{center}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Law & Parameters & $\E[X]$ & $\Var(X)$\\
+\midrule
+Bernoulli & $p$ & $p$ & $p(1-p)$\\
+Binomial & $n,p$ & $np$ & $np(1-p)$\\
+Poisson & $\lambda$ & $\lambda$ & $\lambda$\\
+Uniform & $[a,b]$ & $(a+b)/2$ & $(b-a)^2/12$\\
+Exponential & rate $\lambda$ & $1/\lambda$ & $1/\lambda^2$\\
+Gaussian & $\mu,\sigma^2$ & $\mu$ & $\sigma^2$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Mass functions and densities to recognize.}
+For the discrete laws,
+\begin{align*}
+X\sim\operatorname{Bernoulli}(p):&\quad
+\Pbb(X=x)=p^x(1-p)^{1-x},\quad x\in\{0,1\},\\
+X\sim\operatorname{Binomial}(n,p):&\quad
+\Pbb(X=k)=\binom nkp^k(1-p)^{n-k},\quad k=0,\ldots,n,\\
+X\sim\operatorname{Poisson}(\lambda):&\quad
+\Pbb(X=k)=e^{-\lambda}\frac{\lambda^k}{k!},\quad k\in\N.
+\end{align*}
+For the continuous laws,
+\begin{align*}
+X\sim\operatorname{Unif}[a,b]:&\quad
+f_X(x)=\frac1{b-a}\1_{[a,b]}(x),\\
+X\sim\operatorname{Exp}(\lambda):&\quad
+f_X(x)=\lambda e^{-\lambda x}\1_{[0,\infty)}(x),\\
+X\sim\mathcal N(\mu,\sigma^2):&\quad
+f_X(x)=\frac1{\sigma\sqrt{2\pi}}
+\exp\!\left(-\frac{(x-\mu)^2}{2\sigma^2}\right).
+\end{align*}
+
+% ============================================================
+\subsection{Expectation, moments, variance, and covariance}
+
+\paragraph{Expectation of a transformation.}
+If the relevant sum or integral is finite, then
+\[
+\E[h(X)]
+=\sum_x h(x)\Pbb(X=x)
+\quad\text{or}\quad
+\E[h(X)]=\int_{\R}h(x)f_X(x)\dd x.
+\]
+The $k$th moment is $\E[X^k]$. Integrability means
+$\E[|X|]<\infty$, and $\E[\1_A]=\Pbb(A)$.
+
+\paragraph{Essential expectation properties.}
+For integrable $X,Y$ and constants $a,b$,
+\begin{align*}
+\E[aX+bY]&=a\E[X]+b\E[Y],\\
+X\le Y&\Longrightarrow \E[X]\le\E[Y],\\
+|\E[X]|&\le\E[|X|].
+\end{align*}
+Linearity does not require independence.
+
+\paragraph{Variance and covariance.}
+For square-integrable variables,
+\[
+\Var(X)=\E[(X-\E[X])^2]
+=\E[X^2]-\E[X]^2,
+\qquad
+\operatorname{SD}(X)=\sqrt{\Var(X)},
+\]
+and
+\[
+\Cov(X,Y)=\E[XY]-\E[X]\E[Y].
+\]
+The identities used most often are
+\begin{align*}
+\Var(aX+b)&=a^2\Var(X),\\
+\Var(X+Y)&=\Var(X)+\Var(Y)+2\Cov(X,Y),\\
+\Var\!\left(\sum_{k=1}^nX_k\right)
+&=\sum_{k=1}^n\Var(X_k)
+  +2\sum_{i<j}\Cov(X_i,X_j).
+\end{align*}
+Independence implies zero covariance, but the converse is false in general.
+For independent square-integrable variables, the variance of a sum is the
+sum of the variances.
+
+\begin{theorem}[Dominated Convergence Theorem]
+Suppose $X_n\to X$ almost surely and there is an integrable random variable
+$Y$ such that $|X_n|\le Y$ almost surely for every $n$. Then $X$ is
+integrable and
+\[
+\E[|X_n-X|]\longrightarrow0,
+\qquad
+\E[X_n]\longrightarrow\E[X].
+\]
+\end{theorem}
+
+\begin{remark}
+Dominated convergence is the standard tool for interchanging a limit and an
+expectation. Pointwise convergence alone is not sufficient; the integrable
+dominating variable controls the tails uniformly in $n$.
+\end{remark}
+
+% ============================================================
+\subsection{Sample moments, LLN, and CLT}
+
+For observations $X_1,\ldots,X_n$, define
+\[
+\overline X_n=\frac1n\sum_{i=1}^nX_i,
+\qquad
+v_n=\frac1n\sum_{i=1}^n(X_i-\overline X_n)^2,
+\qquad
+s_n^2=\frac{n}{n-1}v_n.
+\]
+Here $v_n$ is the empirical variance and $s_n^2$ is its usual unbiased
+version under i.i.d. sampling with finite variance.
+
+\begin{theorem}[Law of Large Numbers]
+If $(X_i)$ are i.i.d. and $\E[|X_1|]<\infty$, then
+\[
+\overline X_n\xrightarrow[n\to\infty]{\Pbb}\mu=\E[X_1].
+\]
+\end{theorem}
+
+\begin{theorem}[Central Limit Theorem]
+If, in addition, $0<\sigma^2=\Var(X_1)<\infty$, then
+\[
+\frac{\sqrt n(\overline X_n-\mu)}{\sigma}
+\Rightarrow\mathcal N(0,1).
+\]
+Thus $\overline X_n$ has approximate standard deviation
+$\sigma/\sqrt n$ for large $n$.
+\end{theorem}
+
+The LLN says that the estimation error vanishes; the CLT gives its
+$n^{-1/2}$ scale and approximate Gaussian shape.
+
+% ============================================================
+\subsection{Characteristic functions}
+
+\paragraph{Definition and basic properties.}
+The characteristic function of $X$ is
+\[
+\varphi_X(u)=\E[e^{iuX}],
+\qquad u\in\R.
+\]
+It always exists because $|e^{iuX}|=1$. Moreover,
+\[
+\varphi_X(0)=1,
+\qquad
+|\varphi_X(u)|\le1,
+\qquad
+\varphi_{aX+b}(u)=e^{iub}\varphi_X(au).
+\]
+The characteristic function uniquely determines the law. If
+$\E[|X|^k]<\infty$, then it can be differentiated at the origin and
+\[
+\varphi_X^{(k)}(0)=i^k\E[X^k].
+\]
+
+\paragraph{Independent sums.}
+If $X$ and $Y$ are independent, then
+\[
+\varphi_{X+Y}(u)=\varphi_X(u)\varphi_Y(u).
+\]
+This turns convolution of laws into multiplication of functions.
+
+\paragraph{Formulas to know.}
+\begin{align*}
+X\sim\operatorname{Bernoulli}(p):&\quad
+\varphi_X(u)=1-p+pe^{iu},\\
+X\sim\operatorname{Poisson}(\lambda):&\quad
+\varphi_X(u)=\exp\!\bigl(\lambda(e^{iu}-1)\bigr),\\
+X\sim\operatorname{Exp}(\lambda):&\quad
+\varphi_X(u)=\frac{\lambda}{\lambda-iu},\\
+X\sim\mathcal N(\mu,\sigma^2):&\quad
+\varphi_X(u)=\exp\!\left(i\mu u-\frac12\sigma^2u^2\right).
+\end{align*}
+
+For $Z\sim\mathcal N(0,1)$, differentiation under the integral followed by
+integration by parts gives
+\[
+\varphi_Z'(u)=-u\varphi_Z(u),
+\qquad
+\varphi_Z(0)=1.
+\]
+Hence $\varphi_Z(u)=e^{-u^2/2}$; writing $X=\mu+\sigma Z$ gives the general
+Gaussian formula.
+
+% ============================================================
+\subsection{Information, measurability, and conditional expectation}
+
+\paragraph{$\sigma$-algebras as information.}
+A sub-$\sigma$-algebra $\mathcal G\subseteq\F$ represents the events that
+can be decided from the available information. A variable $Z$ is
+$\mathcal G$-measurable when its value can be determined from that
+information. The information revealed by a signal $Y$ is $\sigma(Y)$.
+
+On a finite space, $\mathcal G$ is generated by a partition
+$A_1,\ldots,A_m$. A variable is $\mathcal G$-measurable if and only if it is
+constant on every atom $A_j$. Equivalently,
+\[
+Z\text{ is }\sigma(Y)\text{-measurable}
+\quad\Longleftrightarrow\quad
+Z=g(Y)
+\]
+for some measurable $g$.
+
+\paragraph{Conditional probability and conditional laws.}
+For events $A,B$ with $\Pbb(B)>0$,
+\[
+\Pbb(A\mid B)=\frac{\Pbb(A\cap B)}{\Pbb(B)}.
+\]
+For discrete variables and $\Pbb(Y=y)>0$,
+\[
+\Pbb(X=x\mid Y=y)
+=\frac{\Pbb(X=x,Y=y)}{\Pbb(Y=y)}.
+\]
+For a joint density and $f_Y(y)>0$,
+\[
+f_{X\mid Y}(x\mid y)
+=\frac{f_{X,Y}(x,y)}{f_Y(y)},
+\qquad
+f_Y(y)=\int_{\R}f_{X,Y}(x,y)\dd x.
+\]
+
+\paragraph{Definition of conditional expectation.}
+For $X\in L^1$ and $\mathcal G\subseteq\F$, the conditional expectation
+$\E[X\mid\mathcal G]$ is the almost-surely unique random variable $Z$ such
+that
+\[
+Z\text{ is }\mathcal G\text{-measurable},
+\qquad
+\int_AZ\dd\Pbb=\int_AX\dd\Pbb
+\quad\text{for every }A\in\mathcal G.
+\]
+It is the prediction of $X$ based only on the information in $\mathcal G$.
+Conditioning on $Y$ means conditioning on $\sigma(Y)$:
+\[
+\E[X\mid Y]=\E[X\mid\sigma(Y)].
+\]
+
+\paragraph{Finite-partition formula.}
+If $\mathcal G=\sigma(A_1,\ldots,A_m)$, where the $A_j$ are partition atoms
+with positive probability, then
+\[
+\E[X\mid\mathcal G]
+=\sum_{j=1}^m
+\frac{\E[X\1_{A_j}]}{\Pbb(A_j)}\1_{A_j}
+=\sum_{j=1}^m\E[X\mid A_j]\1_{A_j}.
+\]
+Conditional expectation is therefore the average of $X$ inside each
+information set.
+
+\paragraph{Formula for $\E[h(X)\mid Y]$: discrete case.}
+Define, for every $y$ with $\Pbb(Y=y)>0$,
+\begin{align*}
+m(y)
+&=\E[h(X)\mid Y=y]\\
+&=\sum_xh(x)\Pbb(X=x\mid Y=y)\\
+&=\frac{\sum_xh(x)\Pbb(X=x,Y=y)}{\Pbb(Y=y)}.
+\end{align*}
+Then
+\[
+\boxed{\E[h(X)\mid Y]=m(Y).}
+\]
+
+\paragraph{Formula for $\E[h(X)\mid Y]$: density case.}
+For $f_Y(y)>0$, define
+\begin{align*}
+m(y)
+&=\E[h(X)\mid Y=y]\\
+&=\int_{\R}h(x)f_{X\mid Y}(x\mid y)\dd x\\
+&=\frac{\int_{\R}h(x)f_{X,Y}(x,y)\dd x}
+        {\int_{\R}f_{X,Y}(x,y)\dd x}.
+\end{align*}
+Again,
+\[
+\boxed{\E[h(X)\mid Y]=m(Y).}
+\]
+The final substitution $y=Y$ is essential: a conditional expectation is a
+random variable, not merely a number indexed by $y$.
+
+\paragraph{Essential conditional-expectation properties.}
+For integrable variables, constants $a,b$, and
+$\mathcal H\subseteq\mathcal G\subseteq\F$,
+\begin{align*}
+\E[aX+bY\mid\mathcal G]
+&=a\E[X\mid\mathcal G]+b\E[Y\mid\mathcal G],\\
+X\le Y
+&\Longrightarrow
+\E[X\mid\mathcal G]\le\E[Y\mid\mathcal G],\\
+Z\text{ $\mathcal G$-measurable}
+&\Longrightarrow
+\E[ZX\mid\mathcal G]=Z\E[X\mid\mathcal G],\\
+X\text{ $\mathcal G$-measurable}
+&\Longrightarrow
+\E[X\mid\mathcal G]=X,\\
+X\text{ independent of }\mathcal G
+&\Longrightarrow
+\E[X\mid\mathcal G]=\E[X],\\
+\E[\E[X\mid\mathcal G]\mid\mathcal H]
+&=\E[X\mid\mathcal H].
+\end{align*}
+In particular,
+\[
+\E[\E[X\mid\mathcal G]]=\E[X].
+\]
+For convex $\phi$, conditional Jensen gives
+\[
+\phi(\E[X\mid\mathcal G])
+\le\E[\phi(X)\mid\mathcal G]
+\]
+whenever the quantities are integrable.
+
+\paragraph{Gaussian conditioning.}
+If $(X,Y)$ is jointly Gaussian, with standard deviations
+$\sigma_X,\sigma_Y>0$ and correlation $\rho$, then
+\[
+X\mid(Y=y)\sim\mathcal N\!\left(
+\mu_X+\rho\frac{\sigma_X}{\sigma_Y}(y-\mu_Y),
+\;\sigma_X^2(1-\rho^2)
+\right).
+\]
+Consequently,
+\[
+\E[X\mid Y]
+=\mu_X+\rho\frac{\sigma_X}{\sigma_Y}(Y-\mu_Y),
+\qquad
+\Var(X\mid Y)=\sigma_X^2(1-\rho^2).
+\]
+The conditional mean is affine in the observed signal, and the residual
+variance decreases as $|\rho|$ increases.
+
+% ============================================================
+\subsection{Processes, filtrations, and martingales}
+
+\paragraph{Processes and filtrations.}
+A discrete-time stochastic process is a sequence $(X_n)_{n\ge0}$ of random
+variables on the same probability space. A filtration is an increasing
+family of $\sigma$-algebras,
+\[
+\F_0\subseteq\F_1\subseteq\F_2\subseteq\cdots,
+\]
+representing information accumulated through time. The natural filtration
+of $X$ is
+\[
+\F_n^X=\sigma(X_0,\ldots,X_n).
+\]
+
+A process is adapted if $X_n$ is $\F_n$-measurable for every $n$.
+Adaptedness is the no-look-ahead requirement.
+
+\paragraph{Random walks.}
+If
+\[
+S_n=S_0+\sum_{k=1}^n\xi_k,
+\]
+where the increments are i.i.d. with mean $m$ and variance $\sigma^2$, then
+\[
+\E[S_n]=S_0+nm,
+\qquad
+\Var(S_n)=n\sigma^2.
+\]
+
+\paragraph{Martingales.}
+An integrable adapted process $(M_n)$ is a martingale if
+\[
+\E[M_{n+1}\mid\F_n]=M_n
+\qquad\text{for every }n.
+\]
+For the random walk above,
+\[
+M_n=S_n-nm
+\]
+is a martingale. For independent symmetric $\pm1$ increments,
+$S_n^2-n$ is also a martingale. A martingale combines three requirements:
+integrability, adaptation, and the conditional fair-game identity.
+
+% ============================================================
+\subsection{Differential-calculus review}
+
+\paragraph{One-variable derivative and Taylor expansion.}
+For $g:\R\to\R$,
+\[
+g'(x)=\lim_{h\to0}\frac{g(x+h)-g(x)}{h}.
+\]
+If $g$ is twice differentiable near $x$, then
+\[
+g(x+h)=g(x)+g'(x)h+\frac12g''(x)h^2+o(h^2).
+\]
+
+\paragraph{Gradient and Hessian.}
+For $f:\R^d\to\R$,
+\[
+\nabla f(x)=
+\begin{pmatrix}
+\partial_1f(x)\\ \vdots\\ \partial_df(x)
+\end{pmatrix},
+\qquad
+\nabla^2f(x)=\bigl(\partial_{ij}f(x)\bigr)_{1\le i,j\le d}.
+\]
+The gradient gives first-order sensitivities; the Hessian records curvature
+and interactions. The second-order multivariable expansion is
+\[
+f(x+h)=f(x)+\nabla f(x)^\top h
++\frac12h^\top\nabla^2f(x)h+o(\|h\|^2).
+\]
+
+\paragraph{Multivariable chain rule.}
+If $x(t)\in\R^d$ and $f$ are differentiable, then
+\[
+\frac{\dd}{\dd t}f(x(t))
+=\nabla f(x(t))^\top x'(t).
+\]
+In particular, for $V=V(t,s)$ and a differentiable path $S(t)$,
+\[
+\frac{\dd}{\dd t}V(t,S(t))
+=V_t(t,S(t))+V_s(t,S(t))S'(t).
+\]
+The second-order Taylor term involving $V_{ss}$ will be essential once the
+underlying path is Brownian rather than differentiable.
+
+% ============================================================
+\subsection*{Lecture 1 checklist}
+
+You should be able to:
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item pass between a law, a CDF, a density, and interval probabilities;
+  \item compute $\E[h(X)]$, moments, variances, covariances, and variances of sums;
+  \item state when dominated convergence allows a limit to pass through $\E$;
+  \item distinguish the conclusions of the LLN and the CLT;
+  \item compute and use characteristic functions, especially for independent sums;
+  \item identify the information in $\sigma(Y)$ and test measurability on partition atoms;
+  \item compute $\E[h(X)\mid Y]$ in both discrete and density models;
+  \item use linearity, known factors, independence, monotonicity, Jensen, and the tower rule;
+  \item apply the Gaussian conditioning formula;
+  \item verify adaptation and the martingale property;
+  \item compute derivatives, gradients, Hessians, Taylor expansions, and chain rules.
+\end{itemize}
+
+% ============================================================
+
+\section{Lecture 2 --- Brownian Motion, Quadratic Variation, and GBM}
+
+\paragraph{References}
+% ============================================================
+
+\begin{itemize}[leftmargin=1.4em]
+
+\item \textit{Stochastic Calculus for Finance II: Continuous-Time Models}, S. E. Shreve, Chapter~3, pp.~83-117
+
+\item \textit{Brownian Motion and Stochastic Calculus}, I. Karatzas and S. E. Shreve, Chapter~2, pp.~47-126
+
+\end{itemize}
+
+
+\subsection{From Discrete Random Walks to Brownian Motion}
+
+\paragraph{Simple symmetric random walk.}
+Let $(\varepsilon_k)_{k\ge1}$ be i.i.d.\ with
+$\Pbb(\varepsilon_k=\pm1)=\tfrac12$, and define
+\[
+S_0=0,
+\qquad
+S_n=\sum_{k=1}^n \varepsilon_k .
+\]
+Then $(S_n)$ is a discrete-time martingale with independent increments,
+$\E[S_n]=0$ and $\Var(S_n)=n$.
+
+\paragraph{Diffusive scaling.}
+Introduce a time step $1/n$ and define the rescaled process
+\[
+W^{(n)}(t)=\frac{1}{\sqrt{n}}\,S_{\lfloor nt\rfloor},
+\qquad t\ge0,
+\]
+with linear interpolation.
+By the CLT, increments of $W^{(n)}$ over intervals of length $t-s$
+are approximately Gaussian with variance $t-s$.
+
+\paragraph{Donsker invariance principle (informal).}
+As $n\to\infty$, $W^{(n)}$ converges in distribution to a continuous-time
+process $W$, called \emph{Brownian motion}.
+This result explains why Brownian motion is the universal
+continuous-time limit of random walks.
+
+\subsection{Definition and Basic Properties of Brownian Motion}
+
+\paragraph{Definition.}
+A process $(W_t)_{t\ge0}$ is a \emph{standard Brownian motion} if:
+\begin{itemize}
+  \item $W_0=0$,
+  \item it has independent increments,
+  \item for $0\le s<t$, $W_t-W_s\sim\mathcal N(0,t-s)$,
+  \item paths are continuous almost surely.
+\end{itemize}
+
+\paragraph{Gaussian process viewpoint.}
+Brownian motion is a centered Gaussian process fully characterized by
+\[
+\Cov(W_s,W_t)=\min(s,t).
+\]
+In particular, for $s<t$,
+\[
+W_t=W_s+(W_t-W_s),
+\]
+where $W_s$ and $W_t-W_s$ are independent.
+
+\paragraph{Martingale property.}
+With respect to its natural filtration $\mathcal F_t=\sigma(W_s:s\le t)$,
+Brownian motion is a martingale:
+\[
+\E[W_t\mid\mathcal F_s]=W_s,\qquad s\le t.
+\]
+
+\subsection{Markov and Strong Markov Properties}
+
+\paragraph{Markov property.}
+Brownian motion is Markov: conditionally on $W_s$,
+the future is independent of the past,  if $t \geq s$, 
+\[
+\Pbb(W_t\in A\mid\mathcal F_s)=\Pbb(W_t\in A\mid W_s).
+\]
+Equivalently,
+\[
+W_t\mid W_s=x \sim \mathcal N(x,t-s).
+\]
+
+\paragraph{Strong Markov property.}
+Let $\tau$ be a stopping time.
+Conditionally on $\mathcal F_\tau$, the shifted process
+\[
+(W_{\tau+t}-W_\tau)_{t\ge0}
+\]
+is a Brownian motion independent of $\mathcal F_\tau$.
+This is crucial for hitting times, barriers, and American-style features.
+
+\subsection{Reflection Principle and Hitting Times}
+
+\paragraph{Running maximum.}
+Define the running maximum
+\[
+M_t=\sup_{0\le s\le t} W_s,
+\]
+and the hitting time of level $a$:
+\[
+\tau_a=\inf\{t\ge0:\ W_t=a\}.
+\]
+
+\paragraph{Reflection principle.}
+For $a>0$ and $t>0$,
+\[
+\Pbb(M_t\ge a)=2\,\Pbb(W_t\ge a).
+\]
+More generally, for $w\le a$,
+\[
+\Pbb(M_t>a,\ W_t<w)=\Pbb(W_t>2a-w).
+\]
+
+\paragraph{Interpretation.}
+Among paths that hit level $a$ before time $t$,
+reflecting the path after the first hitting time preserves Wiener measure.
+This converts path-dependent events into Gaussian tail probabilities.
+
+\paragraph{Consequence.}
+Brownian motion hits every level almost surely:
+\[
+\Pbb(\tau_a<\infty)=1,
+\qquad a\in\R.
+\]
+
+\subsection{Pathwise Regularity and Irregularity}
+
+\paragraph{Nowhere differentiability.}
+Almost surely, Brownian paths are nowhere differentiable.
+
+\paragraph{Oscillations.}
+For every $t\ge0$, almost surely,
+\[
+\limsup_{h\downarrow0}\frac{W_{t+h}-W_t}{\sqrt{h}}=+\infty,
+\qquad
+\liminf_{h\downarrow0}\frac{W_{t+h}-W_t}{\sqrt{h}}=-\infty.
+\]
+
+\paragraph{Hölder regularity.}
+For every $\alpha<\tfrac12$, Brownian motion is locally $\alpha$-Hölder,
+but it is not $\tfrac12$-Hölder.
+
+\subsection{Quadratic Variation}
+
+\paragraph{Definition.}
+For a partition $\pi=\{0=t_0<\cdots<t_n=T\}$, define
+\[
+[X]^\pi_T=\sum_{k=0}^{n-1}(X_{t_{k+1}}-X_{t_k})^2.
+\]
+If this converges as $|\pi|\to0$, the limit is the quadratic variation $[X]_T$.
+
+\paragraph{Finite variation vs.\ Brownian motion.}
+If $X_t=\int_0^t v_s ds$, then $[X]_T=0$.
+In contrast, for Brownian motion,
+\[
+[W]_T=T.
+\]
+
+\paragraph{Key martingale.}
+Quadratic variation explains why
+\[
+W_t^2-t
+\]
+is a martingale.
+This is the simplest manifestation of Itô calculus.
+
+\paragraph{Quadratic covariation.}
+For processes $X,Y$,
+\[
+[X,Y]_T=\lim_{\pi}\sum_k (X_{t_{k+1}}-X_{t_k})(Y_{t_{k+1}}-Y_{t_k}).
+\]
+If $A$ has finite variation, then $[A,W]=0$.
+
+\subsection{Heuristic It\^o Rules}
+
+Brownian increments satisfy the scaling:
+\[
+\Delta W = O(\sqrt{\Delta t}).
+\]
+As a bookkeeping device,
+\[
+(dW_t)^2=dt,
+\qquad
+dW_t\,dt=0,
+\qquad
+(dt)^2=0.
+\]
+These rules encode which discrete sums survive in the limit.
+
+\subsection{Geometric Brownian Motion (GBM)}
+
+\paragraph{Motivation.}
+Additive models allow negative prices and ignore scale effects.
+Instead, model relative changes:
+\[
+\frac{dS_t}{S_t}=\mu\,dt+\sigma\,dW_t.
+\]
+
+\paragraph{Explicit solution.}
+The solution is
+\[
+S_t=S_0\exp\!\Big(
+(\mu-\tfrac12\sigma^2)t+\sigma W_t
+\Big),
+\]
+so $S_t$ is lognormally distributed.
+
+\paragraph{Moments.}
+\[
+\E[S_t]=S_0 e^{\mu t},
+\qquad
+\Var(S_t)=S_0^2 e^{2\mu t}(e^{\sigma^2 t}-1).
+\]
+
+\paragraph{Volatility scaling.}
+Log-returns over $\Delta t$ have variance $\sigma^2\Delta t$,
+which justifies the $\sqrt{\Delta t}$ rule.
+
+\subsection{Stopping Times and Optional Stopping}
+
+\paragraph{Stopped process.}
+For a stopping time $\tau$ and a martingale $(M_t)$, define
+\[
+M_t^\tau=M_{t\wedge\tau}.
+\]
+Then $(M_t^\tau)$ is again a martingale.
+
+\paragraph{Optional stopping (safe version).}
+If $\tau$ is bounded, then
+\[
+\E[M_\tau]=\E[M_0].
+\]
+In general, $\tau<\infty$ a.s.\ is not sufficient;
+integrability or uniform integrability is required.
+
+\paragraph{Example.}
+For Brownian motion and $\tau_a=\inf\{t:\ W_t=a\}$,
+$\E[\tau_a]=\infty$ and $W_{\tau_a}=a$,
+so $\E[W_{\tau_a}]\neq\E[W_0]$.
+Optional stopping applies only to $t\wedge\tau_a$.
+
+\medskip
+\subsection{Multidimensional Brownian Motion}
+
+\paragraph{Definition.}
+A $d$-dimensional Brownian motion is a vector-valued process
+\[
+W_t=(W_t^1,\dots,W_t^d),\qquad t\ge 0,
+\]
+such that:
+\begin{itemize}
+  \item $W_0=0\in\R^d$,
+  \item it has independent increments,
+  \item for $0\le s<t$, the increment $W_t-W_s$ is multivariate Gaussian
+  with mean $0$ and covariance matrix $(t-s)I_d$,
+  \item paths are continuous almost surely.
+\end{itemize}
+
+Equivalently, the components $(W^1,\dots,W^d)$ are independent
+one-dimensional Brownian motions.
+
+\paragraph{Gaussian characterization.}
+Multidimensional Brownian motion is a centered Gaussian process with
+\[
+\Cov(W_s^i,W_t^j)=\delta_{ij}\min(s,t),
+\qquad 1\le i,j\le d,
+\]
+where $\delta_{ij}$ is the Kronecker symbol.
+
+\paragraph{Independent vs.\ correlated Brownian motions.}
+More generally, one may consider a Brownian motion with covariance matrix
+$\Sigma\in\R^{d\times d}$ (symmetric, positive semidefinite), defined by
+\[
+\Cov(W_s,W_t)=\min(s,t)\,\Sigma.
+\]
+In this case,
+\[
+\dd[W^i,W^j]_t=\Sigma_{ij}\,\dd t.
+\]
+Any such process can be written as
+\[
+W_t = B\,\widetilde W_t,
+\]
+where $\widetilde W$ is a standard $d$-dimensional Brownian motion
+and $B$ satisfies $BB^\top=\Sigma$ (e.g.\ Cholesky factorization).
+
+\paragraph{Quadratic variation and covariation.}
+For a $d$-dimensional Brownian motion $W$,
+\[
+[W^i]_t = t,
+\qquad
+[W^i,W^j]_t = 0 \quad (i\neq j)
+\]
+in the independent case, and more generally
+\[
+[W]_t = t\,\Sigma,
+\]
+where $[W]_t$ denotes the matrix-valued quadratic variation.
+
+\paragraph{It\^o rules (multidimensional mnemonic).}
+For independent components,
+\[
+(\dd W_t^i)^2=\dd t,
+\qquad
+\dd W_t^i\,\dd W_t^j=0 \ (i\neq j),
+\qquad
+\dd W_t^i\,\dd t=0,
+\qquad
+(\dd t)^2=0.
+\]
+With correlation matrix $\Sigma$, this becomes
+\[
+\dd W_t^i\,\dd W_t^j=\Sigma_{ij}\,\dd t.
+\]
+
+\paragraph{Preview.}
+In higher dimension, stochastic calculus keeps the same structure:
+\emph{drift terms}, \emph{martingale terms}, and \emph{quadratic variation}.
+Only the bookkeeping becomes matrix-valued.
+This naturally leads to the multidimensional It\^o formula
+and to multidimensional diffusion models.
+
+\subsection*{Lecture 2 checklist}
+
+You should be able to:
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item state the defining properties of Brownian motion and compute its
+        Gaussian increment laws and covariance function;
+  \item use independent increments to verify the martingale and Markov
+        properties;
+  \item apply the reflection principle to convert a maximum or hitting-time
+        event into a Gaussian tail probability;
+  \item distinguish Brownian paths from finite-variation paths, in particular
+        through their quadratic variation;
+  \item use the It\^o multiplication rules
+        $(\dd W_t)^2=\dd t$, $\dd W_t\dd t=0$, and $(\dd t)^2=0$;
+  \item solve the geometric Brownian-motion SDE and identify the
+        lognormal law of $S_t$;
+  \item identify a stopping time and state a safe version of optional
+        stopping, including its hypotheses;
+  \item work with independent and correlated multidimensional Brownian
+        motions and their covariations.
+\end{itemize}
+
+% ============================================================
+
+\section{Lecture 3 --- The It\^o Stochastic Integral}
+
+\lecturesummary{The It\^o integral is the $L^2$ limit of left-point,
+non-anticipative gains. Predictability prevents the use of future
+information and finite expected energy gives integrability. The resulting
+gain process is a square-integrable martingale, with quadratic variation
+$\int_0^t\phi_s^2\dd s$; for deterministic integrands, $L^2$ inner products
+become covariances of jointly Gaussian variables.}
+
+\subsection{Definition, admissibility, and construction}
+
+\paragraph{Why left endpoints are essential.}
+For a grid \(0=t_0<\cdots<t_n=T\), a discrete gain has the form
+\[
+G_T^\pi=\sum_{i=0}^{n-1}\phi_{t_i}
+        (W_{t_{i+1}}-W_{t_i}).
+\]
+The coefficient used on \((t_i,t_{i+1}]\) must be known at time \(t_i\):
+\(\phi_{t_i}\) is \(\F_{t_i}\)-measurable. This is the mathematical content
+of predictability and the economic content of non-anticipation. The sampling
+rule matters because Brownian quadratic variation survives:
+\[
+\sum_i W_{t_{i+1}}\Delta W_i-
+\sum_i W_{t_i}\Delta W_i
+=\sum_i(\Delta W_i)^2\longrightarrow T.
+\]
+
+\begin{definition}[Simple predictable integrand]
+A simple predictable process on \([0,T]\) is
+\[
+\phi_t=\sum_{i=0}^{n-1}\xi_i\1_{(t_i,t_{i+1}]}(t),
+\qquad \xi_i\in\F_{t_i},\qquad \E[\xi_i^2]<\infty.
+\]
+Its It\^o integral is the left-point gain
+\[
+\boxed{
+\int_0^T\phi_t\dd W_t
+=\sum_{i=0}^{n-1}\xi_i(W_{t_{i+1}}-W_{t_i}).}
+\]
+\end{definition}
+
+\paragraph{Admissible class and extension.}
+The standard \(L^2\) theory assumes
+\[
+\phi\text{ predictable},
+\qquad
+\boxed{\E\int_0^T\phi_t^2\dd t<\infty.}
+\]
+Choose simple predictable \(\phi^n\) such that
+\(\E\int_0^T|\phi_t^n-\phi_t|^2\dd t\to0\). Then
+\[
+\boxed{
+\int_0^T\phi_t\dd W_t
+:=L^2\text{-}\lim_{n\to\infty}
+\int_0^T\phi_t^n\dd W_t.}
+\]
+The It\^o isometry below proves that the limit exists, is unique, and does
+not depend on the approximating sequence.
+
+\subsection{The identities that do the calculations}
+
+Let \(\phi,\psi\) be predictable with finite expected energy. Then
+\begin{align*}
+\int_0^T(a\phi_t+b\psi_t)\dd W_t
+&=a\int_0^T\phi_t\dd W_t+b\int_0^T\psi_t\dd W_t,\\
+\E\left[\int_0^T\phi_t\dd W_t\right]&=0,\\
+\E\left[\left(\int_0^T\phi_t\dd W_t\right)^2\right]
+&=\E\int_0^T\phi_t^2\dd t,\\
+\E\left[\left(\int_0^T\phi_t\dd W_t\right)
+           \left(\int_0^T\psi_t\dd W_t\right)\right]
+&=\E\int_0^T\phi_t\psi_t\dd t.
+\end{align*}
+The third line is the \emph{It\^o isometry}; the fourth is its polarization
+or covariance identity. Thus integrand energy becomes terminal variance.
+
+\begin{theorem}[Martingale gain process]
+If \(\phi\) is predictable and
+\(\E\int_0^T\phi_s^2\dd s<\infty\), then
+\[
+M_t=\int_0^t\phi_s\dd W_s
+\]
+is a continuous square-integrable martingale. In particular, for \(s\leq t\),
+\[
+\boxed{
+\E[M_t\mid\F_s]=M_s,
+\qquad
+\E\left[\int_s^t\phi_u\dd W_u\middle|\F_s\right]=0.}
+\]
+\end{theorem}
+
+The quadratic variation and mutual covariation are
+\[
+\boxed{
+[M]_t=\int_0^t\phi_s^2\dd s,
+\qquad
+\left[\int_0^\cdot\phi_s\dd W_s,
+       \int_0^\cdot\psi_s\dd W_s\right]_t
+=\int_0^t\phi_s\psi_s\dd s.}
+\]
+The first formula is pathwise; the isometry is its expected-value analogue.
+
+\begin{remark}[True versus local martingale]
+The expected condition
+\(\E\int_0^T\phi_s^2\dd s<\infty\) gives a true \(L^2\)-martingale.
+Pathwise local square integrability generally gives only a local martingale;
+zero drift alone does not justify erasing the stochastic integral after
+taking expectations.
+\end{remark}
+
+\subsection{Deterministic integrands and formulas to know}
+
+If \(f\in L^2(0,T)\) is deterministic, then
+\[
+\boxed{
+\int_0^Tf(t)\dd W_t
+\sim\mathcal N\left(0,\int_0^Tf(t)^2\dd t\right).}
+\]
+For deterministic \(f,g\), the two integrals are jointly Gaussian and
+\[
+\Cov\left(\int_0^Tf\dd W,\int_0^Tg\dd W\right)
+=\int_0^Tf(t)g(t)\dd t.
+\]
+Consequently, orthogonality in \(L^2(0,T)\) implies independence of the two
+Gaussian integrals. This implication is special to deterministic integrands;
+a random predictable integrand need not produce a Gaussian integral.
+
+Three reusable identities are
+\[
+\boxed{
+\int_0^Tc\dd W_t=cW_T,
+\qquad
+\int_0^Tt\dd W_t\sim\mathcal N\left(0,\frac{T^3}{3}\right),
+\qquad
+\int_0^TW_t\dd W_t=\frac12(W_T^2-T).}
+\]
+For deterministic absolutely continuous \(f\), stochastic integration by
+parts reduces to
+\[
+\boxed{
+\int_0^Tf(t)\dd W_t
+=f(T)W_T-\int_0^TW_tf'(t)\dd t.}
+\]
+There is no covariation correction because a deterministic finite-variation
+function has zero covariation with Brownian motion.
+
+If \(\tau\) is a stopping time, then on every bounded horizon
+\[
+\boxed{
+\int_0^t\1_{\{s\leq\tau\}}\dd W_s=W_{t\wedge\tau},
+\qquad
+\E[W_{t\wedge\tau}^2]=\E[t\wedge\tau].}
+\]
+
+\paragraph{Reusable calculation pattern.}
+Before computing an integral, check in order:
+\begin{enumerate}[leftmargin=1.6em,itemsep=0.15em]
+  \item predictability: is the coefficient known before the increment?
+  \item finite expected energy: is
+        \(\E\int_0^T\phi_t^2\dd t<\infty\)?
+  \item structure: is the integrand deterministic, stopped, or simple?
+  \item target: use the isometry for second moments, covariance for joint
+        risks, and the martingale property for conditional means.
+\end{enumerate}
+
+\subsection*{Lecture 3 checklist}
+
+You should be able to:
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item define an It\^o integral first for a simple predictable process;
+  \item check predictability and the condition
+        $\E\int_0^T\phi_t^2\dd t<\infty$;
+  \item use linearity, zero mean, the It\^o isometry, and the covariance
+        identity;
+  \item explain why $\int_0^t\phi_s\dd W_s$ is a martingale;
+  \item identify the normal law of an integral with deterministic integrand;
+  \item compute brackets of It\^o integrals;
+  \item use deterministic integration by parts and derive
+        $\int_0^T W_t\dd W_t=\tfrac12(W_T^2-T)$;
+  \item simulate an It\^o integral with left-point Brownian increments and
+        validate it with the isometry.
+\end{itemize}
+
+% ============================================================
+
+\section{Lecture 4 --- It\^o Processes and It\^o's Formula}
+
+\lecturesummary{Quadratic variation makes stochastic calculus second order,
+and covariation turns correlation into a $\dd t$ term. It\^o's formula is a
+chain rule plus a curvature correction. Its product and ratio forms solve
+SDEs, support discounting and delta hedging, and distinguish local from true
+martingales.}
+
+\paragraph{Differential versus integral form.}
+For an It\^o process, the compact notation and its precise meaning are
+\[
+\boxed{
+\dd X_t=a_t\dd t+b_t\dd W_t
+\quad\Longleftrightarrow\quad
+X_t-X_s=\int_s^t a_u\dd u+\int_s^t b_u\dd W_u,
+\qquad 0\leq s\leq t.}
+\]
+Use the differential form for calculations and the integral form as the
+rigorous equality. Never divide through by \(\dd t\): Brownian paths are not
+differentiable.
+
+\subsection{Quadratic covariation and the differential table}
+
+For continuous processes \(X,Y\), quadratic covariation is the limiting sum
+\[
+[X,Y]_t=\lim_{|\pi|\to0}
+\sum_i(X_{t_{i+1}}-X_{t_i})(Y_{t_{i+1}}-Y_{t_i}),
+\]
+whenever the limit exists in probability. For Brownian motions \(W,B\) with
+instantaneous correlation \(\rho\),
+\[
+\boxed{
+(\dd W_t)^2=\dd t,
+\quad \dd W_t\dd B_t=\rho\dd t,
+\quad \dd t\dd W_t=0,
+\quad (\dd t)^2=0.}
+\]
+These are mnemonics for quadratic-variation limits, not ordinary algebraic
+infinitesimals. If
+\[
+\dd X_t=a_t\dd t+b_t\dd W_t+c_t\dd B_t,
+\quad
+\dd Y_t=p_t\dd t+q_t\dd W_t+r_t\dd B_t,
+\]
+then
+\[
+\boxed{
+\dd[X,Y]_t
+=\bigl(b_tq_t+c_tr_t+\rho b_tr_t+\rho c_tq_t\bigr)\dd t.}
+\]
+Only diffusion coefficients enter; finite-variation drifts contribute no
+quadratic covariation.
+
+For the It\^o process
+\(\dd X_t=a_t\dd t+b_t\dd W_t\),
+\[
+\boxed{\dd[X]_t=b_t^2\dd t,
+\qquad [X]_t=\int_0^tb_s^2\dd s.}
+\]
+
+\subsection{One- and two-dimensional It\^o formulas}
+
+\begin{theorem}[One-dimensional It\^o formula]
+Let
+\(\dd X_t=a_t\dd t+b_t\dd W_t\) and
+\(f\in C^{1,2}\). Then
+\[
+\boxed{
+\dd f(t,X_t)
+=\left(f_t+a_tf_x+\frac12b_t^2f_{xx}\right)(t,X_t)\dd t
++b_tf_x(t,X_t)\dd W_t.}
+\]
+Equivalently,
+\(\dd f=f_t\dd t+f_x\dd X+\tfrac12f_{xx}\dd[X]\).
+\end{theorem}
+
+The drift vanishes when
+\[
+\boxed{f_t+a_tf_x+\tfrac12b_t^2f_{xx}=0}
+\]
+along the process, making \(f(t,X_t)\) a local martingale. A separate
+boundedness or integrability argument is required to obtain a true
+martingale and use conditional expectations.
+
+\begin{theorem}[Two-dimensional It\^o formula]
+Let \(X,Y\) be continuous It\^o processes and let
+\(f\in C^{1,2}([0,T]\times\R^2)\), with one continuous time derivative
+and continuous spatial derivatives up to order two. Then
+\[
+\boxed{
+\begin{aligned}
+\dd f(t,X_t,Y_t)={}&f_t\dd t+f_x\dd X_t+f_y\dd Y_t\\
+&+\frac12f_{xx}\dd[X]_t+f_{xy}\dd[X,Y]_t
++\frac12f_{yy}\dd[Y]_t.
+\end{aligned}}
+\]
+All derivatives are evaluated at \((t,X_t,Y_t)\).
+In particular, if
+\[
+\dd X_t=a_t\dd t+b_t\dd W_t,
+\qquad \dd Y_t=c_t\dd t+d_t\dd B_t,
+\qquad \dd W_t\dd B_t=\rho\dd t,
+\]
+then
+\[
+\boxed{
+\begin{aligned}
+\dd f(t,X_t,Y_t)
+={}&\left(f_t+a_tf_x+c_tf_y+\tfrac12b_t^2f_{xx}
+       +\rho b_td_tf_{xy}+\tfrac12d_t^2f_{yy}\right)\dd t\\
+&+b_tf_x\dd W_t+d_tf_y\dd B_t.
+\end{aligned}}
+\]
+The mixed derivative has no factor \(1/2\); its contribution vanishes
+for independent Brownian drivers.
+\end{theorem}
+
+\paragraph{Reliable application method.}
+Write the state variables as placeholders, compute all first derivatives and
+all second derivatives in noisy directions, substitute the processes, then
+group separately the \(\dd t\) and Brownian terms. Always check the domain
+of \(f\), especially for \(\log x\), \(1/x\), and payoff kinks.
+
+\subsection{Reusable transformation rules}
+
+If \(X_t>0\) and
+\(\dd X_t/X_t=\alpha_t\dd t+\beta_t\dd W_t\), then
+\[
+\boxed{
+\dd\log X_t
+=\left(\alpha_t-\frac12\beta_t^2\right)\dd t
++\beta_t\dd W_t.}
+\]
+The term \(-\beta_t^2/2\) is the volatility correction. If
+\(\dd X_t=a_t\dd t+b_t\dd W_t\) and \(X_t\neq0\), then
+\[
+\boxed{
+\dd\left(\frac1{X_t}\right)
+=\left(-\frac{a_t}{X_t^2}+\frac{b_t^2}{X_t^3}\right)\dd t
+-\frac{b_t}{X_t^2}\dd W_t.}
+\]
+
+For continuous It\^o processes,
+\[
+\boxed{
+\dd(X_tY_t)=X_t\dd Y_t+Y_t\dd X_t+\dd[X,Y]_t.}
+\]
+
+\subsection{Canonical SDEs to solve and reuse}
+
+\paragraph{Geometric Brownian motion.}
+For
+\[
+\dd S_t=\mu S_t\dd t+\sigma S_t\dd W_t,
+\qquad S_0>0,
+\]
+apply It\^o to \(\log S_t\):
+\[
+\boxed{
+S_t=S_0\exp\left\{
+\left(\mu-\frac12\sigma^2\right)t+\sigma W_t
+\right\}.}
+\]
+Thus \(S_t>0\), \(\log S_t\) is Gaussian, and
+\[
+\E[S_t]=S_0e^{\mu t},
+\qquad
+\frac{\dd(S_t^p)}{S_t^p}
+=\left[p\mu+\frac12p(p-1)\sigma^2\right]\dd t
++p\sigma\dd W_t.
+\]
+
+\paragraph{Ornstein--Uhlenbeck process.}
+For
+\[
+\dd X_t=\kappa(m-X_t)\dd t+\sigma\dd W_t,
+\qquad \kappa>0,
+\]
+the integrating factor \(e^{\kappa t}\) yields, for \(s\leq t\),
+\[
+\boxed{
+X_t=m+(X_s-m)e^{-\kappa(t-s)}
++\sigma\int_s^te^{-\kappa(t-u)}\dd W_u.}
+\]
+Therefore
+\[
+\boxed{
+\E[X_t\mid\F_s]=m+(X_s-m)e^{-\kappa(t-s)},
+\quad
+\Var(X_t\mid\F_s)=\frac{\sigma^2}{2\kappa}
+\bigl(1-e^{-2\kappa(t-s)}\bigr).}
+\]
+
+\paragraph{Exponential martingale and Brownian moments.}
+Two particularly useful drift cancellations are
+\[
+\boxed{
+\exp\left(\lambda W_t-\frac12\lambda^2t\right)
+\text{ is a martingale},
+\qquad W_t^2-t\text{ is a martingale}.}
+\]
+More generally, applying It\^o's formula to \(W_t^n\) gives the recursion
+\[
+\frac{\dd}{\dd t}\E[W_t^n]
+=\frac{n(n-1)}2\E[W_t^{n-2}],
+\]
+whenever the stochastic integral is integrable.
+
+\subsection{Several factors and instantaneous hedging}
+
+If the unhedged shock is
+\(\sigma_X\dd W_t-h\sigma_Y\dd B_t\), with
+\(\dd W_t\dd B_t=\rho\dd t\), its variance rate is
+\[
+q(h)=\sigma_X^2+h^2\sigma_Y^2-2h\rho\sigma_X\sigma_Y.
+\]
+The minimum-variance hedge is
+\[
+\boxed{
+h^*=\rho\frac{\sigma_X}{\sigma_Y},
+\qquad q(h^*)=\sigma_X^2(1-\rho^2).}
+\]
+Only the component correlated with the hedging asset can be removed.
+
+\subsection*{Lecture 4 checklist}
+
+You should be able to:
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item translate an It\^o process between differential and integral forms;
+  \item identify the time and state variables and write every driving SDE;
+  \item compute $f_t$, $f_x$, and $f_{xx}$ before applying It\^o's formula;
+  \item apply the two-dimensional formula, including $f_y$, $f_{yy}$,
+        and the mixed term $f_{xy}\dd[X,Y]_t$;
+  \item calculate covariations, including
+        $\dd W_t\dd B_t=\rho\dd t$ for correlated drivers;
+  \item retain all terms of order $\dd t$ and separate the final drift and
+        diffusion terms;
+  \item use product, quotient, and integration-factor formulas for It\^o
+        processes;
+  \item solve standard SDEs such as GBM and Ornstein--Uhlenbeck processes;
+  \item check the domain, $C^{1,2}$ regularity, and integrability conditions;
+  \item state the probability measure and financing convention in a financial
+        application.
+\end{itemize}
+
+% Lectures 5--7 follow the current slide decks and course notes.
+\input{weeks_5_7.tex}
+
+\end{document}

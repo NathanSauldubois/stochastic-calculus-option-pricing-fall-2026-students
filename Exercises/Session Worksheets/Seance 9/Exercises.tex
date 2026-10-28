@@ -1,0 +1,50 @@
+% Weekly exercise sheet for Lecture 9; also included in the synthesis sheet.
+\ifdefined\ExercisesSynthesis
+\else
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern,microtype}
+\usepackage[margin=0.9in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{enumitem,hyperref}
+\newcommand{\E}{\mathbb E}
+\newcommand{\Qbb}{\mathbb Q}
+\newcommand{\dd}{\,\mathrm d}
+\theoremstyle{definition}
+\newtheorem{exercise}{Exercise}[section]
+\newlist{exparts}{enumerate}{1}
+\setlist[exparts,1]{label=\textbf{(\alph*)},itemsep=0.3em,topsep=0.4em,leftmargin=2em}
+\newcommand{\lecturesummary}[1]{\begin{quote}\small\textbf{Focus.} #1\end{quote}}
+\title{Stochastic Calculus and Option Pricing\\Lecture 9 Exercises}
+\author{}
+\date{}
+\begin{document}
+\maketitle
+\vspace{-1.2em}
+\setcounter{section}{8}
+\fi
+
+\section{Week 9 --- Vanilla Options in Practice}
+\lecturesummary{A short theoretical variation on contract units that
+remains valid without choosing market numbers.}
+
+\begin{exercise}[A stock split changes units, not economics]
+Suppose one old share is replaced by \(a>0\) new shares, so that the quoted
+stock price and strike become \(S'=S/a\) and \(K'=K/a\).
+\begin{exparts}
+  \item Compare the old call payoff \((S_T-K)^+\) with the payoff on \(a\)
+  new calls struck at \(K/a\). Explain why the option position must also be
+  rescaled by \(a\).
+  \item If \(C(S,K)\) is the old call value and \(C'(S',K')\) the value per
+  new call, derive the relation between them by no-arbitrage.
+  \item Use the chain rule to relate the old and new Delta and Gamma. Which
+  sensitivity is invariant to the change of share denomination?
+\end{exparts}
+\end{exercise}
+
+
+\ifdefined\ExercisesSynthesis\else
+\end{document}
+\fi

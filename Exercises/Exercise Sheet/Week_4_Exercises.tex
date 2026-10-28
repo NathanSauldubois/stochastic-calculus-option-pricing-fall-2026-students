@@ -1,0 +1,193 @@
+% Included by Exercises.tex and Week_4_Exercise_Sheet.tex.
+\section{Week 4 --- Theoretical Applications of the It\^o Formula}
+
+Unless otherwise specified, \(W\) is standard Brownian motion, all initial
+values are deterministic, and coefficients are constant. Work on bounded
+time horizons and justify each use of a zero-mean stochastic integral.
+
+\subsection*{Part I --- Transformations and Their Meaning}
+
+\begin{exercise}[Easy --- A transform whose curvature changes sign]
+Let \(Y_t=\log(1+W_t^2)\).
+\begin{exparts}
+  \item For \(f(x)=\log(1+x^2)\), compute \(f'(x)\) and \(f''(x)\).
+  Explain why the classical It\^o formula applies on the whole real line.
+  \item Find the drift and diffusion coefficient of \(Y\).
+  Determine the regions where its drift is positive, zero, or negative.
+  \item Find an explicit function \(a\) such that
+  \[
+  Y_t-\int_0^t a(W_s)\dd s
+  \]
+  is a true martingale. Check this by bounding the diffusion coefficient.
+  \item Compute \([Y]_t\) as an integral. Explain why the sign changes
+  in the drift do not produce negative increments of quadratic variation.
+\end{exparts}
+\end{exercise}
+
+\begin{exercise}[Easy to medium --- Recovering the noise by an inverse transform]
+Set \(X_t=\sinh(W_t)\), and recall that
+\[
+F(x)=\operatorname{arsinh}(x)=\log\bigl(x+\sqrt{1+x^2}\bigr).
+\]
+\begin{exparts}
+  \item Apply It\^o to \(\sinh(W_t)\) and express both coefficients
+  entirely in terms of \(X_t\). Use \(\cosh^2 w-\sinh^2 w=1\).
+  \item Compute \(F'(x)\) and \(F''(x)\), then apply It\^o to
+  \(F(X_t)\). Check explicitly that the drift cancels and the diffusion
+  coefficient is one.
+  \item A student keeps only \(F'(X_t)\dd X_t\). Compute the spurious
+  drift produced by that calculation.
+  \item Now let \(\dd Z_t=a(Z_t)\dd t+\sqrt{1+Z_t^2}\dd W_t\).
+  Determine the drift function \(a(x)\) for which the drift of
+  \(F(Z_t)\) vanishes identically. In that case, identify \(F(Z_t)\)
+  from its initial value and differential.
+\end{exparts}
+\end{exercise}
+
+\clearpage
+\subsection*{Part II --- Which Martingale Claims Survive?}
+
+\begin{exercise}[Easy to medium --- The same transform under two dynamics]
+Let \(f\in C^2(\R)\) and fix \(\mu\neq0\). Consider, for every starting
+point \(x\in\R\),
+\[
+X_t^x=x+W_t,
+\qquad
+Y_t^x=x+\mu t+W_t.
+\]
+\begin{exparts}
+  \item Write the drift coefficient of \(f(X_t^x)\) and of
+  \(f(Y_t^x)\).
+  \item Determine all \(f\) for which the drift of \(f(X_t^x)\)
+  vanishes identically for every \(x\).
+  \item Among those functions, determine which also give identically
+  zero drift for \(f(Y_t^x)\). Explain why a martingale conclusion
+  depends on the dynamics of the input process.
+  \item Verify directly that the candidate processes in parts (b) and
+  (c) are true martingales on bounded horizons, rather than stopping at
+  a formal zero-drift calculation.
+\end{exparts}
+\end{exercise}
+
+\begin{exercise}[Medium --- Correlation between two compensated squares]
+Let \((W,B)\) be jointly Brownian with
+\(\dd[W,B]_t=\rho\dd t\), \(-1\leq\rho\leq1\), and set
+\[
+M_t=W_t^2-t,
+\qquad
+N_t=B_t^2-t.
+\]
+You may use \(\E[W_tB_t]=\rho t\) and the fact that Gaussian variables
+have finite moments of every order.
+\begin{exparts}
+  \item Find \(\dd M_t\), \(\dd N_t\), and \(\dd[M,N]_t\).
+  \item Apply the product rule to \(M_tN_t\). Find the finite-variation
+  term that must be subtracted to obtain a true martingale. Justify the
+  integrability of its stochastic terms using Gaussian moments.
+  \item Take expectations to compute \(\E[M_tN_t]\), then find the
+  correlation of \(M_t\) and \(N_t\) for \(t>0\).
+  \emph{Hint:} each compensated square has variance \(2t^2\).
+  \item Explain why changing \(\rho\) to \(-\rho\) leaves this
+  correlation unchanged. For which \(\rho\) is \(MN\) itself a
+  martingale? Check the cases \(\rho=0\) and \(|\rho|=1\).
+\end{exparts}
+\end{exercise}
+
+\clearpage
+\subsection*{Part III --- Products with Accumulated Quantities}
+
+\begin{exercise}[Medium --- A random discount factor has finite variation]
+Define
+\[
+A_t=\int_0^t W_s^2\dd s,
+\qquad D_t=e^{-A_t},
+\qquad Z_t=D_tW_t.
+\]
+\begin{exparts}
+  \item Find \(\dd A_t\) and \(\dd D_t\). Explain why both processes
+  have finite variation on bounded intervals and why \(0<D_t\leq1\).
+  \item Compute \([D,W]_t\) and apply the product rule to \(Z_t\).
+  Explain why randomness of \(D\) does not create a mixed correction here.
+  \item Find \(h_t\) explicitly so that
+  \[
+  K_t=Z_t+\int_0^t h_s\dd s
+  \]
+  is a true martingale starting at zero. Prove the required expected-energy
+  bound for its stochastic integrand.
+  \item Compute \([K]_t\) and show that \(\E[K_t^2]\leq t\).
+  Does adding back the finite-variation term change quadratic variation?
+\end{exparts}
+\end{exercise}
+
+\begin{exercise}[Medium --- A geometric model with a continuous inflow]
+Suppose an account receives cash at a constant rate \(c>0\) and satisfies
+\[
+\dd X_t=(\mu X_t+c)\dd t+\sigma X_t\dd W_t,
+\qquad X_0=x>0.
+\]
+Let \(H_t=\exp((\mu-\sigma^2/2)t+\sigma W_t)\), so
+\(\dd H_t=\mu H_t\dd t+\sigma H_t\dd W_t\) and \(H_0=1\).
+\begin{exparts}
+  \item Compute \(\dd(H_t^{-1})\) and \(\dd[X,H^{-1}]_t\).
+  Both \(X\) and \(H\) are driven by the same \(W\).
+  \item Apply the product rule to \(X_tH_t^{-1}\). Check that its
+  Brownian term and all drift terms proportional to \(X_t\) cancel.
+  \item Integrate the remaining differential to obtain an explicit
+  expression for \(X_t\) in terms of \(H\) and an ordinary time integral.
+  Use it to prove \(X_t>0\).
+  \item A proposed solution is \(\widehat X_t=H_t(x+ct)\).
+  Differentiate it and identify the inflow rate it actually implements.
+  Explain why a contribution made at time \(s\) must grow by the factor
+  \(H_t/H_s\) between \(s\) and \(t\).
+\end{exparts}
+\end{exercise}
+
+\subsection*{Part IV --- Intensive It\^o Formula Practice}
+
+\begin{exercise}[Easy to medium --- A time-dependent exponential martingale]
+For \(\lambda\in\R\), define
+\[
+M_t^{\lambda}=\exp\!\left(\lambda W_t-\tfrac12\lambda^2t\right).
+\]
+\begin{exparts}
+  \item Apply the time-dependent It\^o formula to
+  \(f(t,x)=\exp(\lambda x-\lambda^2t/2)\), and show that
+  \[\dd M_t^{\lambda}=\lambda M_t^{\lambda}\dd W_t.\]
+  Identify precisely which two drift contributions cancel.
+  \item Prove that \(M^\lambda\) is a true martingale on every bounded
+  horizon. You may compute \(\E[(M_t^\lambda)^2]\) from the Gaussian
+  moment-generating function.
+  \item Let \(a,b\in\R\). Determine all pairs \((a,b)\) for which
+  \(\exp(aW_t+bt)\) has zero drift. Explain why the condition is about
+  the quadratic variation of \(W\), not ordinary calculus.
+  \item Use conditional expectation to prove
+  \(\E[M_t^\lambda\mid\F_s]=M_s^\lambda\) for \(s\leq t\), directly
+  from independent Brownian increments.
+\end{exparts}
+\end{exercise}
+
+
+\begin{exercise}[Medium --- A backward equation is a martingale test]
+Let \(u\in C^{1,2}([0,T]\times\R)\) have bounded \(u_x\), and define
+\(Z_t=u(t,W_t)\).
+\begin{exparts}
+  \item Apply It\^o's formula and show that \(Z\) is a true martingale
+  whenever
+  \[
+  u_t+\tfrac12u_{xx}=0.
+  \]
+  Carefully state where boundedness of \(u_x\) is used.
+  \item Let \(g\in C^2(\R)\) have bounded first and second derivatives,
+  and set
+  \[
+  u(t,x)=\E\bigl[g(x+W_{T-t})\bigr].
+  \]
+  Explain, using independent increments and the martingale property from
+  part (a), why \(u(t,W_t)=\E[g(W_T)\mid\F_t]\).
+  \item For \(g(x)=\cos x\), compute \(u\) explicitly and verify the
+  backward equation by differentiation.
+  \item Explain why the same argument cannot apply directly to
+  \(g(x)=|x|\) at \(x=0\), and name the extension of It\^o's formula
+  that addresses this kink.
+\end{exparts}
+\end{exercise}

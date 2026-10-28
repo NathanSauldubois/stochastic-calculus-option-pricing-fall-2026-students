@@ -1,0 +1,50 @@
+% Weekly exercise sheet for Lecture 11; also included in the synthesis sheet.
+\ifdefined\ExercisesSynthesis
+\else
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern,microtype}
+\usepackage[margin=0.9in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{enumitem,hyperref}
+\newcommand{\E}{\mathbb E}
+\newcommand{\Qbb}{\mathbb Q}
+\newcommand{\dd}{\,\mathrm d}
+\newcommand{\F}{\mathcal F}
+\theoremstyle{definition}
+\newtheorem{exercise}{Exercise}[section]
+\newlist{exparts}{enumerate}{1}
+\setlist[exparts,1]{label=\textbf{(\alph*)},itemsep=0.3em,topsep=0.4em,leftmargin=2em}
+\newcommand{\lecturesummary}[1]{\begin{quote}\small\textbf{Focus.} #1\end{quote}}
+\title{Stochastic Calculus and Option Pricing\\Lecture 11 Exercises}
+\author{}
+\date{}
+\begin{document}
+\maketitle
+\vspace{-1.2em}
+\setcounter{section}{10}
+\fi
+
+\section{Week 11 --- Change of Numeraire}
+\lecturesummary{The exercise tests the no-arbitrage structure of currency
+quotes.}
+
+
+\begin{exercise}[Three currency quotes must agree]
+Let \(X^{A/B}\) mean units of currency \(A\) per unit of currency \(B\), and
+define \(X^{B/C}\) and \(X^{A/C}\) similarly.
+\begin{exparts}
+  \item Write the spot-quote identity that rules out a triangular arbitrage.
+  Explain the units on both sides.
+  \item If the identity fails, describe the cycle of conversions that
+  produces a positive terminal amount from one unit of currency.
+  \item Explain why the arbitrage argument uses traded exchange rates
+  directly; no choice of numeraire can repair inconsistent spot quotes.
+\end{exparts}
+\end{exercise}
+
+\ifdefined\ExercisesSynthesis\else
+\end{document}
+\fi

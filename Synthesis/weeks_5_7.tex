@@ -1,0 +1,391 @@
+% Current synthesis for Lectures 5--7. Included by synthesis.tex.
+
+% ============================================================
+\section{Lecture 5 --- Self-Financing, Replication, and Black--Scholes}
+% ============================================================
+
+\lecturesummary{It\^o's formula identifies the dynamics of a candidate
+price. Self-financing specifies how a trading strategy earns its gains.
+Matching those gains with a European claim gives the Black--Scholes PDE
+and its delta hedge. The Gaussian solution produces the call formula and
+its Greeks. The basic model in this lecture has no dividends.}
+
+\subsection{From It\^o's formula to a pricing equation}
+
+For a stock with historical dynamics
+\[
+\dd S_t=\mu S_t\dd t+\sigma S_t\dd W_t^{\Pbb},
+\qquad
+\dd B_t=rB_t\dd t,\qquad B_0=1,
+\]
+It\^o's formula applied directly to \(V_t=v(t,S_t)\) gives
+\[
+\dd V_t
+=\left(v_t+\mu S_tv_s+\tfrac12\sigma^2S_t^2v_{ss}\right)\dd t
++\sigma S_tv_s\dd W_t^{\Pbb}.
+\]
+The second derivative term comes from \(\dd[S]_t=\sigma^2S_t^2\dd t\).
+For path-dependent payoffs, a running integral such as
+\(A_t=\int_0^tS_u\dd u\) can be added to the state. This idea returns in
+Lecture~7.
+
+\subsection{The self-financing budget}
+
+Let \(\Delta_t\) be stock shares and \(\beta_t\) bank-account units. The
+portfolio value is \(X_t=\Delta_tS_t+\beta_tB_t\). If holdings change at
+a trading date \(t_i\), the new shares must be paid for from the bank
+account:
+\[
+S_{t_i}(\Delta_i-\Delta_{i-1})
++B_{t_i}(\beta_i-\beta_{i-1})=0.
+\]
+The holdings chosen before the next price move earn that move. Passing
+from these left-point gains to continuous time gives the
+self-financing condition
+\[
+\boxed{
+X_t=X_0+\int_0^t\Delta_u\dd S_u+\int_0^t\beta_u\dd B_u,
+\qquad
+\dd X_t=\Delta_t\dd S_t+r(X_t-\Delta_tS_t)\dd t.}
+\]
+The value identity \(X=\Delta S+\beta B\) by itself does not impose
+self-financing. For continuous finite-variation holdings, the product rule
+also gives \(S_t\dd\Delta_t+B_t\dd\beta_t=0\). For more general
+semimartingale holdings, a covariation term must be included in that
+rebalancing identity; the stochastic-integral gain equation remains the
+definition.
+
+\subsection{Replication, the PDE, and verification}
+
+Suppose a European claim pays \(g(S_T)\) and has smooth candidate price
+\(v(t,S_t)\), with \(v(T,s)=g(s)\). A replicating portfolio with
+\(X_t=v(t,S_t)\) has gain
+\[
+\dd X_t
+=\left[rv+(\mu-r)S_t\Delta_t\right]\dd t
++\sigma S_t\Delta_t\dd W_t^{\Pbb}.
+\]
+Matching its Brownian coefficient with that of \(\dd v(t,S_t)\) gives
+\(\Delta_t=v_s(t,S_t)\). Matching drifts then cancels \(\mu\) and yields
+\[
+\boxed{
+v_t+rs\,v_s+\tfrac12\sigma^2s^2v_{ss}-rv=0,
+\qquad v(T,s)=g(s).}
+\]
+The cash holding is
+\[
+\boxed{\beta_t=\frac{v(t,S_t)-S_tv_s(t,S_t)}{B_t}.}
+\]
+Conversely, a sufficiently regular PDE solution with an admissible
+self-financing strategy and the correct terminal payoff verifies the
+replication. No arbitrage then identifies its initial cost as the claim
+price. The argument uses one traded Brownian exposure to span the one
+modeled Brownian risk.
+
+\subsection{Gaussian solution, call formula, and Greeks}
+
+Set \(\tau=T-t\). The logarithmic change of variable and removal of the
+discounting term transform the PDE into a heat equation. Its Gaussian
+representation is
+\[
+v(t,s)=e^{-r\tau}
+\E\!\left[
+g\!\left(s e^{(r-\sigma^2/2)\tau+\sigma\sqrt{\tau}Z}\right)
+\right],
+\qquad Z\sim N(0,1).
+\]
+For a call with strike \(K>0\), put
+\[
+d_1=\frac{\log(s/K)+(r+\sigma^2/2)\tau}{\sigma\sqrt{\tau}},
+\qquad d_2=d_1-\sigma\sqrt{\tau}.
+\]
+The call, put, and parity formulas are
+\[
+\boxed{\begin{aligned}
+C(t,s)&=s\Phi(d_1)-Ke^{-r\tau}\Phi(d_2),\\
+P(t,s)&=Ke^{-r\tau}\Phi(-d_2)-s\Phi(-d_1),\\
+C(t,s)-P(t,s)&=s-Ke^{-r\tau}.
+\end{aligned}}
+\]
+Here \(\Phi\) and \(\varphi=\Phi'\) are the standard normal CDF and
+density. The identity
+\[
+\boxed{s\varphi(d_1)=Ke^{-r\tau}\varphi(d_2)}
+\]
+cancels the density terms when differentiating. With calendar-time
+\(\Theta=\partial_tC\), the call Greeks are
+\[
+\boxed{\begin{aligned}
+\Delta_C&=\Phi(d_1),&
+\Gamma_C&=\frac{\varphi(d_1)}{s\sigma\sqrt{\tau}},&
+\mathrm{Vega}_C&=s\varphi(d_1)\sqrt{\tau},\\
+\Theta_C&=-\frac{s\sigma\varphi(d_1)}{2\sqrt{\tau}}
+           -rKe^{-r\tau}\Phi(d_2),&
+\rho_C&=K\tau e^{-r\tau}\Phi(d_2).
+\end{aligned}}
+\]
+Delta is the stock holding in the hedge. Gamma measures how quickly
+that holding changes. Discrete rebalancing, funding frictions, jumps,
+and volatility misspecification make the continuous-time hedge
+imperfect.
+
+\subsection*{Lecture 5 checklist}
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item distinguish portfolio value from self-financing gains;
+  \item match diffusion and drift to obtain delta and the pricing PDE;
+  \item recover the call formula and differentiate it to obtain the Greeks;
+  \item check regularity, integrability, and the terminal payoff when
+        verifying a candidate hedge.
+\end{itemize}
+
+% ============================================================
+\section{Lecture 6 --- Reweighting, Girsanov, and Risk-Neutral Measure}
+% ============================================================
+
+\lecturesummary{A change of measure visits events with different
+frequencies while an inverse density preserves the original
+expectation. Gaussian tilting becomes Girsanov's drift shift for
+Brownian paths. A true density martingale is needed before the
+risk-neutral measure can be used.}
+
+\subsection{Rare tails motivate a change of weights}
+
+A change of measure can make a rare event easier to sample. To recover
+its original probability, reweight the observations by the inverse density:
+\[
+\Pbb(A)=\E^{\Qbb}\!\left[
+\frac{\dd\Pbb}{\dd\Qbb}\mathbf1_A\right]
+\]
+for equivalent measures \(\Pbb\) and \(\Qbb\).
+
+\subsection{Densities and conditional Bayes' formula}
+
+If \(Z_T>0\), \(\E^{\Pbb}[Z_T]=1\), and
+\(\dd\Qbb/\dd\Pbb|_{\F_T}=Z_T\), then for integrable \(Y\),
+\[
+\boxed{\E^{\Qbb}[Y]=\E^{\Pbb}[Z_TY].}
+\]
+The density process is \(Z_t=\E^{\Pbb}[Z_T\mid\F_t]\). For
+\(\mathcal G\subseteq\F_T\), the conditional version is
+\[
+\boxed{
+\E^{\Qbb}[Y\mid\mathcal G]
+=\frac{\E^{\Pbb}[Z_TY\mid\mathcal G]}
+       {\E^{\Pbb}[Z_T\mid\mathcal G]}.}
+\]
+Changing measure changes the weights of paths, while equivalent
+measures agree on null events.
+
+\subsection{Stochastic exponential and the sign of Girsanov}
+
+For a predictable process \(\lambda\) with finite pathwise energy, the
+candidate density is
+\[
+\boxed{
+Z_t=\exp\!\left(
+-\int_0^t\lambda_u\dd W_u^{\Pbb}
+-\tfrac12\int_0^t\lambda_u^2\dd u\right),
+\qquad
+\dd Z_t=-Z_t\lambda_t\dd W_t^{\Pbb}.}
+\]
+This is initially a nonnegative local martingale. A sufficient
+condition for it to be a true martingale on \([0,T]\) is Novikov's
+condition
+\[
+\E^{\Pbb}\!\left[
+\exp\!\left(\tfrac12\int_0^T\lambda_u^2\dd u\right)\right]<\infty.
+\]
+If the density is a true martingale and
+\(\dd\Qbb/\dd\Pbb|_{\F_T}=Z_T\), Girsanov gives
+\[
+\boxed{
+W_t^{\Qbb}=W_t^{\Pbb}+\int_0^t\lambda_u\dd u.}
+\]
+Thus \(\dd W_t^{\Pbb}=\dd W_t^{\Qbb}-\lambda_t\dd t\). If
+\(\dd X_t=b_t\dd t+a_t\dd W_t^{\Pbb}\), then
+\[
+\dd X_t=(b_t-a_t\lambda_t)\dd t+a_t\dd W_t^{\Qbb}.
+\]
+The drift changes; the quadratic variation
+\(\dd[X]_t=a_t^2\dd t\) does not.
+
+\subsection{The Black--Scholes pricing measure}
+
+For the non-dividend-paying stock in Lecture~5, set
+\(\lambda=(\mu-r)/\sigma\). With the corresponding true density
+martingale,
+\[
+\boxed{
+\frac{\dd S_t}{S_t}=r\dd t+\sigma\dd W_t^{\Qbb},
+\qquad
+\dd(e^{-rt}S_t)=\sigma e^{-rt}S_t\dd W_t^{\Qbb}.}
+\]
+The discounted price is a local martingale, and in this constant
+coefficient model it is a true martingale. The measure \(\Qbb\)
+is a pricing measure, not a forecast of historical returns. Its
+conditional lognormal law also yields
+\(C_t=S_t\Phi(d_1)-Ke^{-r(T-t)}\Phi(d_2)\) from two Gaussian
+tails.
+
+\subsection*{Lecture 6 checklist}
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item write a density and its inverse before reweighting an expectation;
+  \item distinguish a local exponential from a true density martingale;
+  \item keep the sign of the Brownian drift shift consistent with \(Z\);
+  \item derive the risk-neutral drift of a non-dividend-paying stock.
+\end{itemize}
+
+% ============================================================
+\section{Lecture 7 --- Martingale Prices, Hedges, and Completeness}
+% ============================================================
+
+\lecturesummary{Discounted self-financing gains lead to conditional
+valuation when the relevant local martingale is a true martingale.
+Dividends enter the stock gain and change its risk-neutral price drift.
+Changing numeraire changes the units and measure together. Martingale
+representation identifies a claim's Brownian exposure; traded assets
+must span that exposure to implement a hedge.}
+
+\subsection{From stochastic integrals to martingale prices}
+
+Let \(B_t=\exp(\int_0^tr_u\dd u)\) and \(D_t=B_t^{-1}\).
+For a non-dividend-paying stock under a money-market pricing measure,
+\[
+\frac{\dd S_t}{S_t}=r_t\dd t+\sigma_t\dd W_t^{\Qbb}
+\quad\Longrightarrow\quad
+\dd(D_tS_t)=D_t\sigma_tS_t\dd W_t^{\Qbb}.
+\]
+The discounted price is a local martingale because it is a stochastic
+integral. For a self-financing portfolio
+\(X_t=\Delta_tS_t+\beta_tB_t\), integration by parts gives
+\[
+\boxed{\dd(D_tX_t)=\Delta_t\dd(D_tS_t).}
+\]
+If this discounted wealth is a true martingale and \(X_T=H\), then
+\[
+\boxed{
+V_t=X_t=B_t\E^{\Qbb}\!\left[\frac{H}{B_T}\middle|\F_t\right].}
+\]
+Local martingality alone does not justify the conditional-expectation
+equality; integrability or an appropriate admissibility argument is
+needed.
+
+\subsection{Dividend gains and the pricing equation}
+
+Suppose the stock pays continuous dividends \(qS_t\dd t\).
+Its \emph{historical ex-dividend price} still has the form
+\[
+\dd S_t=\mu S_t\dd t+\sigma S_t\dd W_t^{\Pbb}.
+\]
+The gain from one share is \(\dd S_t+qS_t\dd t\). A
+self-financing hedge therefore satisfies
+\[
+\boxed{
+\dd X_t=\Delta_t(\dd S_t+qS_t\dd t)+\beta_t\dd B_t,}
+\]
+and its discounted form is
+\[
+\dd(D_tX_t)=\Delta_t\left[
+\dd(D_tS_t)+D_tqS_t\dd t\right].
+\]
+For \(V_t=v(t,S_t)\), matching Brownian coefficients gives
+\(\Delta_t=v_s\). Matching drifts cancels the historical price
+drift \(\mu\) and gives
+\[
+\boxed{
+v_t+(r-q)sv_s+\tfrac12\sigma^2s^2v_{ss}-rv=0.}
+\]
+The matching Brownian shift is
+\(\lambda=(\mu+q-r)/\sigma\), so under the associated pricing measure
+\[
+\frac{\dd S_t}{S_t}=(r-q)\dd t+\sigma\dd W_t^{\Qbb}.
+\]
+The discounted \emph{gain} is driftless; the discounted
+ex-dividend price alone has dividend-related drift.
+
+\subsection{Change of numeraire}
+
+For a strictly positive traded numeraire \(N\) with associated measure
+\(\Qbb^N\), a replicable payoff has the representation
+\[
+\boxed{
+V_t=N_t\E^{\Qbb^N}\!\left[\frac{H}{N_T}\middle|\F_t\right].}
+\]
+The numeraire, its measure, and the ratio \(H/N_T\) form one matched
+choice of units. Taking \(N=B\) recovers money-market discounting.
+
+\subsection{Martingale representation turns prices into hedges}
+
+In a Brownian filtration, a square-integrable discounted claim value
+has a representation
+\[
+M_t=\E^{\Qbb}[D_TH\mid\F_t]
+=M_0+\int_0^t\psi_u^\top\dd W_u^{\Qbb}.
+\]
+The vector \(\psi_t\) is the claim's exposure to Brownian shocks. With
+one non-dividend-paying traded stock satisfying
+\(\dd(D_tS_t)=D_t\sigma_tS_t\dd W_t^{\Qbb}\), exposure matching gives
+\[
+\boxed{\Delta_t=\frac{\psi_t}{D_t\sigma_tS_t}.}
+\]
+If the claim is \(v(t,S_t)\), this reduces to \(\Delta_t=v_s(t,S_t)\).
+For \(m\) assets driven by \(d\) Brownian factors, write
+\(\dd\bar S_t=\Gamma_t\dd W_t^{\Qbb}\), with
+\(\Gamma_t\in\R^{m\times d}\). Holdings \(\phi_t\) implement a
+claim exposure \(\psi_t\) when
+\[
+\boxed{\Gamma_t^\top\phi_t=\psi_t.}
+\]
+
+\subsection{Completeness and the spanning condition}
+
+In a \(d\)-factor Brownian market, all Brownian exposures can be spanned
+when the discounted volatility matrix satisfies
+\[
+\boxed{\operatorname{rank}(\Gamma_t)=d
+\quad\text{for almost every }(t,\omega).}
+\]
+Together with the required admissibility and integrability conditions,
+this is the completeness criterion. A new traded asset helps only if
+its Brownian exposure adds a missing direction.
+
+When a Brownian direction is unspanned, its risk-premium shift can remain
+free across equivalent martingale measures. Claims exposed to that
+direction need not have a unique no-arbitrage price.
+
+\subsection{Path dependence and the choice of state}
+
+The full-filtration pricing identity applies to path-dependent claims.
+To express the price as a function of the current state, include enough
+variables to record the relevant path information. Apply the
+multidimensional It\^o formula to this enlarged state: a finite-variation
+state contributes a first derivative but no quadratic-variation or
+covariation term.
+
+\subsection*{Lecture 7 checklist}
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item distinguish discounted prices from discounted dividend gains;
+  \item derive the dividend-adjusted PDE and delta hedge by replication;
+  \item match a numeraire with its measure in a valuation formula;
+  \item use martingale representation and a rank test to identify
+        hedgeable Brownian exposures;
+  \item identify the additional state variables needed for a path-dependent claim.
+\end{itemize}
+
+\paragraph{Examples to know.}
+\begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
+  \item Price a unit payoff, a terminal share, a forward, and a digital;
+        recover a European call by decomposing its payoff.
+  \item Price and hedge a call with continuous dividends; recover
+        put--call parity using a prepaid share.
+  \item Choose a numeraire that simplifies the terminal payoff ratio.
+  \item Find the martingale representations of linear and quadratic
+        Brownian terminal payoffs.
+  \item Analyze a stock driven by two Brownian risks and a claim depending
+        on an untraded sector state; determine whether a second traded
+        product completes the market.
+  \item Use a nontraded claim to illustrate price ambiguity in an
+        incomplete market.
+  \item Introduce the running average for an arithmetic Asian option
+        and derive its two-state pricing PDE.
+\end{itemize}

@@ -1,0 +1,177 @@
+% !TEX program = pdflatex
+\documentclass[10pt]{article}
+\usepackage[utf8]{inputenc}\usepackage[T1]{fontenc}\usepackage[english]{babel}
+\usepackage{lmodern,microtype}\usepackage[margin=.72in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools,booktabs,array,xcolor,enumitem}
+\usepackage[most]{tcolorbox}\usepackage{fancyhdr}\usepackage[hidelinks]{hyperref}
+\definecolor{CourseBlue}{HTML}{1A3C68}\definecolor{CourseGreen}{HTML}{216E39}
+\definecolor{CourseGold}{HTML}{B8860B}\definecolor{CourseRed}{HTML}{9A2C2C}
+\definecolor{SoftBlue}{HTML}{F2F6FA}\definecolor{SoftGreen}{HTML}{F1F8F3}
+\definecolor{SoftGold}{HTML}{FFF8E8}\definecolor{SoftRed}{HTML}{FFF3F3}
+\setlength{\parindent}{0pt}\setlength{\parskip}{.32em}
+\setlist[itemize]{leftmargin=1.5em,itemsep=.12em,topsep=.2em}
+\pagestyle{fancy}\fancyhf{}\lhead{Stochastic Calculus and Option Pricing}
+\rhead{Lecture 13 Notes}\cfoot{\thepage}\renewcommand{\headrulewidth}{.3pt}
+\newcommand{\E}{\mathbb E}\newcommand{\Q}{\mathbb Q}\newcommand{\cF}{\mathcal F}
+\newcommand{\dd}{\,\mathrm d}
+\theoremstyle{definition}\newtheorem{definition}{Definition}[section]
+\newtcolorbox{boardexample}[1]{enhanced,breakable,colback=SoftBlue,colframe=CourseBlue,boxrule=.55pt,arc=1mm,title={Example --- #1},fonttitle=\bfseries}
+\newtcolorbox{studentexercise}[1]{enhanced,breakable,colback=SoftGold,colframe=CourseGold,boxrule=.55pt,arc=1mm,title={Exercise --- #1},fonttitle=\bfseries}
+\newtcolorbox{shortsolution}[1][]{enhanced,breakable,colback=SoftGreen,colframe=CourseGreen,boxrule=.55pt,arc=1mm,title={Short solution#1},fonttitle=\bfseries}
+\newtcolorbox{keyidea}[1]{enhanced,breakable,colback=white,colframe=CourseGreen,boxrule=.7pt,arc=1mm,title={#1},fonttitle=\bfseries}
+\newtcolorbox{warningbox}[1]{enhanced,breakable,colback=SoftRed,colframe=CourseRed,boxrule=.65pt,arc=1mm,title={#1},fonttitle=\bfseries}
+\title{\textbf{Pricing, Hedging, and Model Risk}\\\large Lecture 13 Notes --- Vanilla, Path Dependence, and Stochastic Rates}
+\author{}\date{}
+\begin{document}\maketitle\vspace{-1.4em}
+\begin{keyidea}{Goals and logical structure}
+Pricing is only the beginning of a derivatives workflow:
+\[
+\text{contract}\longrightarrow\text{state variables}\longrightarrow
+\text{model and price}\longrightarrow\text{hedge}\longrightarrow\text{model-risk audit}.
+\]
+This lecture compares three situations: a vanilla option, a lookback option,
+and a claim exposed to stochastic interest rates.
+\end{keyidea}
+
+\section{A vanilla option: the hedge depends on the model}
+For a European payoff \(g(S_T)\), Black--Scholes assumes
+\[
+\frac{\dd S_t}{S_t}=r\dd t+\sigma\dd W_t^\Q.
+\]
+The price is
+\[
+v(t,s)=\E^\Q_{t,s}[e^{-r(T-t)}g(S_T)],
+\]
+and the delta hedge holds \(\Delta_t=v_s(t,S_t)\) shares. In this
+one-factor complete model, continuous rebalancing replicates the claim.
+
+\begin{boardexample}{local volatility changes delta}
+Under local volatility,
+\[
+\frac{\dd S_t}{S_t}=r\dd t+\sigma_{\rm loc}(t,S_t)\dd W_t^\Q,
+\]
+and
+\[
+v_t+rs v_s+\tfrac12\sigma_{\rm loc}(t,s)^2s^2v_{ss}-rv=0.
+\]
+The formal hedge remains \(\Delta=v_s\), but its value and delta depend on
+the calibrated surface. A hedge is therefore a model-dependent object.
+\end{boardexample}
+
+\begin{warningbox}{A good vanilla fit is not a guarantee of a good hedge}
+If the market follows stochastic volatility while the desk uses a
+local-volatility delta, the option price may initially match market vanillas
+but the subsequent smile movement can generate systematic hedging P\&L.
+Calibration error, discrete rebalancing, transaction costs, and parameter
+instability add further sources of error.
+\end{warningbox}
+
+\begin{studentexercise}{price versus hedge}
+Two models match today's vanilla call price but imply different deltas.
+Can their future hedging P\&L differ?
+\end{studentexercise}
+\begin{shortsolution}
+Yes. Equality of one initial price does not imply equality of future
+sensitivities or of model-implied smile dynamics. Hedging P\&L depends on
+the path followed by market risk factors and on the hedge rule.
+\end{shortsolution}
+
+\section{A lookback option: the path becomes state}
+\subsection{The additional state variable}
+A fixed-strike lookback put may pay
+\[
+M_T-S_T,\qquad M_t=\max_{0\leq u\leq t}S_u.
+\]
+Knowing \(S_t\) alone is insufficient: two paths with equal current spot but
+different running maxima have different future payoffs. The Markov state is
+\((S_t,M_t)\).
+
+\begin{definition}[State augmentation]
+When a payoff depends on a path statistic, include the statistic as a state
+variable. Pricing then becomes Markovian in the enlarged state, not
+necessarily in the stock price alone.
+\end{definition}
+
+Away from a new maximum, a local-volatility lookback value \(u(t,s,m)\)
+satisfies
+\[
+u_t+rsu_s+\tfrac12\sigma_{\rm loc}(t,s)^2s^2u_{ss}-ru=0,
+\qquad 0<s<m,
+\]
+with terminal condition \(u(T,s,m)=m-s\). The diagonal \(s=m\) requires a
+boundary condition describing the update of the running maximum.
+
+\begin{keyidea}{Path dependence has a computational cost}
+The new state adds a grid dimension and makes simulation bookkeeping
+essential. In Monte Carlo, each path must carry its own running maximum;
+in a PDE, the diagonal boundary must be treated consistently.
+\end{keyidea}
+
+\begin{studentexercise}{minimal state}
+For an arithmetic Asian call with payoff
+\((T^{-1}\int_0^T S_u\dd u-K)^+\), what extra state restores Markovianity?
+\end{studentexercise}
+\begin{shortsolution}
+Use the running integral \(I_t=\int_0^tS_u\dd u\), so the state is
+\((t,S_t,I_t)\). The accumulated average alone does not replace the current
+stock because future accumulation still depends on \(S_t\).
+\end{shortsolution}
+
+\section{Stochastic rates add a hedging factor}
+If the short rate is random, discounting is random:
+\[
+P(t,T)=\E^\Q\left[\exp\left(-\int_t^T r_u\dd u\right)\middle|\cF_t\right].
+\]
+For a stock and a short-rate factor,
+\[
+\frac{\dd S_t}{S_t}=(r_t-q)\dd t+\sigma_S\dd W_t^S,\qquad
+\dd r_t=a(t,r_t)\dd t+\sigma_r(t,r_t)\dd W_t^r.
+\]
+The value of a European claim is generally \(v(t,S_t,r_t)\). Its hedge
+exposure includes both \(v_s\) and \(v_r\).
+
+\begin{boardexample}{what becomes tradable?}
+Stock delta manages the stock shock. A zero-coupon bond or an interest-rate
+instrument is needed to manage the rate shock. If sufficiently many
+independent risk factors cannot be spanned by traded instruments, the
+market is incomplete and perfect replication is unavailable.
+\end{boardexample}
+
+\begin{warningbox}{Model risk and market incompleteness are different}
+Model risk is error from a misspecified or unstable model. Incompleteness is
+a structural fact: available traded assets cannot span all shocks. Both can
+produce residual P\&L, but their remedies differ.
+\end{warningbox}
+
+\section{Hedging P\&L as a diagnostic}
+For a short option position, a simple discrete hedging P\&L is
+\[
+\Pi_T=V_0+\sum_i\Delta_{t_i}(S_{t_{i+1}}-S_{t_i})
+-\text{option payoff}-\text{funding and costs}.
+\]
+Analyse not only its mean, but also dispersion, tail losses, dependence on
+spot moves, volatility moves, and rate moves. A model can have small average
+error while producing unacceptable tail risk.
+
+\begin{keyidea}{Practical workflow}
+\begin{enumerate}
+\item Identify every payoff-relevant state variable.
+\item Calibrate the model to liquid instruments that support hedging.
+\item State the hedge instruments and rebalance convention.
+\item Backtest and stress-test the distribution of hedging P\&L.
+\item Report residual risk rather than claiming a perfect hedge by default.
+\end{enumerate}
+\end{keyidea}
+
+\begin{studentexercise}{final diagnosis}
+A long-dated lookback option is priced with constant volatility and
+deterministic rates. Name two material modeling omissions to investigate.
+\end{studentexercise}
+\begin{shortsolution}
+The path-dependent payoff can be very sensitive to volatility-surface and
+smile dynamics, so constant volatility is a key omission. Long maturity also
+makes stochastic-rate and stock-rate correlation risk potentially material.
+The correct choice depends on available market instruments and the P\&L
+impact of these risks.
+\end{shortsolution}
+\end{document}

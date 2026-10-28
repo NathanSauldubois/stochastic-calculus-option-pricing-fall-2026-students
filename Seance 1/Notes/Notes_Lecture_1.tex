@@ -1,0 +1,1061 @@
+% !TEX program = pdflatex
+\documentclass[10pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[margin=0.72in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage[most]{tcolorbox}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{CourseBlue}{HTML}{1A3C68}
+\definecolor{CourseGreen}{HTML}{216E39}
+\definecolor{CourseGold}{HTML}{B8860B}
+\definecolor{SoftBlue}{HTML}{F2F6FA}
+\definecolor{SoftGreen}{HTML}{F1F8F3}
+\definecolor{SoftGold}{HTML}{FFF8E8}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.32em}
+\setlist[itemize]{leftmargin=1.5em,itemsep=0.12em,topsep=0.2em}
+\setlist[enumerate]{leftmargin=1.7em,itemsep=0.12em,topsep=0.2em}
+\allowdisplaybreaks
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Stochastic Calculus and Option Pricing}
+\rhead{Lecture 1 Notes}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+
+\newcommand{\E}{\mathbb E}
+\newcommand{\Pbb}{\mathbb P}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\SD}{\operatorname{SD}}
+\newcommand{\R}{\mathbb R}
+\newcommand{\1}{\mathbf 1}
+\newcommand{\cF}{\mathcal F}
+\newcommand{\cG}{\mathcal G}
+\newcommand{\cH}{\mathcal H}
+\newcommand{\dd}{\,\mathrm d}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{proposition}[definition]{Proposition}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{remark}[definition]{Remark}
+
+\newtcolorbox{boardexample}[1]{
+  enhanced,breakable,colback=SoftBlue,colframe=CourseBlue,
+  boxrule=0.55pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.55em,after skip=0.55em,
+  title={Example --- #1},fonttitle=\bfseries}
+\newtcolorbox{studentexercise}[1]{
+  enhanced,breakable,colback=SoftGold,colframe=CourseGold,
+  boxrule=0.55pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.55em,after skip=0.35em,
+  title={Exercise --- #1},fonttitle=\bfseries}
+\newtcolorbox{shortsolution}[1][]{
+  enhanced,breakable,colback=SoftGreen,colframe=CourseGreen,
+  boxrule=0.55pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.25em,after skip=0.6em,
+  title={Solution#1},fonttitle=\bfseries}
+\newtcolorbox{keyidea}[1]{
+  enhanced,breakable,colback=white,colframe=CourseGreen,
+  boxrule=0.7pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.5em,after skip=0.5em,
+  title={#1},fonttitle=\bfseries}
+
+\title{\textbf{Option Pricing: Motivation and First Mathematical Tools}\\
+\large Lecture 1 Notes --- Class Support and Student Summary}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-1.4em}
+
+
+% ============================================================
+\section{Motivation, Replication, and Pricing}
+
+\subsection{Contracts, payoffs, and discounting}
+
+A \emph{financial contract} specifies future cash flows. A derivative links
+those cash flows to an observable market quantity. For a European call with
+strike $K$ and maturity $T$,
+\[
+X=(S_T-K)^+,
+\qquad (x)^+=\max(x,0).
+\]
+The long position receives $X$ at $T$ and the short position owes $X$.
+
+If the continuously compounded rate is constant and equal to $r$, the bank
+account is $B_t=e^{rt}$. A certain payment $C$ at time $T$ has present value
+$Ce^{-rT}$.
+
+\subsection{The casino example: expectation is not a price}
+
+\begin{boardexample}{historical expectation versus replication}
+A contract pays $\$100$ after red and $\$0$ after black. Historically,
+$\Pbb(\text{red})=0.99$, so its physical expectation is $\$99$.
+
+A $\$50$ casino bet pays $\$100$ after red and $\$0$ after black. It reproduces
+the contract state by state. Therefore the replication cost is $\$50$, not
+$\$99$.
+\end{boardexample}
+
+\begin{proposition}[Law of one price]
+If two portfolios have the same payoff in every state, then they must have the
+same price in an arbitrage-free market.
+\end{proposition}
+
+\begin{proof}
+If portfolio $A$ were more expensive than $B$, sell $A$ and buy $B$. The initial
+cash flow is positive and the terminal cash flow is zero in every state. This
+is an arbitrage. Interchange $A$ and $B$ for the opposite price inequality.
+\end{proof}
+
+The casino example isolates the central principle:
+\[
+\boxed{\text{price of a replicable claim}=\text{cost of replication}.}
+\]
+Historical probabilities describe frequencies; they do not override a
+state-by-state replication argument.
+
+\subsection{A one-period financial market}
+
+Let a stock satisfy $S_0>0$ and
+\[
+S_1=\begin{cases}S_u,&\text{up},\\S_d,&\text{down},\end{cases}
+\qquad S_u>S_d,
+\]
+and let the risk-free gross return be $R>0$. A claim pays $H_u$ or $H_d$.
+
+\begin{proposition}[Replication and the unique one-period price]
+The portfolio with $\Delta$ shares and maturity cash $B_1$ replicates $H$ when
+\[
+\Delta=\frac{H_u-H_d}{S_u-S_d},
+\qquad
+B_1=H_d-\Delta S_d.
+\]
+Its no-arbitrage price is
+\[
+V_0=\Delta S_0+\frac{B_1}{R}.
+\]
+\end{proposition}
+
+\begin{proof}
+The two replication equations are
+$\Delta S_u+B_1=H_u$ and $\Delta S_d+B_1=H_d$. Subtract them to obtain
+$\Delta$, then substitute to obtain $B_1$. The law of one price identifies
+$V_0$ with the initial cost of this portfolio.
+\end{proof}
+
+Define
+\[
+q=\frac{RS_0-S_d}{S_u-S_d}.
+\]
+The no-arbitrage inequalities $S_d<RS_0<S_u$ are equivalent to $0<q<1$.
+Moreover,
+\[
+S_0=\frac1R\bigl(qS_u+(1-q)S_d\bigr),
+\qquad
+V_0=\frac1R\bigl(qH_u+(1-q)H_d\bigr).
+\]
+Thus $q$ is the \emph{risk-neutral up probability}. It is determined by traded
+prices, not by the physical frequency of the up state.
+
+\begin{boardexample}{replicate a call}
+Assume $R=1$, $S_0=50$, $S_u=60$, $S_d=40$, and $K=50$. The call pays
+$(10,0)$. Hence
+\[
+\Delta=\frac{10-0}{60-40}=\frac12,
+\qquad
+B_1=0-\frac12(40)=-20,
+\qquad
+V_0=\frac12(50)-20=5.
+\]
+Also $q=(50-40)/(60-40)=1/2$, so
+$V_0=\E^q[H]=\frac12(10)+\frac12(0)=5$.
+\end{boardexample}
+
+\begin{studentexercise}{a similar one-period call}
+Assume $R=1$, $S_0=100$, $S_u=125$, $S_d=75$, and $K=100$.
+Find the replicating portfolio, price, and risk-neutral probability.
+\end{studentexercise}
+\begin{shortsolution}
+The call payoff is $25$ in the up state and $0$ in the down state. Therefore
+the replicating portfolio must satisfy
+\[
+125\Delta+B_1=25,
+\qquad
+75\Delta+B_1=0.
+\]
+Subtracting the second equation from the first gives
+\[
+50\Delta=25,
+\qquad \Delta=\frac12.
+\]
+Substitution into the down-state equation gives
+$B_1=-75/2=-37.5$. Since $R=1$, the time-zero cost is
+\[
+V_0=\Delta S_0+\frac{B_1}{R}
+=\frac12(100)-37.5=12.5.
+\]
+Finally, the risk-neutral probability is determined by the stock price:
+\[
+100=q(125)+(1-q)75,
+\qquad q=\frac12.
+\]
+This gives the same claim value,
+$V_0=\E^q[H]=\frac12(25)+\frac12(0)=12.5$.
+\end{shortsolution}
+
+% ============================================================
+\section{Probability Toolbox}
+
+\subsection{Random variables, distributions, CDFs, and densities}
+
+\begin{definition}[Random variable and distribution]
+A random variable is a measurable map $X:(\Omega,\cF)\to(\R,\mathcal B(\R))$.
+Its distribution is the probability measure
+\[
+\Pbb_X(A)=\Pbb(X\in A),\qquad A\in\mathcal B(\R).
+\]
+\end{definition}
+
+\begin{definition}[CDF and density]
+The cumulative distribution function is
+\[
+F_X(x)=\Pbb(X\le x).
+\]
+It is nondecreasing, right-continuous, and satisfies
+$F_X(-\infty)=0$, $F_X(+\infty)=1$. If a nonnegative function $f_X$ satisfies
+\[
+F_X(x)=\int_{-\infty}^x f_X(u)\dd u,
+\]
+then $f_X$ is a density of $X$. At differentiability points, $f_X=F_X'$.
+\end{definition}
+
+For $a<b$,
+\[
+\Pbb(a<X\le b)=F_X(b)-F_X(a).
+\]
+A distribution always exists; a density need not exist.
+
+\begin{boardexample}{a payoff is a random variable}
+Suppose
+\[
+\begin{array}{c|ccc}
+S_T&80&100&130\\ \hline
+\Pbb&0.20&0.50&0.30
+\end{array}
+\]
+and $X=(S_T-100)^+$. Then $X$ takes values $0,0,30$, so
+\[
+\Pbb(X=0)=0.70,
+\qquad
+\Pbb(X=30)=0.30.
+\]
+The payoff rule maps states into numbers; the probabilities of those numbers
+form its distribution.
+\end{boardexample}
+
+\begin{boardexample}{recover the exponential CDF}
+If $X\sim\operatorname{Exp}(\lambda)$, then
+$f_X(x)=\lambda e^{-\lambda x}\1_{\{x\ge0\}}$. Therefore
+\[
+F_X(x)=\begin{cases}
+0,&x<0,\\
+1-e^{-\lambda x},&x\ge0.
+\end{cases}
+\]
+Consequently, for $0\le a\le b$,
+$\Pbb(a<X\le b)=e^{-\lambda a}-e^{-\lambda b}$.
+\end{boardexample}
+
+\begin{studentexercise}{CDF of a one-day return}
+Let $\Pbb(R=-2\%)=0.40$ and $\Pbb(R=3\%)=0.60$. Write $F_R$ and compute
+$\Pbb(R>0)$.
+\end{studentexercise}
+\begin{shortsolution}
+The CDF accumulates the probability mass at and below the point $r$. Before
+$-2\%$ no value is possible; at $-2\%$ it jumps by $0.40$, and at $3\%$ it
+jumps by the remaining $0.60$. Hence
+\[
+F_R(r)=\begin{cases}
+0,&r<-2\%,\\
+0.40,&-2\%\le r<3\%,\\
+1,&r\ge3\%,
+\end{cases}.
+\]
+Since $0$ lies between the two possible returns, $F_R(0)=0.40$. Therefore
+\[
+\Pbb(R>0)=1-F_R(0)=1-0.40=0.60.
+\]
+Equivalently, the only positive outcome is $R=3\%$, which has probability
+$0.60$.
+\end{shortsolution}
+
+\subsection{Expectation, variance, and dependence}
+
+\begin{definition}[Expectation and moments]
+For integrable $X$,
+\[
+\E[X]=\sum_x x\Pbb(X=x)
+\quad\text{or}\quad
+\E[X]=\int_{\R}x f_X(x)\dd x.
+\]
+More generally, whenever it exists,
+\[
+\E[g(X)]=\sum_x g(x)\Pbb(X=x)
+\quad\text{or}\quad
+\E[g(X)]=\int_{\R}g(x)f_X(x)\dd x.
+\]
+The $k$th moment is $\E[X^k]$. In particular,
+\[
+\mu=\E[X],
+\quad m_2=\E[X^2],
+\quad \Var(X)=\E[(X-\mu)^2],
+\quad \SD(X)=\sqrt{\Var(X)}.
+\]
+\end{definition}
+
+\begin{proposition}[Fundamental expectation properties]
+For integrable $X,Y$ and constants $a,b$,
+\[
+\E[aX+bY]=a\E[X]+b\E[Y],
+\qquad
+X\le Y\Longrightarrow \E[X]\le\E[Y],
+\qquad
+|\E[X]|\le\E[|X|].
+\]
+Also $\E[\1_A]=\Pbb(A)$.
+\end{proposition}
+
+\begin{proof}
+Linearity follows from linearity of sums or integrals. If $X\le Y$, then
+$Y-X\ge0$ and $\E[Y-X]\ge0$. Finally,
+$-|X|\le X\le|X|$ and monotonicity give the absolute-value inequality.
+The indicator identity follows directly from its two possible values.
+\end{proof}
+
+\begin{proposition}[Variance and covariance identities]
+\[
+\Var(X)=\E[X^2]-\E[X]^2.
+\]
+With
+$\Cov(X,Y)=\E[(X-\E[X])(Y-\E[Y])]$,
+\[
+\Var(aX+bY)=a^2\Var(X)+b^2\Var(Y)+2ab\Cov(X,Y).
+\]
+If $X$ and $Y$ are independent and square integrable, then $\Cov(X,Y)=0$.
+\end{proposition}
+
+\begin{proof}
+Expand $(X-\mu)^2=X^2-2\mu X+\mu^2$ and take expectations. Expanding the
+square of $a(X-\E[X])+b(Y-\E[Y])$ gives the second identity. Independence
+implies $\E[XY]=\E[X]\E[Y]$, hence zero covariance.
+\end{proof}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Law & Parameters & $\E[X]$ & $\Var(X)$\\
+\midrule
+Bernoulli & $p$ & $p$ & $p(1-p)$\\
+Binomial & $n,p$ & $np$ & $np(1-p)$\\
+Poisson & $\lambda$ & $\lambda$ & $\lambda$\\
+Uniform & $[a,b]$ & $(a+b)/2$ & $(b-a)^2/12$\\
+Exponential & rate $\lambda$ & $1/\lambda$ & $1/\lambda^2$\\
+Gaussian & $\mu,\sigma^2$ & $\mu$ & $\sigma^2$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{boardexample}{moments of a Bernoulli sum}
+Let $B_1,\ldots,B_n$ be independent Bernoulli$(p)$ variables and
+$N_n=\sum_{k=1}^nB_k$. Since $B_k^2=B_k$,
+\[
+\E[B_k]=p,
+\qquad \Var(B_k)=p-p^2=p(1-p).
+\]
+Linearity gives $\E[N_n]=np$. Independence removes cross-covariances, so
+$\Var(N_n)=np(1-p)$.
+\end{boardexample}
+
+\begin{studentexercise}{classical moment calculations}
+Compute $\E[X]$, $\E[X^2]$, and $\Var(X)$ for a uniform and an exponential
+variable. Identify the odd moments of a standard Gaussian. As an extension,
+derive the Poisson variance from $\E[X(X-1)]$.
+\end{studentexercise}
+\begin{shortsolution}
+For $X\sim\operatorname{Unif}[a,b]$, the density is $1/(b-a)$ on $[a,b]$.
+Thus
+\[
+\E[X]=\frac1{b-a}\int_a^b x\dd x=\frac{a+b}{2},
+\qquad
+\E[X^2]=\frac1{b-a}\int_a^b x^2\dd x
+=\frac{a^2+ab+b^2}{3}.
+\]
+Consequently,
+\[
+\Var(X)=\E[X^2]-\E[X]^2=\frac{(b-a)^2}{12}.
+\]
+
+For $X\sim\operatorname{Exp}(\lambda)$, integration by parts (or the gamma
+integral) gives
+\[
+\E[X]=\int_0^\infty x\lambda e^{-\lambda x}\dd x=\frac1\lambda,
+\qquad
+\E[X^2]=\int_0^\infty x^2\lambda e^{-\lambda x}\dd x
+=\frac2{\lambda^2}.
+\]
+Hence $\Var(X)=2/\lambda^2-(1/\lambda)^2=1/\lambda^2$. In summary,
+\[
+\begin{array}{c|ccc}
+X&\E[X]&\E[X^2]&\Var(X)\\ \hline
+\operatorname{Unif}[a,b]&(a+b)/2&(a^2+ab+b^2)/3&(b-a)^2/12\\
+\operatorname{Exp}(\lambda)&1/\lambda&2/\lambda^2&1/\lambda^2
+\end{array}
+\]
+For $Z\sim\mathcal N(0,1)$, the density is even while $z^{2m+1}$ is odd, so
+every odd moment vanishes:
+$\E[Z^{2m+1}]=0$. Finally, if
+$N\sim\operatorname{Poisson}(\lambda)$, then
+\begin{align*}
+\E[N(N-1)]
+&=e^{-\lambda}\sum_{k=2}^\infty k(k-1)\frac{\lambda^k}{k!}\\
+&=\lambda^2e^{-\lambda}\sum_{j=0}^\infty\frac{\lambda^j}{j!}
+=\lambda^2.
+\end{align*}
+Since $N^2=N(N-1)+N$ and $\E[N]=\lambda$, we obtain
+$\E[N^2]=\lambda^2+\lambda$ and therefore $\Var(N)=\lambda$.
+\end{shortsolution}
+
+\subsection{Sample averages, LLN, and CLT}
+
+For observations $X_1,\ldots,X_n$, define
+\[
+\overline X_n=\frac1n\sum_{i=1}^nX_i,
+\qquad
+v_n=\frac1n\sum_{i=1}^n(X_i-\overline X_n)^2,
+\qquad
+s_n^2=\frac{n}{n-1}v_n.
+\]
+$v_n$ is the empirical variance; $s_n^2$ is its unbiased version under i.i.d.
+sampling with finite variance.
+
+\begin{theorem}[Law of Large Numbers]
+If $X_1,X_2,\ldots$ are i.i.d. and $\E[|X_1|]<\infty$, then
+\[
+\overline X_n\longrightarrow\mu=\E[X_1]
+\qquad\text{in probability.}
+\]
+\end{theorem}
+
+\begin{proof}[Easy proof under the stronger assumption $\Var(X_1)=\sigma^2<\infty$]
+Independence gives $\E[\overline X_n]=\mu$ and
+$\Var(\overline X_n)=\sigma^2/n$. By Chebyshev's inequality,
+\[
+\Pbb(|\overline X_n-\mu|>\varepsilon)
+\le\frac{\sigma^2}{n\varepsilon^2}\longrightarrow0.
+\]
+\end{proof}
+
+\begin{theorem}[Central Limit Theorem]
+If, in addition, $0<\sigma^2=\Var(X_1)<\infty$, then
+\[
+\frac{\sqrt n(\overline X_n-\mu)}{\sigma}
+\Rightarrow\mathcal N(0,1).
+\]
+\end{theorem}
+
+The LLN says the estimation error vanishes. The CLT says its typical size is
+$\sigma/\sqrt n$ and gives an approximate Gaussian shape. This distinction is
+fundamental for statistics, simulation error, and averages of financial data.
+
+\begin{boardexample}{frequency of successes}
+For independent Bernoulli$(0.60)$ variables,
+\[
+\E[\overline X_{100}]=0.60,
+\qquad
+\SD(\overline X_{100})
+=\sqrt{\frac{0.60(0.40)}{100}}\approx0.049.
+\]
+The CLT gives
+\[
+\Pbb(0.50\le\overline X_{100}\le0.70)
+\approx\Pbb(-2.04\le Z\le2.04)\approx0.96.
+\]
+\end{boardexample}
+
+\begin{studentexercise}{average daily loss}
+Let $X_1,\ldots,X_{225}$ be i.i.d. with mean $2$ and standard deviation $3$.
+Find the LLN limit, the standard deviation of $\overline X_{225}$, and a CLT
+approximation of $\Pbb(\overline X_{225}>2.4)$.
+\end{studentexercise}
+\begin{shortsolution}
+The variables are i.i.d. with finite mean, so the LLN gives
+\[
+\overline X_n\xrightarrow[n\to\infty]{\Pbb}2.
+\]
+In particular, $\overline X_{225}$ is centered at
+$\E[\overline X_{225}]=2$ and should be close to $2$ with high probability.
+Independence also gives
+\[
+\Var(\overline X_{225})
+=\frac{\Var(X_1)}{225}
+=\frac9{225}=0.04,
+\qquad
+\SD(\overline X_{225})=0.2.
+\]
+For the tail probability, standardize the threshold using this standard
+deviation. The CLT yields
+\[
+\Pbb(\overline X_{225}>2.4)
+\approx\Pbb\!\left(Z>\frac{2.4-2}{0.2}\right)
+=\Pbb(Z>2)=1-\Phi(2)\approx0.0228.
+\]
+\end{shortsolution}
+
+\subsection{Characteristic functions and joint distributions}
+
+\begin{definition}[Characteristic function]
+\[
+\varphi_X(u)=\E[e^{iuX}],\qquad u\in\R.
+\]
+It always exists, satisfies $|\varphi_X(u)|\le1$, and uniquely determines the
+distribution of $X$.
+\end{definition}
+
+\begin{proposition}[Independent sums become products]
+If $X$ and $Y$ are independent, then
+\[
+\varphi_{X+Y}(u)=\varphi_X(u)\varphi_Y(u).
+\]
+\end{proposition}
+\begin{proof}
+Independence gives
+\[
+\E[e^{iu(X+Y)}]=\E[e^{iuX}e^{iuY}]
+=\E[e^{iuX}]\E[e^{iuY}].
+\]
+\end{proof}
+
+A joint distribution records probabilities involving several random variables.
+Marginals are obtained by summing or integrating out the other variables. The
+joint law, unlike the two marginals alone, records dependence.
+
+% ============================================================
+\section{Information and Conditional Expectation}
+
+\subsection{Signals, sigma-algebras, and measurability}
+
+\begin{boardexample}{a signal reveals a partition}
+Roll a fair die and let $X(\omega)=\omega$. Observe only the parity signal
+$Y=\1_{\{X\text{ is even}\}}$. The observation distinguishes
+\[
+O=\{1,3,5\},
+\qquad
+E=\{2,4,6\},
+\]
+but cannot distinguish outcomes inside either set.
+\end{boardexample}
+
+\begin{definition}[Sigma-algebra and information generated by a signal]
+A collection $\cG$ of events is a sigma-algebra if
+$\Omega\in\cG$, it is closed under complements, and it is closed under
+countable unions. For a random variable $Y$,
+\[
+\sigma(Y)=\{Y^{-1}(B):B\in\mathcal B(\R)\}
+\]
+is the information revealed by observing $Y$.
+\end{definition}
+
+For the parity signal,
+$\sigma(Y)=\{\varnothing,O,E,\Omega\}$.
+
+\begin{definition}[Measurable random variable]
+A random variable $Z$ is $\cG$-measurable if
+\[
+\{Z\in B\}\in\cG
+\qquad\text{for every Borel set }B.
+\]
+It is then completely determined by the information in $\cG$.
+\end{definition}
+
+\begin{proposition}[Finite-partition test]
+If $\cG$ is generated by a finite partition, then $Z$ is $\cG$-measurable if
+and only if $Z$ is constant on each atom of that partition. Equivalently,
+\[
+Z\text{ is }\sigma(Y)\text{-measurable}
+\quad\Longleftrightarrow\quad
+Z=g(Y)
+\text{ for some measurable }g.
+\]
+\end{proposition}
+
+\begin{proof}
+If $Z=g(Y)$, equal values of $Y$ imply equal values of $Z$. Conversely, if $Z$
+is constant on every level set of $Y$, define $g(y)$ to be that common value
+on $\{Y=y\}$. In a finite model this defines a measurable function $g$.
+\end{proof}
+
+\begin{boardexample}{test measurability on parity atoms}
+For $Z_1=10-\1_E$, $Z_2=X$, and $Z_3=(-1)^X$:
+\begin{itemize}
+  \item $Z_1$ is measurable: it is constant on $O$ and on $E$;
+  \item $Z_2$ is not measurable: parity does not determine the die value;
+  \item $Z_3$ is measurable: it is a function of parity.
+\end{itemize}
+\end{boardexample}
+
+\begin{studentexercise}{a coarse price signal}
+Let $S_T\in\{80,100,130\}$ and $Y=\1_{\{S_T\ge100\}}$. List
+$\sigma(Y)$. Decide whether $(S_T-100)^+$ and $\1_{\{S_T\ge100\}}$ are
+$\sigma(Y)$-measurable.
+\end{studentexercise}
+\begin{shortsolution}
+The signal is $0$ when $S_T=80$ and $1$ when $S_T\in\{100,130\}$. Its two
+information atoms are therefore $\{80\}$ and $\{100,130\}$, and
+\[
+\sigma(Y)=\{\varnothing,\Omega,\{80\},\{100,130\}\}.
+\]
+A random variable is $\sigma(Y)$-measurable precisely when it is constant on
+each atom. The call payoff $(S_T-100)^+$ equals $0$ at $S_T=100$ and $30$ at
+$S_T=130$. It is not constant on the second atom, so it is not
+$\sigma(Y)$-measurable. By contrast, the digital payoff is $0$ on $\{80\}$
+and $1$ on $\{100,130\}$; it is exactly $Y$ and is therefore measurable.
+\end{shortsolution}
+
+\subsection{Conditional distributions and conditional expectation}
+
+For events with $\Pbb(Y=y)>0$,
+\[
+\Pbb(X=x\mid Y=y)
+=\frac{\Pbb(X=x,Y=y)}{\Pbb(Y=y)}.
+\]
+Conditioning replaces the marginal distribution by the distribution relevant
+after the signal has been observed.
+
+\begin{definition}[Conditional expectation]
+Let $X\in L^1$ and $\cG\subseteq\cF$. A conditional expectation of $X$ given
+$\cG$ is a $\cG$-measurable random variable $Z$ such that
+\[
+\int_A Z\dd\Pbb=\int_A X\dd\Pbb
+\qquad\text{for every }A\in\cG.
+\]
+It is denoted by $\E[X\mid\cG]$. Conditioning on $Y$ means conditioning on
+$\sigma(Y)$:
+$\E[X\mid Y]=\E[X\mid\sigma(Y)]$.
+\end{definition}
+
+\begin{proposition}[Uniqueness]
+Conditional expectation is unique up to almost-sure equality.
+\end{proposition}
+\begin{proof}
+If $Z$ and $Z'$ both satisfy the definition, then
+$\int_A(Z-Z')\dd\Pbb=0$ for all $A\in\cG$. Since $Z-Z'$ is measurable, choose
+$A=\{Z>Z'\}$ and $A=\{Z<Z'\}$ to conclude $Z=Z'$ almost surely.
+\end{proof}
+
+\begin{proposition}[Finite-partition formula]
+If $\cG$ is generated by atoms $A_1,\ldots,A_m$ with positive probabilities,
+then
+\[
+\E[X\mid\cG]
+=\sum_{j=1}^m\frac{\E[X\1_{A_j}]}{\Pbb(A_j)}\1_{A_j}
+=\sum_{j=1}^m\E[X\mid A_j]\1_{A_j}.
+\]
+\end{proposition}
+\begin{proof}
+The proposed variable is constant on each atom, hence $\cG$-measurable. Its
+integral over $A_j$ equals
+$\E[X\mid A_j]\Pbb(A_j)=\E[X\1_{A_j}]$. Add these identities for any union of
+atoms.
+\end{proof}
+
+\begin{boardexample}{prediction from a partial signal}
+On four equally likely states, let $X=(0,4,8,12)$ and let $Y=L$ on states
+$\{1,2\}$ and $Y=H$ on states $\{3,4\}$. Then
+\[
+\E[X\mid Y]
+=2\1_{\{Y=L\}}+10\1_{\{Y=H\}}.
+\]
+The conditional prediction is the average inside the observed information set.
+\end{boardexample}
+
+\begin{studentexercise}{a payoff after a coarse die signal}
+Roll a fair die and let $X=12\1_{\{\omega=6\}}$. Observe only
+$L=\{1,2,3,4\}$ or $H=\{5,6\}$. Compute
+$\E[X\mid\sigma(L,H)]$ and verify its expectation.
+\end{studentexercise}
+\begin{shortsolution}
+On $L$, the die cannot equal $6$, so $X=0$ throughout that atom and
+$\E[X\mid L]=0$. On $H=\{5,6\}$, the two outcomes remain equally likely and
+the corresponding payoffs are $0$ and $12$. Therefore
+\[
+\E[X\mid H]=\frac{0+12}{2}=6.
+\]
+The conditional expectation is thus the random variable
+\[
+\E[X\mid\sigma(L,H)]=6\1_H.
+\]
+To verify the tower property, note that
+\[
+\E\!\left[\E[X\mid\sigma(L,H)]\right]
+=6\Pbb(H)=6\frac26=2.
+\]
+Directly, $X=12$ only when the die equals $6$, so
+$\E[X]=12(1/6)=2$ as well.
+\end{shortsolution}
+
+\subsection{Conditioning with a joint density}
+
+Suppose $(X,Y)$ has joint density $f_{X,Y}$. When $f_Y(y)>0$,
+\[
+f_Y(y)=\int_{\R}f_{X,Y}(x,y)\dd x,
+\qquad
+f_{X\mid Y}(x\mid y)=\frac{f_{X,Y}(x,y)}{f_Y(y)}.
+\]
+For integrable $h$,
+\[
+g(y)=\int_{\R}h(x)f_{X\mid Y}(x\mid y)\dd x
+=\E[h(X)\mid Y=y],
+\qquad
+\E[h(X)\mid Y]=g(Y).
+\]
+
+\begin{boardexample}{the upper triangular density}
+Let $f_{X,Y}(x,y)=2\1_{\{0<x<y<1\}}$. For $0<y<1$,
+\[
+f_Y(y)=\int_0^y2\dd x=2y,
+\qquad
+f_{X\mid Y}(x\mid y)=\frac1y\1_{(0,y)}(x).
+\]
+Thus $X\mid(Y=y)\sim\operatorname{Unif}(0,y)$ and
+\[
+\E[X\mid Y=y]=\frac y2,
+\qquad
+\E[X\mid Y]=\frac Y2.
+\]
+\end{boardexample}
+
+\begin{studentexercise}{the reversed triangular density}
+Let $f_{X,Y}(x,y)=2\1_{\{0<y<x<1\}}$. Find $f_Y$, $f_{X\mid Y}$, and
+$\E[X\mid Y]$.
+\end{studentexercise}
+\begin{shortsolution}
+Fix $y\in(0,1)$. The support condition $0<y<x<1$ allows $x$ to range from
+$y$ to $1$. Integrating the joint density over this interval gives
+\[
+f_Y(y)=\int_y^1 2\dd x=2(1-y).
+\]
+After normalization,
+\[
+f_{X\mid Y}(x\mid y)
+=\frac{2\1_{(y,1)}(x)}{2(1-y)}
+=\frac1{1-y}\1_{(y,1)}(x).
+\]
+Thus $X\mid(Y=y)\sim\operatorname{Unif}(y,1)$. Its conditional mean can be
+read from the midpoint of the interval or calculated directly:
+\[
+\E[X\mid Y=y]
+=\frac1{1-y}\int_y^1x\dd x
+=\frac{1-y^2}{2(1-y)}
+=\frac{1+y}{2}.
+\]
+Replacing $y$ by the observed random value $Y$ gives
+\[
+\E[X\mid Y]=\frac{1+Y}{2}.
+\]
+\end{shortsolution}
+
+\subsection{Gaussian conditioning}
+
+\begin{proposition}[Conditional law of a Gaussian pair]
+Suppose $(X,Y)$ is jointly Gaussian, with
+\[
+\E[X]=\mu_X,\quad \E[Y]=\mu_Y,\quad
+\Var(X)=\sigma_X^2,\quad \Var(Y)=\sigma_Y^2>0,
+\]
+and $\Cov(X,Y)=\rho\sigma_X\sigma_Y$. Then
+\[
+X\mid(Y=y)\sim\mathcal N\!\left(
+\mu_X+\rho\frac{\sigma_X}{\sigma_Y}(y-\mu_Y),
+\;\sigma_X^2(1-\rho^2)
+\right).
+\]
+In particular,
+\[
+\E[X\mid Y]
+=\mu_X+\rho\frac{\sigma_X}{\sigma_Y}(Y-\mu_Y),
+\qquad
+\Var(X\mid Y)=\sigma_X^2(1-\rho^2).
+\]
+\end{proposition}
+
+\begin{proof}[Short derivation]
+Set
+$a=\Cov(X,Y)/\Var(Y)$ and
+$R=X-\mu_X-a(Y-\mu_Y)$. Then $\Cov(R,Y)=0$. Since $(R,Y)$ is jointly
+Gaussian, zero covariance implies independence. Writing
+$X=\mu_X+a(Y-\mu_Y)+R$ gives the conditional mean above, while
+$\Var(R)=\sigma_X^2(1-\rho^2)$ gives the conditional variance.
+\end{proof}
+
+The conditional mean is the best affine prediction from $Y$. The remaining
+variance decreases as $|\rho|$ increases and vanishes when $|\rho|=1$.
+
+\subsection{Properties used in dynamic pricing}
+
+\begin{proposition}[Core conditional-expectation properties]
+For integrable variables and appropriate sigma-algebras:
+\begin{align*}
+\E[aX+bY\mid\cG]&=a\E[X\mid\cG]+b\E[Y\mid\cG],\\
+X\le Y&\Longrightarrow \E[X\mid\cG]\le\E[Y\mid\cG],\\
+Z\text{ $\cG$-measurable}&\Longrightarrow
+\E[ZX\mid\cG]=Z\E[X\mid\cG],\\
+X\text{ independent of }\cG&\Longrightarrow
+\E[X\mid\cG]=\E[X],\\
+\cH\subseteq\cG&\Longrightarrow
+\E[\E[X\mid\cG]\mid\cH]=\E[X\mid\cH].
+\end{align*}
+In particular, $\E[\E[X\mid\cG]]=\E[X]$.
+\end{proposition}
+
+\begin{proof}[Proof guide]
+For linearity, check the defining integral on every $A\in\cG$ and use
+uniqueness. Positivity follows by testing the set where the conditional
+expectation would be negative. For a simple known factor
+$Z=\sum z_j\1_{A_j}$, pull each constant $z_j$ through the defining integrals;
+approximation gives the general case. If $X$ is independent of $\cG$, the
+constant $\E[X]$ has the required averages. For the tower rule, test both sides
+on every $A\in\cH\subseteq\cG$ and use uniqueness again.
+\end{proof}
+
+% ============================================================
+\section{Processes, Filtrations, and Martingales}
+
+\subsection{Information evolving through time}
+
+\begin{definition}[Stochastic process]
+A discrete-time stochastic process $(X_n)_{n\ge0}$ is a sequence of random
+variables on the same probability space. For fixed $n$, $X_n$ is a random
+variable; for fixed $\omega$, $n\mapsto X_n(\omega)$ is a sample path.
+\end{definition}
+
+\begin{definition}[Filtration and adapted process]
+A filtration is an increasing family of sigma-algebras
+\[
+\cF_0\subseteq\cF_1\subseteq\cF_2\subseteq\cdots.
+\]
+It represents information available through time. A process $(X_n)$ is adapted
+if $X_n$ is $\cF_n$-measurable for every $n$.
+\end{definition}
+
+Adapted means ``no look-ahead'': the value at time $n$ can use the observed
+past and present, but not a future observation.
+
+\begin{studentexercise}{detect look-ahead}
+Let $\xi_1,\xi_2\in\{0,1\}$ encode two coin tosses and
+$\cF_n=\sigma(\xi_1,\ldots,\xi_n)$. Consider
+\[
+X_0=0,
+\qquad X_1=\xi_1+\xi_2,
+\qquad X_2=\xi_1+\xi_2.
+\]
+Is $(X_n)$ adapted? Give an adapted cumulative-heads process.
+\end{studentexercise}
+\begin{shortsolution}
+At time $1$, the sigma-algebra $\cF_1=\sigma(\xi_1)$ reveals only the first
+toss. Two outcomes can therefore have the same value of $\xi_1$ but different
+values of $\xi_2$. On those outcomes, $X_1=\xi_1+\xi_2$ is different, so
+$X_1$ is not $\cF_1$-measurable. The original process is consequently not
+adapted.
+
+The cumulative number of observed heads is instead
+\[
+\widetilde X_0=0,
+\qquad \widetilde X_1=\xi_1,
+\qquad \widetilde X_2=\xi_1+\xi_2.
+\]
+Here $\widetilde X_n$ depends only on tosses observed by time $n$, so it is
+$\cF_n$-measurable for each $n$ and the process is adapted.
+\end{shortsolution}
+
+\subsection{Random walks and martingales}
+
+Let
+\[
+S_n=S_0+\sum_{k=1}^n\varepsilon_k,
+\]
+where the increments are i.i.d. with mean $m$ and variance $\sigma^2$.
+
+\begin{proposition}[Random-walk moments]
+\[
+\E[S_n]=S_0+nm,
+\qquad
+\Var(S_n)=n\sigma^2.
+\]
+\end{proposition}
+\begin{proof}
+Use linearity for the mean. For the variance, independence removes all
+cross-covariances, leaving the sum of $n$ identical variances.
+\end{proof}
+
+\begin{definition}[Martingale]
+An integrable adapted process $(M_n)$ is a martingale with respect to
+$(\cF_n)$ if
+\[
+\E[M_{n+1}\mid\cF_n]=M_n
+\qquad\text{for every }n.
+\]
+Given all current information, the best prediction of tomorrow's value is
+today's value.
+\end{definition}
+
+\begin{boardexample}{the centered random walk is a martingale}
+Let $M_n=\sum_{k=1}^n\varepsilon_k$, with independent centered increments and
+$\cF_n=\sigma(\varepsilon_1,\ldots,\varepsilon_n)$. Since $M_n$ is known at
+time $n$ and $\varepsilon_{n+1}$ is independent of $\cF_n$,
+\[
+\E[M_{n+1}\mid\cF_n]
+=\E[M_n+\varepsilon_{n+1}\mid\cF_n]
+=M_n+\E[\varepsilon_{n+1}]
+=M_n.
+\]
+\end{boardexample}
+
+\begin{studentexercise}{a second random-walk martingale}
+Let $S_n=\sum_{k=1}^n\varepsilon_k$ for independent symmetric $\pm1$
+increments. Show that $M_n=S_n^2-n$ is a martingale.
+\end{studentexercise}
+\begin{shortsolution}
+The variable $M_n=S_n^2-n$ is integrable and $\cF_n$-measurable because it is
+a function of the first $n$ increments. It remains to verify the martingale
+condition. Since $\varepsilon_{n+1}$ is independent of $\cF_n$ and is
+symmetric,
+\[
+\E[\varepsilon_{n+1}\mid\cF_n]=0,
+\qquad
+\E[\varepsilon_{n+1}^2\mid\cF_n]=1.
+\]
+Using $S_{n+1}=S_n+\varepsilon_{n+1}$ and pulling the known quantity $S_n$
+out of the conditional expectation,
+\begin{align*}
+\E[M_{n+1}\mid\cF_n]
+&=\E[(S_n+\varepsilon_{n+1})^2-(n+1)\mid\cF_n]\\
+&=S_n^2+2S_n\E[\varepsilon_{n+1}\mid\cF_n]
+  +\E[\varepsilon_{n+1}^2\mid\cF_n]-(n+1)\\
+&=S_n^2-n=M_n.
+\end{align*}
+Thus all three requirements---integrability, adaptation, and the conditional
+expectation identity---are satisfied.
+\end{shortsolution}
+
+\begin{keyidea}{Fair games and financial pricing}
+In a fair casino game, conditional expected future wealth equals current
+wealth. Under a risk-neutral measure $\mathbb Q$, discounted traded-asset
+prices are martingales. For a replicable payoff $X$,
+\[
+\frac{V_t}{B_t}
+=\E^{\mathbb Q}\!\left[\frac{X}{B_T}\,\middle|\,\cF_t\right].
+\]
+Replication supplies the economic restriction; conditional expectation and
+martingales express it dynamically.
+\end{keyidea}
+
+% ============================================================
+\section{Short Differential-Calculus Review}
+
+\begin{definition}[Derivative]
+For $g:\R\to\R$, if the limit exists,
+\[
+g'(x)=\lim_{h\to0}\frac{g(x+h)-g(x)}{h}.
+\]
+Equivalently, $g(x+h)=g(x)+g'(x)h+o(h)$.
+\end{definition}
+
+\begin{definition}[Partial derivatives, gradient, and Hessian]
+For $f:\R^d\to\R$ and the $i$th coordinate vector $e_i$,
+\[
+\partial_i f(x)
+=\lim_{h\to0}\frac{f(x+he_i)-f(x)}{h},
+\qquad
+\nabla f(x)=(\partial_1f(x),\ldots,\partial_df(x)).
+\]
+If second partial derivatives exist, the Hessian is
+\[
+\nabla^2f(x)
+=\left(\frac{\partial^2f}{\partial x_i\partial x_j}(x)\right)_{i,j}.
+\]
+\end{definition}
+
+\begin{boardexample}{gradient and Hessian}
+For $f(x,y)=x^2y+e^y$,
+\[
+f_x=2xy,
+\qquad f_y=x^2+e^y,
+\qquad \nabla f=(2xy,x^2+e^y),
+\]
+and
+\[
+\nabla^2f(x,y)
+=\begin{pmatrix}
+2y&2x\\
+2x&e^y
+\end{pmatrix}.
+\]
+\end{boardexample}
+
+\begin{proposition}[Multivariable chain rule]
+If $x(t)\in\R^d$ and $f$ are differentiable, then
+\[
+\frac{\dd}{\dd t}f(x(t))=\nabla f(x(t))\cdot x'(t).
+\]
+For an option value $V=V(t,S)$ and a differentiable price path $S(t)$,
+\[
+\frac{\dd}{\dd t}V(t,S(t))
+=V_t(t,S(t))+V_S(t,S(t))S'(t).
+\]
+\end{proposition}
+
+$V_S$ measures sensitivity to the underlying price, $V_t$ sensitivity to
+calendar time, and $V_{SS}$ curvature with respect to the underlying.
+
+\begin{studentexercise}{apply the chain rule}
+For $V(t,s)=e^{-rt}s^2$ and a differentiable path $S(t)$, compute
+$\frac{\dd}{\dd t}V(t,S(t))$.
+\end{studentexercise}
+\begin{shortsolution}
+Differentiate first with respect to each argument while holding the other one
+fixed:
+\[
+V_t(t,s)=-re^{-rt}s^2,
+\qquad
+V_s(t,s)=2e^{-rt}s.
+\]
+The multivariable chain rule along the path $t\mapsto(t,S(t))$ gives
+\begin{align*}
+\frac{\dd}{\dd t}V(t,S(t))
+&=V_t(t,S(t))+V_s(t,S(t))S'(t)\\
+&=-re^{-rt}S(t)^2+2e^{-rt}S(t)S'(t)\\
+&=e^{-rt}\bigl(-rS(t)^2+2S(t)S'(t)\bigr).
+\end{align*}
+\end{shortsolution}
+
+
+
+\end{document}

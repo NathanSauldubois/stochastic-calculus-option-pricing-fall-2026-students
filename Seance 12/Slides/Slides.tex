@@ -1,0 +1,643 @@
+% !TEX program = pdflatex
+\documentclass[10pt,aspectratio=169]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,bm,mathtools}
+\usepackage{booktabs,array}
+
+\usetheme[numbering=fraction,progressbar=frametitle]{metropolis}
+\setbeamertemplate{frame numbering}[fraction]
+\setbeamertemplate{navigation symbols}{}
+
+\definecolor{CourseBlue}{HTML}{1A3C68}
+\definecolor{CourseGreen}{HTML}{216E39}
+\definecolor{CourseGold}{HTML}{B8860B}
+\definecolor{CourseRed}{HTML}{9A2C2C}
+\definecolor{SoftBlue}{HTML}{F2F6FA}
+\definecolor{SoftGreen}{HTML}{F1F8F3}
+\definecolor{SoftRed}{HTML}{FFF3F3}
+
+\setbeamercolor{normal text}{fg=black,bg=white}
+\setbeamercolor{structure}{fg=CourseBlue}
+\setbeamercolor{title}{fg=CourseBlue}
+\setbeamerfont{title}{size=\Large,series=\bfseries}
+\setbeamercolor{frametitle}{bg=CourseBlue,fg=white}
+\setbeamerfont{frametitle}{series=\bfseries,size=\large}
+\setbeamertemplate{frametitle}{
+  \nointerlineskip
+  \begin{beamercolorbox}[wd=\paperwidth,ht=3.2ex,dp=1.4ex,leftskip=1em,rightskip=1em]{frametitle}
+    \usebeamerfont{frametitle}\insertframetitle
+  \end{beamercolorbox}
+}
+\setbeamercolor{block title}{bg=CourseBlue,fg=white}
+\setbeamercolor{block body}{bg=SoftBlue,fg=black}
+\setbeamercolor{block title example}{bg=CourseGreen,fg=white}
+\setbeamercolor{block body example}{bg=SoftGreen,fg=black}
+\setbeamercolor{block title alerted}{bg=CourseRed,fg=white}
+\setbeamercolor{block body alerted}{bg=SoftRed,fg=black}
+\setbeamertemplate{blocks}[rounded][shadow=false]
+
+\newenvironment{modelbox}{\begin{beamercolorbox}[rounded=true,sep=0.7em,wd=\textwidth]{block body}
+  \textbf{\color{CourseBlue}MODEL}\quad}{\end{beamercolorbox}}
+\newenvironment{marketbox}{\begin{beamercolorbox}[rounded=true,sep=0.7em,wd=\textwidth]{block body example}
+  \textbf{\color{CourseGreen}NO-ARBITRAGE}\quad}{\end{beamercolorbox}}
+\newenvironment{simplificationbox}{\begin{beamercolorbox}[rounded=true,sep=0.7em,wd=\textwidth]{block body alerted}
+  \textbf{\color{CourseRed}WATCH OUT}\quad}{\end{beamercolorbox}}
+\newenvironment{pausebox}{\begin{beamercolorbox}[rounded=true,sep=0.8em,wd=\textwidth]{block body}
+  \textbf{\color{CourseGold}YOUR TURN}\quad}{\end{beamercolorbox}}
+
+\newcommand{\E}{\mathbb E}
+\newcommand{\Q}{\mathbb Q}
+\newcommand{\F}{\mathcal F}
+\newcommand{\dd}{\,\mathrm d}
+\newcommand{\Ncdf}{\Phi}
+
+\AtBeginSection[]{
+  \begin{frame}[plain]\vfill
+    {\Large\bfseries\color{CourseBlue}\insertsectionhead\par}
+    \medskip{\color{CourseBlue}\rule{0.92\textwidth}{0.8pt}}\vfill
+  \end{frame}
+}
+
+\title{Beyond Black--Scholes}
+\subtitle{Local volatility, stochastic volatility, and stochastic rates}
+\author{}
+\date{Lecture 12}
+
+\begin{document}
+
+\begin{frame}[plain]
+  \vfill
+  {\LARGE\bfseries\color{CourseBlue}Beyond Black--Scholes\par}
+  \medskip{\large Local volatility, stochastic volatility, and stochastic rates\par}
+  \medskip{\color{CourseGold}\rule{0.94\textwidth}{0.8pt}}
+  \medskip{Lecture 12\par}\vfill
+\end{frame}
+
+\begin{frame}{The model must explain the prices we observe}
+\begin{block}{The question}
+Black--Scholes is a powerful benchmark. Which of its assumptions fail in the
+market, and what model extension addresses each failure?
+\end{block}
+\begin{enumerate}
+  \item Read the implied-volatility surface as evidence against constant
+  volatility.
+  \item Build local volatility to fit today's vanilla-option surface.
+  \item Make volatility random to describe its future dynamics.
+  \item Make discounting random when the yield curve is a source of risk.
+\end{enumerate}
+\begin{marketbox}
+The central trade-off is always the same: fit, realism, hedging, and
+tractability cannot all be maximized at once.
+\end{marketbox}
+\end{frame}
+
+\section{Why Black--Scholes is not enough}
+
+\begin{frame}{One constant volatility cannot fit a whole option market}
+Black--Scholes assumes, under \(\Q\),
+\[
+\frac{\dd S_t}{S_t}=r\dd t+\sigma\dd W_t,
+\qquad \sigma\text{ constant}.
+\]
+If the model were exact, Black--Scholes implied volatility would be the same
+for every strike \(K\) and maturity \(T\).
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{What markets show}
+Implied volatility varies by strike: smiles and, in equities, a strong
+downside skew.
+\end{block}
+\column{0.48\textwidth}
+\begin{exampleblock}{What markets also show}
+Implied volatility varies by maturity; uncertainty has its own term
+structure.
+\end{exampleblock}
+\end{columns}
+\begin{simplificationbox}
+A single number \(\sigma\) cannot reproduce a two-dimensional surface
+\((K,T)\mapsto\sigma_{\mathrm{imp}}(K,T)\).
+\end{simplificationbox}
+\end{frame}
+
+\begin{frame}{The equity skew has an economic interpretation}
+For a fixed maturity, a typical equity surface has
+\[
+\sigma_{\mathrm{imp}}(K_{\mathrm{low}})
+>
+\sigma_{\mathrm{imp}}(K_{\mathrm{ATM}})
+>
+\sigma_{\mathrm{imp}}(K_{\mathrm{high}}).
+\]
+\begin{block}{Why low-strike puts are expensive}
+They protect against severe equity declines. Strong demand for this insurance
+raises their market prices and therefore their implied volatilities.
+\end{block}
+\begin{pausebox}
+Does a high implied volatility at a low strike mean that the historical
+volatility parameter literally changed for that option?
+\end{pausebox}
+\pause
+\begin{exampleblock}{Answer}
+No. It is the Black--Scholes parameter that matches a market price.
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Three extensions answer three different questions}
+\begin{center}
+\begin{tabular}{p{0.27\textwidth}|p{0.29\textwidth}|p{0.29\textwidth}}
+\toprule
+Observed issue & Model extension & Main objective\\
+\midrule
+Static smile across \(K,T\) & Local volatility & Fit vanilla prices today\\
+Volatility moves through time & Stochastic volatility & Model smile dynamics and volatility risk\\
+Discounting and curve move & Stochastic rates & Model bonds and the term structure\\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{marketbox}
+These models do not replace no-arbitrage pricing. They replace restrictive
+assumptions about what is deterministic or constant.
+\end{marketbox}
+\end{frame}
+
+\section{Local volatility fits today's surface}
+
+\begin{frame}{Local volatility makes the diffusion coefficient state dependent}
+Under the risk-neutral measure,
+\[
+\boxed{
+\frac{\dd S_t}{S_t}=r\dd t+
+\sigma_{\mathrm{loc}}(t,S_t)\dd W_t.}
+\]
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{What remains}
+The model is one-factor and Markovian. Given \(t\) and \(S_t\), the future
+law is determined.
+\end{block}
+\column{0.48\textwidth}
+\begin{exampleblock}{What changes}
+Instantaneous variance is no longer constant:
+\[
+\operatorname{Var}\!\left(\frac{\dd S_t}{S_t}\middle|\F_t\right)
+=\sigma_{\mathrm{loc}}(t,S_t)^2\dd t.
+\]
+\end{exampleblock}
+\end{columns}
+\begin{marketbox}
+Black--Scholes is the special case
+\(\sigma_{\mathrm{loc}}(t,s)\equiv\sigma\).
+\end{marketbox}
+\end{frame}
+
+\begin{frame}{The pricing PDE changes in one precise place}
+For a European payoff \(g(S_T)\), the price \(u(t,s)\) solves
+\[
+u_t+rs\,u_s+\tfrac12\sigma_{\mathrm{loc}}(t,s)^2s^2u_{ss}-ru=0,
+\qquad u(T,s)=g(s).
+\]
+\begin{block}{Compare with Black--Scholes}
+The pricing logic, risk-neutral drift, and terminal condition are unchanged.
+Only the constant variance \(\sigma^2\) becomes the local quantity
+\(\sigma_{\mathrm{loc}}(t,s)^2\).
+\end{block}
+\begin{pausebox}
+Does local volatility introduce a new random state variable in addition to
+the stock price?
+\end{pausebox}
+\pause
+\begin{exampleblock}{Answer}
+No. It is a deterministic function of \(t,S_t\), so the model remains
+one-dimensional.
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Dupire extracts local volatility from call prices}
+Let \(C(T,K)\) be the market price of a call by maturity and strike. With
+constant rates and no dividends,
+\[
+\boxed{
+\sigma_{\mathrm{loc}}(T,K)^2
+=
+\frac{C_T(T,K)+rK\,C_K(T,K)}
+{\tfrac12K^2C_{KK}(T,K)}.}
+\]
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{Denominator}
+\[
+C_{KK}(T,K)
+\]
+is the curvature in strike; it is linked to the risk-neutral density.
+\end{block}
+\column{0.48\textwidth}
+\begin{exampleblock}{Numerator}
+\[
+C_T+rKC_K
+\]
+captures how the call surface changes with maturity and strike.
+\end{exampleblock}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Call convexity is a no-arbitrage input to Dupire}
+For an arbitrage-free call-price surface,
+\[
+C_{KK}(T,K)\geq0.
+\]
+Formally,
+\[
+C_{KK}(T,K)=e^{-rT}p_{S_T}^{\Q}(K),
+\]
+where \(p_{S_T}^{\Q}\) is the risk-neutral density.
+\begin{pausebox}
+Why is applying Dupire's formula directly to a sparse table of noisy market
+quotes dangerous?
+\end{pausebox}
+\pause
+\begin{alertblock}{Answer}
+The formula differentiates the surface, especially twice in strike.
+Interpolation noise is amplified and can produce negative or unstable local
+variances unless the input surface is smoothed and arbitrage controlled.
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{Local volatility calibrates exactly, but only statically}
+A practical calibration pipeline is:
+\[
+\text{quotes}\longrightarrow
+\text{arbitrage-free call or implied-vol surface}
+\longrightarrow
+\text{smooth derivatives}
+\longrightarrow
+\sigma_{\mathrm{loc}}(T,K).
+\]
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{exampleblock}{Strength}
+With a clean surface, local volatility can reproduce today’s European
+vanilla prices across the quoted grid.
+\end{exampleblock}
+\column{0.48\textwidth}
+\begin{alertblock}{Limitation}
+It prescribes future smile motion through a deterministic function of spot
+and time; those dynamics are often not realistic.
+\end{alertblock}
+\end{columns}
+\end{frame}
+
+\section{Stochastic volatility models volatility itself}
+
+\begin{frame}{A random variance factor creates new dynamics}
+A generic stochastic-volatility model has
+\[
+\frac{\dd S_t}{S_t}=r\dd t+\sqrt{V_t}\dd W_t^{(1)},
+\]
+\[
+\dd V_t=b(t,V_t)\dd t+a(t,V_t)\dd W_t^{(2)},
+\qquad
+\dd\langle W^{(1)},W^{(2)}\rangle_t=\rho\dd t.
+\]
+\begin{block}{The state is now \((S_t,V_t)\)}
+Even if two paths have the same spot \(S_t\), their option values can differ
+when their current variance levels \(V_t\) differ.
+\end{block}
+\begin{marketbox}
+The pair \((S,V)\) is Markovian, but the stock alone is generally not.
+\end{marketbox}
+\end{frame}
+
+\begin{frame}{Heston adds mean reversion, vol-of-vol, and correlation}
+A standard Heston specification is
+\[
+\frac{\dd S_t}{S_t}=r\dd t+\sqrt{V_t}\dd W_t^{(1)},
+\qquad
+\dd V_t=\kappa(\theta-V_t)\dd t+\eta\sqrt{V_t}\dd W_t^{(2)}.
+\]
+\begin{center}
+\begin{tabular}{c|l}
+\toprule
+Parameter & Economic role\\
+\midrule
+\(\theta\) & long-run variance level\\
+\(\kappa\) & speed of mean reversion toward \(\theta\)\\
+\(\eta\) & volatility of volatility\\
+\(\rho\) & correlation between spot and variance shocks\\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{frame}
+
+\begin{frame}{Negative spot-volatility correlation generates an equity skew}
+\begin{pausebox}
+In an equity market, a negative return shock often arrives with a higher
+volatility level. What sign of \(\rho\) captures this leverage effect?
+\end{pausebox}
+\pause
+\begin{exampleblock}{Answer}
+\[
+\boxed{\rho<0.}
+\]
+A negative stock shock tends to be accompanied by a positive variance shock.
+Low-strike puts become relatively valuable, generating a downward implied-
+volatility skew.
+\end{exampleblock}
+\begin{marketbox}
+Random variance creates smile curvature; correlation controls much of its
+asymmetry.
+\end{marketbox}
+\end{frame}
+
+\begin{frame}{Mean reversion gives a useful variance forecast}
+From
+\[
+\dd V_t=\kappa(\theta-V_t)\dd t+\eta\sqrt{V_t}\dd W_t,
+\]
+the conditional mean is
+\[
+\boxed{
+\E[V_T\mid V_t=v]=\theta+(v-\theta)e^{-\kappa(T-t)}.}
+\]
+\begin{pausebox}
+Suppose \(v>\theta\). Is the expected future variance above or below today’s
+variance, and why?
+\end{pausebox}
+\pause
+\begin{exampleblock}{Answer}
+Below \(v\), because the drift \(\kappa(\theta-v)\) is negative. The larger
+\(\kappa\), the faster the expected pull toward the long-run level.
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{More realism makes hedging and pricing harder}
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{Pricing}
+The option value is \(u(t,s,v)\), so the PDE has two state variables.
+Characteristic-function methods, PDEs, and Monte Carlo are commonly used.
+\end{block}
+\column{0.48\textwidth}
+\begin{alertblock}{Hedging}
+There are two sources of risk but often only the stock and cash are traded.
+The model is generally incomplete; variance risk cannot be perfectly hedged
+with the stock alone.
+\end{alertblock}
+\end{columns}
+\begin{marketbox}
+In practice, liquid vanilla options are often used alongside the stock to
+manage volatility exposure.
+\end{marketbox}
+\end{frame}
+
+\begin{frame}{Local and stochastic volatility solve different problems}
+\begin{center}
+\begin{tabular}{p{0.30\textwidth}|p{0.29\textwidth}|p{0.27\textwidth}}
+\toprule
+ & Local volatility & Stochastic volatility\\
+\midrule
+Volatility & deterministic \(\sigma_{\mathrm{loc}}(t,S)\) & random factor \(V_t\)\\
+Main strength & exact static vanilla fit & realistic smile dynamics\\
+Dimension & one factor & at least two factors\\
+Hedging & closer to complete diffusion hedging & generally incomplete\\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{pausebox}
+Which model is more naturally suited to a product sensitive to future
+realized volatility rather than only today’s vanilla prices?
+\end{pausebox}
+\pause
+\begin{exampleblock}{Answer}
+Stochastic volatility: it retains a separate random variance state and is
+designed to describe its future evolution.
+\end{exampleblock}
+\end{frame}
+
+\section{Stochastic rates make discounting risky}
+
+\begin{frame}{With stochastic rates, the discount factor is random}
+If the short rate is \(r_t\), the pathwise discount factor is
+\[
+D(t,T)=\exp\left(-\int_t^T r_s\dd s\right).
+\]
+The zero-coupon bond is its risk-neutral value:
+\[
+\boxed{
+P(t,T)=\E^\Q\!\left[D(t,T)\mid\F_t\right].}
+\]
+\begin{block}{Key distinction}
+With constant rates, \(P(t,T)=e^{-r(T-t)}\) is deterministic. With
+stochastic rates, discounting itself is a source of uncertainty.
+\end{block}
+\end{frame}
+
+\begin{frame}{Bond prices, zero rates, and forwards encode the same curve}
+For maturity \(T>t\),
+\[
+P(t,T)=e^{-R(t,T)(T-t)},
+\qquad
+R(t,T)=-\frac{\log P(t,T)}{T-t},
+\]
+and the instantaneous forward rate is
+\[
+f(t,T)=-\partial_T\log P(t,T).
+\]
+\begin{marketbox}
+The bond-price curve \(T\mapsto P(t,T)\), zero-rate curve \(R(t,T)\), and
+forward curve \(f(t,T)\) are three parameterizations of the same term
+structure.
+\end{marketbox}
+\end{frame}
+
+\begin{frame}{Worked curve example: extract a zero rate and a forward rate}
+Suppose
+\[
+P(0,1)=0.96,\qquad P(0,2)=0.90.
+\]
+The two-year continuously compounded zero rate is
+\[
+R(0,2)=-\frac12\log(0.90)=5.27\%.
+\]
+The simply compounded one-year forward rate for \([1,2]\) is
+\[
+L(0;1,2)=\frac{P(0,1)/P(0,2)-1}{2-1}
+=\frac{0.96}{0.90}-1=6.67\%.
+\]
+\begin{block}{Reading the numbers}
+The forward rate exceeds the two-year average zero rate: the curve embeds
+higher implied rates over the second year than over the first.
+\end{block}
+\end{frame}
+
+\begin{frame}{Coupon bonds are portfolios of zero-coupon bonds}
+A bond paying coupons \(c_i\) at dates \(T_i\), and principal \(F\) at
+\(T_n\), is worth
+\[
+\boxed{
+B_t=\sum_{i=1}^n c_iP(t,T_i)+F P(t,T_n).}
+\]
+\begin{pausebox}
+A two-year bond pays \(4\) at year 1 and \(104\) at year 2. If
+\(P(0,1)=0.96\) and \(P(0,2)=0.90\), what is its price?
+\end{pausebox}
+\pause
+\begin{exampleblock}{Answer}
+\[
+B_0=4(0.96)+104(0.90)=97.44.
+\]
+The entire pricing problem reduces to discount factors at the cash-flow
+dates.
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Short-rate models compress the curve into a few factors}
+A short-rate model starts from a process \(r_t\), then derives bond prices:
+\[
+P(t,T)=\E^\Q\!\left[
+\exp\left(-\int_t^T r_s\dd s\right)\middle|\F_t\right].
+\]
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{Vasicek}
+\[
+\dd r_t=a(b-r_t)\dd t+\sigma\dd W_t.
+\]
+Gaussian and mean reverting, but rates can become negative.
+\end{block}
+\column{0.48\textwidth}
+\begin{exampleblock}{CIR}
+\[
+\dd r_t=a(b-r_t)\dd t+\sigma\sqrt{r_t}\dd W_t.
+\]
+Mean reverting with a square-root diffusion that supports positivity.
+\end{exampleblock}
+\end{columns}
+\end{frame}
+
+\begin{frame}{HJM models the forward curve directly}
+Instead of modeling only \(r_t\), Heath--Jarrow--Morton specifies
+\[
+\dd f(t,T)=\alpha(t,T)\dd t+\sigma(t,T)\dd W_t.
+\]
+\begin{block}{The no-arbitrage restriction}
+Under the risk-neutral measure, the drift \(\alpha(t,T)\) is not freely
+chosen. Once forward-rate volatility is specified, no-arbitrage determines
+the drift.
+\end{block}
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{exampleblock}{Strength}
+It starts from the object the market quotes: the whole forward curve.
+\end{exampleblock}
+\column{0.48\textwidth}
+\begin{alertblock}{Cost}
+Without additional structure, the model is infinite-dimensional.
+\end{alertblock}
+\end{columns}
+\end{frame}
+
+\begin{frame}{When must rates be modelled stochastically?}
+\begin{center}
+\begin{tabular}{p{0.39\textwidth}|p{0.40\textwidth}}
+\toprule
+Often a reasonable approximation & Stochastic-rate model matters\\
+\midrule
+Short-dated vanilla equity option & Bond or bond option\\
+Small rate sensitivity & Caplet, floorlet, or swaption\\
+Short horizon & Long-dated equity or hybrid payoff\\
+Deterministic discounting acceptable & Discounting is itself a key risk\\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{pausebox}
+Which column fits a five-year callable bond: left or right?
+\end{pausebox}
+\pause
+\begin{exampleblock}{Answer}
+Right. Its cash flows and exercise decision are directly exposed to the
+evolution of the yield curve.
+\end{exampleblock}
+\end{frame}
+
+\section{Calibration and model choice}
+
+\begin{frame}{Calibration targets depend on the model class}
+\begin{center}
+\begin{tabular}{p{0.27\textwidth}|p{0.29\textwidth}|p{0.29\textwidth}}
+\toprule
+Model class & What is fitted & Typical challenge\\
+\midrule
+Local volatility & vanilla implied-vol surface & smooth, arbitrage-free derivatives\\
+Stochastic volatility & surface through \(\kappa,\theta,\eta,\rho,V_0\) & non-linear optimization and stability\\
+Stochastic rates & initial curve plus caps, swaptions, bond options & fit curve and dynamics together\\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{marketbox}
+Calibration is not merely parameter estimation. It aligns a model with
+tradable market prices before the model is used for valuation or risk.
+\end{marketbox}
+\end{frame}
+
+\begin{frame}{Model choice is a product decision, not a beauty contest}
+\begin{pausebox}
+You must value a long-dated equity-linked note whose payoff depends on both
+the stock and future discount factors. Is local volatility alone enough?
+\end{pausebox}
+\pause
+\begin{exampleblock}{Answer}
+Usually not. The product is exposed both to volatility dynamics and to rate
+risk. A hybrid framework, or at least explicit stochastic-rate modelling,
+may be necessary.
+\end{exampleblock}
+\begin{block}{Practical rule}
+Use the least complex model that captures the material risk factors and can
+be calibrated reliably to liquid hedging instruments.
+\end{block}
+\end{frame}
+
+\begin{frame}{The three extensions form one modeling hierarchy}
+\[
+\boxed{
+\text{market prices}
+\longrightarrow
+\text{model assumptions}
+\longrightarrow
+\text{calibration}
+\longrightarrow
+\text{pricing and hedging}.}
+\]
+\begin{enumerate}
+  \item Local volatility fits the current vanilla surface.
+  \item Stochastic volatility adds a random volatility state and richer
+  dynamics.
+  \item Stochastic rates add a random discount curve and fixed-income risk.
+  \item More realism comes with more state variables, calibration work, and
+  hedging uncertainty.
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{Final check: start from the risk you need to model}
+\begin{pausebox}
+A desk is hedging a barrier option and needs to reproduce today’s full
+vanilla smile surface accurately. Which model is the natural first
+benchmark, and what caveat should remain in mind?
+\end{pausebox}
+\pause
+\begin{exampleblock}{Answer}
+Local volatility is the natural first benchmark because it fits today's
+vanilla surface. Its future smile dynamics may nevertheless be unrealistic,
+so the hedge can be model dependent.
+\end{exampleblock}
+\vfill
+\begin{center}
+{\large\color{CourseBlue}\bfseries A richer model earns its place only by explaining a material risk.}
+\end{center}
+\end{frame}
+
+\end{document}

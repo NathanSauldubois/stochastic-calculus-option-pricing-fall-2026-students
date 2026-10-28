@@ -1,0 +1,1054 @@
+% !TEX program = pdflatex
+\documentclass[10pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[margin=0.72in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage[most]{tcolorbox}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{CourseBlue}{HTML}{1A3C68}
+\definecolor{CourseGreen}{HTML}{216E39}
+\definecolor{CourseGold}{HTML}{B8860B}
+\definecolor{CourseRed}{HTML}{9A2C2C}
+\definecolor{SoftBlue}{HTML}{F2F6FA}
+\definecolor{SoftGreen}{HTML}{F1F8F3}
+\definecolor{SoftGold}{HTML}{FFF8E8}
+\definecolor{SoftRed}{HTML}{FFF3F3}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.32em}
+\setlist[itemize]{leftmargin=1.5em,itemsep=0.12em,topsep=0.2em}
+\setlist[enumerate]{leftmargin=1.7em,itemsep=0.12em,topsep=0.2em}
+\allowdisplaybreaks
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Stochastic Calculus and Option Pricing}
+\rhead{Lecture 6 Notes}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+
+\newcommand{\E}{\mathbb E}
+\newcommand{\Pp}{\mathbb P}
+\newcommand{\Q}{\mathbb Q}
+\newcommand{\R}{\mathbb R}
+\newcommand{\1}{\mathbf 1}
+\newcommand{\cF}{\mathcal F}
+\newcommand{\dd}{\,\mathrm d}
+\newcommand{\Ito}{\mathrm{It\hat{o}}}
+\newcommand{\phiN}{\varphi}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\Cov}{Cov}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{proposition}[definition]{Proposition}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{corollary}[definition]{Corollary}
+\newtheorem{remark}[definition]{Remark}
+
+\newtcolorbox{boardexample}[1]{
+  enhanced,breakable,colback=SoftBlue,colframe=CourseBlue,
+  boxrule=0.55pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.55em,after skip=0.55em,
+  title={Example --- #1},fonttitle=\bfseries}
+\newtcolorbox{studentexercise}[1]{
+  enhanced,breakable,colback=SoftGold,colframe=CourseGold,
+  boxrule=0.55pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.55em,after skip=0.35em,
+  title={Exercise --- #1},fonttitle=\bfseries}
+\newtcolorbox{shortsolution}[1][]{
+  enhanced,breakable,colback=SoftGreen,colframe=CourseGreen,
+  boxrule=0.55pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.25em,after skip=0.6em,
+  title={Short solution#1},fonttitle=\bfseries}
+\newtcolorbox{keyidea}[1]{
+  enhanced,breakable,colback=white,colframe=CourseGreen,
+  boxrule=0.7pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.5em,after skip=0.5em,
+  title={#1},fonttitle=\bfseries}
+\newtcolorbox{warningbox}[1]{
+  enhanced,breakable,colback=SoftRed,colframe=CourseRed,
+  boxrule=0.65pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.5em,after skip=0.5em,
+  title={#1},fonttitle=\bfseries}
+\newtcolorbox{assumptionbox}[1]{
+  enhanced,breakable,colback=SoftGold,colframe=CourseGold,
+  boxrule=0.65pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.5em,after skip=0.5em,
+  title={#1},fonttitle=\bfseries}
+
+\title{\textbf{Girsanov and Risk-Neutral Pricing}\\
+\large Lecture 6 Notes --- Densities, Drift Changes, and Risk-Neutral Dynamics}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-1.4em}
+
+\begin{keyidea}{Route through Lecture 6}
+A rare Gaussian tail first motivates reweighting. Finite scenarios and
+Gaussian tilting explain the density; exponential weights extend the idea
+to Brownian paths. Girsanov identifies the new
+Brownian motion, and the Black--Scholes example chooses its shift so that
+the discounted stock has no drift. Lecture 7 starts from this result and
+develops replication, conditional-expectation pricing, and completeness.
+\end{keyidea}
+
+% ============================================================
+\section{Densities and Bayes' Rule}
+% ============================================================
+
+\subsection{A rare Gaussian tail motivates reweighting}
+
+Let \(X\sim N(0,1)\) under \(\Pp\), with \(\Phi\) the standard normal CDF, and consider
+\[
+p=\Pp(X>5)=1-\Phi(5)\approx2.87\times10^{-7}.
+\]
+The direct Monte Carlo estimate from \(n\) independent draws is
+\(\widehat p_{\mathrm{MC}}=n^{-1}\sum_{i=1}^n\1_{\{X_i>5\}}\).
+Even for \(n=10^6\), the expected number of tail observations is only
+\(np\approx0.29\). The probability of seeing none is
+\((1-p)^n\approx0.75\), in which case the estimate is zero.
+
+To visit the tail more often, sample under a new law \(\Q\) for which the
+same variable has distribution \(X\sim N(5,1)\). Then
+\(\Q(X>5)=1/2\). This \(\Q\) is chosen for simulation; it need not be a
+pricing measure. The likelihood correction that recovers \(p\) is derived
+in the Gaussian tilting section below.
+
+\subsection{Finite spaces reveal the mechanism}
+
+Let \(\Omega=\{\omega_1,\ldots,\omega_m\}\), and suppose
+\(\Pp(\omega_i)>0\) and \(\Q(\omega_i)>0\). Define the density ratio
+\[
+Z(\omega_i)=\frac{\Q(\omega_i)}{\Pp(\omega_i)}.
+\]
+Then
+\[
+Z>0,
+\qquad
+\E^{\Pp}[Z]=1,
+\qquad
+\boxed{\E^{\Q}[Y]=\E^{\Pp}[ZY].}
+\]
+A state with \(Z>1\) is upweighted and one with \(Z<1\) is downweighted.
+
+\begin{boardexample}{a three-state reweighting}
+Consider
+\[
+\begin{array}{c|ccc}
+ & \omega_1 & \omega_2 & \omega_3\\ \hline
+\Pp & 1/2 & 1/3 & 1/6\\
+\Q  & 1/4 & 1/2 & 1/4
+\end{array}
+\]
+Then
+\[
+Z(\omega_1)=\frac12,
+\qquad
+Z(\omega_2)=Z(\omega_3)=\frac32,
+\]
+and indeed
+\[
+\E^{\Pp}[Z]
+=\frac12\frac12+\frac13\frac32+\frac16\frac32=1.
+\]
+For \(Y=(-2,1,4)\), direct computation and reweighting agree:
+\[
+\E^{\Q}[Y]=1=\E^{\Pp}[ZY].
+\]
+\end{boardexample}
+
+\subsection{Radon--Nikodym densities and equivalence}
+
+\begin{definition}[Change of measure by a density]
+Let \(Z\geq0\) be \(\cF_T\)-measurable with \(\E^{\Pp}[Z]=1\). Define
+\[
+\Q(A)=\E^{\Pp}[Z\1_A],
+\qquad A\in\cF_T.
+\]
+Then \(\Q\) is a probability measure and
+\[
+Z=\frac{\dd\Q}{\dd\Pp}\bigg|_{\cF_T}.
+\]
+For every \(\Q\)-integrable \(Y\),
+\[
+\boxed{\E^{\Q}[Y]=\E^{\Pp}[ZY].}
+\]
+\end{definition}
+
+Absolute continuity \(\Q\ll\Pp\) means that a \(\Pp\)-null event remains
+impossible under \(\Q\). If \(Z>0\) \(\Pp\)-almost surely, then
+\(\Pp\sim\Q\): both measures have exactly the same null events. In that case
+\[
+\frac{\dd\Pp}{\dd\Q}=\frac1Z
+\quad\Q\text{-a.s.},
+\qquad
+\E^{\Q}\!\left[\frac1Z\right]=1.
+\]
+
+\begin{warningbox}{Three properties with different roles}
+\begin{itemize}
+  \item \(Z\geq0\) makes \(\Q(A)=\E^{\Pp}[Z\1_A]\) nonnegative.
+  \item \(\E^{\Pp}[Z]=1\) gives total mass one.
+  \item \(Z>0\) gives equivalence, which prevents the change of measure from
+        deleting possible scenarios.
+\end{itemize}
+Do not replace one property by another.
+\end{warningbox}
+
+\subsection{Conditional normalization and the density process}
+
+Let \(\mathcal G\subseteq\cF_T\). If the denominator is positive, Bayes'
+rule under a change of measure is
+\[
+\boxed{
+\E^{\Q}[Y\mid\mathcal G]
+=\frac{\E^{\Pp}[ZY\mid\mathcal G]}
+       {\E^{\Pp}[Z\mid\mathcal G]}.}
+\]
+The numerator reweights future outcomes. The denominator renormalizes those
+weights after the information in \(\mathcal G\) is known.
+
+To prove the formula, set
+\[
+X=\frac{\E^{\Pp}[ZY\mid\mathcal G]}
+        {\E^{\Pp}[Z\mid\mathcal G]}.
+\]
+The variable \(X\) is \(\mathcal G\)-measurable. For every
+\(A\in\mathcal G\),
+\[
+\begin{aligned}
+\E^{\Q}[\1_AX]
+&=\E^{\Pp}[Z\1_AX]\\
+&=\E^{\Pp}[\1_AX\E^{\Pp}[Z\mid\mathcal G]]\\
+&=\E^{\Pp}[\1_A\E^{\Pp}[ZY\mid\mathcal G]]\\
+&=\E^{\Pp}[\1_AZY]
+=\E^{\Q}[\1_AY].
+\end{aligned}
+\]
+This is the defining test for \(X=\E^{\Q}[Y\mid\mathcal G]\).
+
+Given a terminal density \(Z_T\), define
+\[
+\boxed{Z_t=\E^{\Pp}[Z_T\mid\cF_t].}
+\]
+Then \(Z=(Z_t)_{0\leq t\leq T}\) is the density process, and
+\[
+\boxed{
+\E^{\Q}[Y\mid\cF_t]
+=\frac1{Z_t}\E^{\Pp}[Z_TY\mid\cF_t].}
+\]
+
+\begin{keyidea}{Information is not changed by reweighting}
+If \(Y\) is already \(\mathcal G\)-measurable, then
+\[
+\E^{\Pp}[ZY\mid\mathcal G]
+=Y\E^{\Pp}[Z\mid\mathcal G],
+\]
+so \(\E^{\Q}[Y\mid\mathcal G]=Y\). Changing measure changes probabilities,
+not what has already been observed.
+\end{keyidea}
+
+% ============================================================
+\section{Gaussian Tilting: the Finite-Dimensional Prototype}
+% ============================================================
+
+\subsection{Completing the square fixes the sign}
+
+Let \(X\sim N(0,1)\) under \(\Pp\), and define
+\[
+Z=\exp\!\left(-\theta X-\frac12\theta^2\right).
+\]
+The Gaussian moment-generating function gives
+\[
+\E^{\Pp}[Z]
+=e^{-\theta^2/2}\E^{\Pp}[e^{-\theta X}]=1.
+\]
+Under \(\Q\), the density of \(X\) is
+\[
+e^{-\theta x-\theta^2/2}\frac{e^{-x^2/2}}{\sqrt{2\pi}}
+=\frac1{\sqrt{2\pi}}e^{-(x+\theta)^2/2}.
+\]
+Therefore
+\[
+\boxed{X\sim N(-\theta,1)\text{ under }\Q.}
+\]
+For \(\theta>0\), the factor \(e^{-\theta X}\) favors negative values. This
+quick qualitative check is often enough to detect a sign error.
+
+More generally, if \(X\sim N(0,\sigma^2)\) and we want mean \(m\) under
+\(\Q\), take
+\[
+\boxed{
+Z=\exp\!\left(\frac{m}{\sigma^2}X
+-\frac{m^2}{2\sigma^2}\right).}
+\]
+Then \(X\sim N(m,\sigma^2)\) under \(\Q\). The mean changes; the variance
+does not.
+
+\begin{studentexercise}{reverse-engineer the normalizer}
+Suppose \(X\sim N(0,v)\) and \(Z=e^{aX+b}\). Find the unique \(b\) for which
+\(\E[Z]=1\), then identify the law of \(X\) under \(\dd\Q=Z\dd\Pp\).
+\end{studentexercise}
+\begin{shortsolution}
+Since \(\E[e^{aX}]=e^{a^2v/2}\), normalization requires
+\(b=-a^2v/2\). Completing the square gives
+\[
+\boxed{X\sim N(av,v)\text{ under }\Q.}
+\]
+The linear coefficient controls the new mean; the quadratic compensator
+ensures total mass one.
+\end{shortsolution}
+
+\subsection{Reweighting and translation}
+
+For every bounded measurable \(f\),
+\[
+\boxed{
+\E^{\Q}[f(X)]
+=\E^{\Pp}[Zf(X)]
+=\E^{\Pp}[f(X-\theta)]}
+\]
+in the standard-normal example above. The first equality is the definition
+of the new measure. The second is a Gaussian distributional identity. It is
+important not to confuse these two logical steps.
+
+\begin{keyidea}{What survives in continuous time}
+A Brownian path is an infinite collection of compatible Gaussian variables.
+The continuous-time density will again contain
+\[
+\text{linear Gaussian exposure}
+-\frac12\text{variance of that exposure}.
+\]
+This is the origin of the stochastic exponential.
+\end{keyidea}
+
+\subsection{A shifted tail with and without likelihood weights}
+
+Return to \(p=\Pp(X>5)\) with \(X\sim N(0,1)\) under \(\Pp\). The Gaussian
+tilt with target mean \(5\) gives \(X\sim N(5,1)\) under \(\Q\), with
+\[
+\frac{\dd\Q}{\dd\Pp}(x)=e^{5x-25/2},
+\qquad
+w(x)=\frac{\dd\Pp}{\dd\Q}(x)=e^{-5x+25/2}.
+\]
+For independent draws \(X_1,\ldots,X_n\) under \(\Q\), merely shifting
+the sampling mean gives
+\[
+\frac1n\sum_{i=1}^n\1_{\{X_i>5\}}
+\longrightarrow\Q(X>5)=\frac12.
+\]
+This is the tail probability under the new law. To estimate the original
+probability, reweight each observation:
+\[
+\boxed{
+\widehat p_{\mathrm{IS}}
+=\frac1n\sum_{i=1}^n w(X_i)\1_{\{X_i>5\}},
+\qquad
+\E^{\Q}[\widehat p_{\mathrm{IS}}]
+=\E^{\Q}[w(X)\1_{\{X>5\}}]
+=\Pp(X>5)=p.}
+\]
+This is importance sampling: the shift makes tail observations frequent,
+and the inverse density restores their original probability weight.
+
+% ============================================================
+\section{Why Change the Probability Measure?}
+% ============================================================
+
+\subsection{One random payoff, two systems of weights}
+
+Let \(H:\Omega\to\R\) be a terminal payoff. A probability measure assigns
+weights to the scenarios \(\omega\in\Omega\); it does not alter the value
+\(H(\omega)\). If \(\Pp\) is replaced by an equivalent measure \(\Q\), then
+the sample space, filtration, stock paths, and payoff remain the same.
+Only their probabilities change.
+
+\begin{keyidea}{Physical and pricing viewpoints}
+\begin{itemize}
+  \item Under \(\Pp\), parameters are interpreted statistically: they describe
+        frequencies or forecasts in the model.
+  \item Under \(\Q\), probabilities are selected so that prices expressed in
+        units of a chosen numeraire are martingales.
+  \item A pricing measure is therefore constrained by traded prices. It is not
+        a claim about investor beliefs or the most likely real-world outcome.
+\end{itemize}
+\end{keyidea}
+
+Suppose, for the moment, that the stock and bank account satisfy under
+\(\Pp\)
+\[
+\frac{\dd S_t}{S_t}=\mu\dd t+\sigma\dd W_t,
+\qquad
+\dd B_t=rB_t\dd t,
+\qquad B_t=e^{rt}.
+\]
+The discounted stock is \(\bar S_t=S_t/B_t=e^{-rt}S_t\). Since the discount
+factor has finite variation, the product rule gives
+\[
+\boxed{
+\frac{\dd\bar S_t}{\bar S_t}
+=(\mu-r)\dd t+\sigma\dd W_t.}
+\]
+Thus the term to remove is the excess drift \(\mu-r\). Measured per unit of
+volatility, it is
+\[
+\lambda=\frac{\mu-r}{\sigma},
+\]
+the market price of Brownian risk in this one-factor model.
+
+\begin{studentexercise}{discount before changing measure}
+Let \(B_t=\exp(\int_0^t r_s\dd s)\) and
+\(\dd S_t/S_t=\mu_t\dd t+\sigma_t\dd W_t\). Derive the SDE of
+\(S_t/B_t\) without assuming constant coefficients.
+\end{studentexercise}
+\begin{shortsolution}
+Writing \(D_t=B_t^{-1}\), we have \(\dd D_t=-r_tD_t\dd t\) and
+\([D,S]=0\). Hence
+\[
+\boxed{
+\frac{\dd(D_tS_t)}{D_tS_t}
+=(\mu_t-r_t)\dd t+\sigma_t\dd W_t.}
+\]
+Discounting identifies exactly which drift Girsanov must eliminate.
+\end{shortsolution}
+
+\begin{warningbox}{Expectation under \(\Pp\) is not an arbitrage-free price}
+In general,
+\[
+e^{-r(T-t)}\E^{\Pp}[H\mid\cF_t]
+\]
+is neither a replication price nor a no-arbitrage price. The physical drift
+and risk preferences can enter that expectation. Pricing by expectation only
+becomes valid after specifying the appropriate pricing measure and numeraire.
+\end{warningbox}
+
+% ============================================================
+\section{From Gaussian Tilting to Brownian Paths}
+% ============================================================
+
+\subsection{A deterministic path exposure}
+
+Let \(W\) be Brownian motion under \(\Pp\), and let
+\(h\in L^2([0,T])\) be deterministic. The stochastic integral
+\[
+X=\int_0^Th_s\dd W_s
+\]
+is centered Gaussian with variance
+\[
+v=\int_0^Th_s^2\dd s.
+\]
+Consequently,
+\[
+\boxed{
+Z_T=\exp\!\left(
+\int_0^Th_s\dd W_s-\frac12\int_0^Th_s^2\dd s
+\right)}
+\]
+satisfies \(\E^{\Pp}[Z_T]=1\).
+
+\begin{theorem}[Cameron--Martin drift shift]
+Define \(\Q\) on \(\cF_T\) by \(\dd\Q=Z_T\dd\Pp\). Then
+\[
+\boxed{B_t=W_t-\int_0^th_s\dd s}
+\]
+is Brownian motion under \(\Q\). Equivalently,
+\[
+\boxed{\dd W_t=\dd B_t+h_t\dd t.}
+\]
+\end{theorem}
+
+The density rewards paths whose increments align with \(h\). Under the new
+weights, \(W\) has accumulated drift \(\int_0^th_s\dd s\), and subtracting
+that drift recovers a Brownian motion.
+
+\begin{boardexample}{constant exposure}
+If \(h_t\equiv\theta\), then
+\[
+Z_T=e^{\theta W_T-\theta^2T/2},
+\qquad
+B_t=W_t-\theta t.
+\]
+Thus \(W_T=B_T+\theta T\), and
+\[
+\boxed{W_T\sim N(\theta T,T)\text{ under }\Q.}
+\]
+This is precisely Gaussian tilting with a variance \(T\).
+\end{boardexample}
+
+\subsection{Why an adapted exposure is harder}
+
+If \(h_t\) is replaced by a random progressively measurable process
+\(\phi_t\), then \(\int_0^T\phi_s\dd W_s\) need not be Gaussian. Conditional
+on the entire path of \(\phi\), the integral is not generally an independent
+normal random variable, because \(\phi\) may depend on the same Brownian
+motion. The single Gaussian-mgf argument therefore breaks down.
+
+This is not a problem of notation. It is the reason we need stochastic
+calculus and a genuine martingale condition.
+
+% ============================================================
+\section{The Stochastic Exponential and Its Validity}
+% ============================================================
+
+\subsection{The compensation term is forced by \texorpdfstring{\(\Ito\)}{Ito}}
+
+Let \(\phi\) be progressively measurable and suppose
+\[
+\int_0^T\phi_s^2\dd s<\infty
+\quad\text{almost surely}.
+\]
+Define
+\[
+M_t=\int_0^t\phi_s\dd W_s,
+\qquad
+[M]_t=\int_0^t\phi_s^2\dd s,
+\]
+and its stochastic exponential
+\[
+\boxed{
+Z_t=\mathcal E(M)_t
+=\exp\!\left(M_t-\frac12[M]_t\right).}
+\]
+Set \(Y_t=M_t-\tfrac12[M]_t\), so \(Z_t=e^{Y_t}\). Since
+\[
+\dd Y_t=\phi_t\dd W_t-\frac12\phi_t^2\dd t,
+\qquad
+\dd[Y]_t=\phi_t^2\dd t,
+\]
+\(\Ito\)'s formula gives
+\[
+\begin{aligned}
+\dd Z_t
+&=Z_t\dd Y_t+\frac12Z_t\dd[Y]_t\\
+&=Z_t\phi_t\dd W_t
+-\frac12Z_t\phi_t^2\dd t
++\frac12Z_t\phi_t^2\dd t.
+\end{aligned}
+\]
+Therefore
+\[
+\boxed{\dd Z_t=Z_t\phi_t\dd W_t,\qquad Z_0=1.}
+\]
+The coefficient (1/2) is exactly what cancels the quadratic-variation
+drift.
+
+\begin{studentexercise}{detect the only valid compensator}
+For \(c\in\R\), define
+\[
+Z_t^{(c)}=\exp\!\left(
+\int_0^t\phi_s\dd W_s-c\int_0^t\phi_s^2\dd s
+\right).
+\]
+Find the drift of \(Z^{(c)}\) and determine the unique \(c\) that makes it a
+local martingale for every admissible \(\phi\).
+\end{studentexercise}
+\begin{shortsolution}
+\(\Ito\)'s formula gives
+\[
+\frac{\dd Z_t^{(c)}}{Z_t^{(c)}}
+=\phi_t\dd W_t+\left(\frac12-c\right)\phi_t^2\dd t.
+\]
+Hence
+\[
+\boxed{c=\frac12.}
+\]
+The correction is not a convention; it is forced by quadratic variation.
+\end{shortsolution}
+
+\subsection{Local martingale is not enough}
+
+The stochastic exponential is positive and is a local martingale. Every
+positive local martingale is a supermartingale, so
+\[
+\E^{\Pp}[Z_t]\leq Z_0=1.
+\]
+It can lose mass. If \(\E^{\Pp}[Z_T]<1\), the terminal variable cannot define
+a probability measure of total mass one.
+
+\begin{warningbox}{The most common unjustified step}
+Writing \(\dd Z_t=Z_t\phi_t\dd W_t\) proves only that \(Z\) is a local
+martingale. It does not prove \(\E[Z_T]=1\). Before defining \(\Q\), one must
+verify a true-martingale condition or explicitly assume it.
+\end{warningbox}
+
+\begin{theorem}[Novikov's sufficient condition]
+If
+\[
+\boxed{
+\E^{\Pp}\!\left[
+\exp\!\left(\frac12\int_0^T\phi_s^2\dd s\right)
+\right]<\infty,}
+\]
+then \(Z=\mathcal E(\int\phi\dd W)\) is a true martingale on ([0,T]), and
+\(\E^{\Pp}[Z_T]=1\).
+\end{theorem}
+
+If \(\lvert\phi_t\rvert\leq C\), then
+\[
+\int_0^T\phi_s^2\dd s\leq C^2T,
+\]
+and Novikov follows immediately. By contrast, almost-sure finiteness of
+\(\int\phi^2\) does not automatically control its exponential moment.
+
+\begin{boardexample}{a bounded adapted exposure}
+Fix \(t_0<T\) and let \(\xi\) be bounded and \(\cF_{t_0}\)-measurable. Set
+\[
+\phi_t=\xi\1_{(t_0,T]}(t).
+\]
+This process is progressively measurable, and
+\[
+\int_0^T\phi_t^2\dd t=\xi^2(T-t_0)\leq
+\|\xi\|_\infty^2T.
+\]
+Novikov holds even though the drift shift is random. Economically, the
+future change of drift may depend on information already observed at time
+\(t_0\), but not on future increments.
+\end{boardexample}
+
+\begin{keyidea}{Localization separates algebra from validity}
+If \(\phi\) is unbounded, define stopping times
+\[
+\tau_n=\inf\left\{t:\int_0^t\phi_s^2\dd s\geq n\right\}\wedge T.
+\]
+The stopped integrand \(\phi_t\1_{\{t\leq\tau_n\}}\) has bounded accumulated
+energy, so its stochastic exponential is a true martingale. This validates
+the drift calculation up to \(\tau_n\). Passing to the unstopped limit still
+requires a separate uniform-integrability or convergence argument.
+\end{keyidea}
+
+% ============================================================
+\section{Girsanov Moves Drift into the Measure}
+% ============================================================
+
+\subsection{The theorem and its sign convention}
+
+\begin{theorem}[Girsanov, one-dimensional version]
+Let
+\[
+Z_t=\exp\!\left(
+\int_0^t\phi_s\dd W_s
+-\frac12\int_0^t\phi_s^2\dd s
+\right)
+\]
+be a true \(\Pp\)-martingale, and define
+\[
+\frac{\dd\Q}{\dd\Pp}\bigg|_{\cF_T}=Z_T.
+\]
+Then
+\[
+\boxed{W_t^{\Q}=W_t-\int_0^t\phi_s\dd s}
+\]
+is Brownian motion under \(\Q\).
+\end{theorem}
+
+Always solve this identity for the old differential before substituting:
+\[
+\boxed{\dd W_t=\dd W_t^{\Q}+\phi_t\dd t.}
+\]
+Hence, if under \(\Pp\)
+\[
+\dd X_t=b_t\dd t+a_t\dd W_t,
+\]
+then under \(\Q\)
+\[
+\boxed{
+\dd X_t=(b_t+a_t\phi_t)\dd t+a_t\dd W_t^{\Q}.}
+\]
+Only the drift changes. The diffusion coefficient, and therefore the local
+quadratic variation, is unchanged:
+\[
+\dd[X]_t=a_t^2\dd t
+\]
+under both measures.
+
+\begin{warningbox}{A sign table worth memorizing}
+\[
+\begin{array}{c|c|c}
+\text{density exponent} & \text{new Brownian motion} & \text{new drift of }X\\ \hline
++\int\phi\dd W-\tfrac12\int\phi^2\dd t
+& W^{\Q}=W-\int\phi\dd t & b+a\phi\\
+-\int\lambda\dd W-\tfrac12\int\lambda^2\dd t
+& W^{\Q}=W+\int\lambda\dd t & b-a\lambda
+\end{array}
+\]
+The second row is the form most often used in asset pricing.
+\end{warningbox}
+
+\begin{boardexample}{remove a deterministic drift}
+Suppose
+\[
+\dd X_t=\alpha_t\dd t+\beta_t\dd W_t,
+\qquad \beta_t\neq0,
+\]
+with deterministic coefficients. To make \(X\) driftless, choose
+\[
+\phi_t=-\frac{\alpha_t}{\beta_t}.
+\]
+Then, provided the exponential is a true martingale,
+\[
+\dd X_t=\beta_t\dd W_t^{\Q}.
+\]
+This is first an algebraic candidate. Its validity still depends on the
+density.
+\end{boardexample}
+
+\subsection{Write the density in each drift-change example}
+
+For \(\dd X_t=\mu\dd t+\sigma\dd W_t\), \(\sigma>0\), target drift
+\(\nu\) under \(\Q\) by taking
+\[
+\lambda=\frac{\mu-\nu}{\sigma},\qquad
+Z_t=e^{-\lambda W_t-\lambda^2t/2},\qquad
+\frac{\dd\Q}{\dd\Pp}\bigg|_{\cF_T}=Z_T.
+\]
+Then \(W_t^{\Q}=W_t+\lambda t\) and
+\(\dd X_t=\nu\dd t+\sigma\dd W_t^{\Q}\).
+
+For the adapted example
+\(\dd X_t=\sin(W_t)\dd t+\dd W_t\), \(X_0=0\), set
+\[
+Z_t=\exp\!\left(-\int_0^t\sin(W_s)\dd W_s
+-\frac12\int_0^t\sin^2(W_s)\dd s\right),\qquad
+\frac{\dd\Q}{\dd\Pp}\bigg|_{\cF_T}=Z_T.
+\]
+The integrand is bounded, so Novikov applies. The process
+\(W_t^{\Q}=W_t+\int_0^t\sin(W_s)\dd s\) is Brownian under \(\Q\), and
+\(\dd X_t=\dd W_t^{\Q}\).
+
+For a geometric diffusion \(\dd S_t/S_t=\mu\dd t+\sigma\dd W_t\), use the
+same \(\lambda=(\mu-\nu)/\sigma\) and the full density
+\[
+Z_t=e^{-\lambda W_t-\lambda^2t/2},\qquad
+\frac{\dd\Q}{\dd\Pp}\bigg|_{\cF_T}=Z_T.
+\]
+It yields \(\dd S_t/S_t=\nu\dd t+\sigma\dd W_t^{\Q}\). For the
+money-market pricing measure, the target is \(\nu=r\).
+
+\subsection{Conditional expectations and path-dependent claims}
+
+For any \(Y\in L^1(\Q)\),
+\[
+\E^{\Q}[Y\mid\cF_t]
+=\frac1{Z_t}\E^{\Pp}[Z_TY\mid\cF_t].
+\]
+This identity remains valid when \(Y\) depends on the whole path. For example,
+\[
+Y=\1_{\{\max_{0\leq u\leq T}W_u>K\}}
+\]
+does not become a function of \(W_T\) merely because the measure changes.
+Girsanov changes the weight of each path, not the information contained in
+the payoff.
+
+In the geometric example with constant \(\nu,\sigma\), the two routes give
+the same conditional mean:
+\[
+\boxed{\E^{\Q}[S_T\mid\cF_t]
+=S_te^{\nu(T-t)}
+=\frac1{Z_t}\E^{\Pp}[Z_TS_T\mid\cF_t].}
+\]
+
+\begin{keyidea}{Three checkpoints for every Girsanov problem}
+\begin{enumerate}
+  \item \textbf{Density:} write the linear stochastic integral and the
+        negative half-energy compensator with the intended sign.
+  \item \textbf{Validity:} prove that the exponential is a true martingale,
+        or clearly state the assumption that guarantees it.
+  \item \textbf{Substitution:} identify the new Brownian motion, solve for
+        the old \(\dd W\), and only then rewrite the SDE.
+\end{enumerate}
+\end{keyidea}
+
+% ============================================================
+\section{The Risk-Neutral Measure in Black--Scholes}
+% ============================================================
+
+\subsection{Constructing the pricing density}
+
+Under \(\Pp\), assume
+\[
+\frac{\dd S_t}{S_t}=\mu_t\dd t+\sigma_t\dd W_t,
+\qquad
+\dd B_t=r_tB_t\dd t,
+\qquad \sigma_t\neq0.
+\]
+Define
+\[
+\lambda_t=\frac{\mu_t-r_t}{\sigma_t}.
+\]
+The pricing-density candidate is
+\[
+\boxed{
+Z_t=\exp\!\left(
+-\int_0^t\lambda_s\dd W_s
+-\frac12\int_0^t\lambda_s^2\dd s
+\right).}
+\]
+Assume it is a true martingale and set
+\(\dd\Q/\dd\Pp|_{\cF_T}=Z_T\). Girsanov gives
+\[
+\boxed{
+W_t^{\Q}=W_t+\int_0^t\lambda_s\dd s,
+\qquad
+\dd W_t=\dd W_t^{\Q}-\lambda_t\dd t.}
+\]
+Substituting into the stock SDE,
+\[
+\begin{aligned}
+\frac{\dd S_t}{S_t}
+&=\mu_t\dd t+\sigma_t
+  (\dd W_t^{\Q}-\lambda_t\dd t)\\
+&=(\mu_t-\sigma_t\lambda_t)\dd t
+  +\sigma_t\dd W_t^{\Q}\\
+&=\boxed{r_t\dd t+\sigma_t\dd W_t^{\Q}.}
+\end{aligned}
+\]
+The statistical drift \(\mu_t\) has been replaced by the short rate, while
+the volatility remains unchanged.
+
+Let
+\[
+D_t=B_t^{-1}=\exp\!\left(-\int_0^tr_s\dd s\right).
+\]
+Under \(\Q\),
+\[
+\boxed{
+\dd(D_tS_t)=\sigma_tD_tS_t\dd W_t^{\Q}.}
+\]
+Thus (DS) is a local martingale and, under suitable integrability, a true
+martingale.
+
+\subsection{A call formula from two Gaussian tails}
+
+For constant \(r,\sigma\) and \(\tau=T-t\), the risk-neutral SDE gives
+\[
+S_T=S_t\exp\!\left((r-\tfrac12\sigma^2)\tau
++\sigma(W_T^{\Q}-W_t^{\Q})\right).
+\]
+Write
+\[
+d_-=\frac{\log(S_t/K)+(r-\frac12\sigma^2)\tau}
+          {\sigma\sqrt\tau},\qquad
+d_+=d_-+\sigma\sqrt\tau.
+\]
+The cash-or-nothing tail and the stock-weighted tail are
+\[
+\Q(S_T>K\mid\cF_t)=\Phi(d_-),\qquad
+e^{-r\tau}\E^{\Q}[S_T\1_{\{S_T>K\}}\mid\cF_t]
+=S_t\Phi(d_+).
+\]
+Since \((S_T-K)^+=S_T\1_{\{S_T>K\}}-K\1_{\{S_T>K\}}\),
+\[
+\boxed{C_t=S_t\Phi(d_+)-Ke^{-r\tau}\Phi(d_-),\qquad
+\Delta_t=\Phi(d_+).}
+\]
+The pricing identity and the replication argument behind it are developed
+in Lecture 7.
+
+\begin{studentexercise}{catch the wrong pricing sign}
+For constant \(\lambda=(\mu-r)/\sigma\), suppose one mistakenly uses
+\[
+\widetilde Z_T=e^{+\lambda W_T-\lambda^2T/2}.
+\]
+Find the stock drift under the corresponding measure.
+\end{studentexercise}
+\begin{shortsolution}
+Now \(\widetilde W_t=W_t-\lambda t\) is Brownian, so
+\(\dd W_t=\dd\widetilde W_t+\lambda\dd t\). Therefore
+\[
+\frac{\dd S_t}{S_t}
+=(\mu+\sigma\lambda)\dd t+\sigma\dd\widetilde W_t
+=(2\mu-r)\dd t+\sigma\dd\widetilde W_t.
+\]
+The discounted drift is \(2(\mu-r)\), so the sign is wrong.
+\end{shortsolution}
+
+\subsection{What ``risk-neutral'' does and does not mean}
+
+\begin{definition}[Equivalent martingale measure]
+Relative to the positive numeraire \(B\), a probability measure \(\Q\) is an
+equivalent martingale measure if
+\begin{enumerate}
+  \item \(\Q\sim\Pp\) on \(\cF_T\), and
+  \item every discounted traded price \(S^i/B\) is a \(\Q\)-martingale
+        under the required admissibility and integrability conditions.
+\end{enumerate}
+\end{definition}
+
+The term ``risk-neutral'' means that traded assets have drift \(r_t\) when
+expressed in currency units, equivalently zero drift after discounting. It
+does not mean:
+\begin{itemize}
+  \item that real investors are indifferent to risk;
+  \item that \(\Q\) is the empirical distribution of future returns;
+  \item that all payoffs have expected return \(r\) under \(\Pp\);
+  \item that changing measure removes randomness.
+\end{itemize}
+
+\begin{keyidea}{Why the physical drift disappears from option prices}
+Replication and Girsanov express the same no-arbitrage restriction in two
+languages. Delta hedging cancels the stock's Brownian exposure and therefore
+its associated physical drift. Girsanov reweights paths so that discounted
+traded assets are martingales. Both routes produce the same pricing PDE and
+the same value.
+\end{keyidea}
+
+% ============================================================
+\section{Guided Practice and Common Traps}
+% ============================================================
+
+\subsection{A complete change-of-measure drill}
+
+\begin{studentexercise}{a constant Brownian shift}
+Let \(W\) be Brownian motion under \(\Pp\), fix \(a\in\R\), and define
+\[
+Z_T=e^{-aW_T-a^2T/2},
+\qquad
+\frac{\dd\Q}{\dd\Pp}=Z_T.
+\]
+\begin{enumerate}
+  \item Verify \(\E^{\Pp}[Z_T]=1\).
+  \item Identify the \(\Q\)-Brownian motion.
+  \item Find the law of \(W_T\) under \(\Q\).
+  \item Rewrite \(\dd X_t=b\dd t+c\dd W_t\) under \(\Q\).
+\end{enumerate}
+\end{studentexercise}
+\begin{shortsolution}
+The Gaussian mgf gives the normalization. Here \(\phi=-a\), so
+\[
+W_t^{\Q}=W_t+at,
+\qquad
+W_T=W_T^{\Q}-aT.
+\]
+Hence
+\[
+W_T\sim N(-aT,T)\quad\text{under }\Q,
+\]
+and \(\dd W_t=\dd W_t^{\Q}-a\dd t\) yields
+\[
+\boxed{\dd X_t=(b-ac)\dd t+c\dd W_t^{\Q}.}
+\]
+\end{shortsolution}
+
+\subsection{Diagnose candidate densities}
+
+\begin{studentexercise}{which conclusions are justified?}
+Consider
+\[
+\begin{array}{c|c}
+\text{candidate} & \text{available information}\\ \hline
+e^{\theta W_T-\theta^2T/2} & \theta\in\R\\
+e^{\int_0^T\phi_s\dd W_s-\frac12\int_0^T\phi_s^2\dd s}
+& |\phi_s|\leq C\\
+e^{\int_0^T\psi_s\dd W_s-\frac12\int_0^T\psi_s^2\dd s}
+& \int_0^T\psi_s^2\dd s<\infty\text{ a.s.}
+\end{array}
+\]
+For each row, decide whether the stated information is enough to define a
+probability measure.
+\end{studentexercise}
+\begin{shortsolution}
+The first density has expectation one by the Gaussian mgf. The second
+satisfies Novikov because the integrand is bounded. The third is only known
+to be a positive local martingale; finite energy almost surely does not imply
+the exponential moment required by Novikov or any equivalent criterion.
+\end{shortsolution}
+
+\subsection{Error diagnosis}
+
+\begin{studentexercise}{correct six statements}
+Correct the following claims:
+\begin{enumerate}
+  \item A change of measure changes the realized payoff \(H(\omega)\).
+  \item \(Z_T\geq0\) is enough to define a probability measure.
+  \item The conditional change-of-measure formula has denominator \(Z_T\).
+  \item Zero drift of a stochastic exponential proves it is a true martingale.
+  \item Girsanov changes both drift and volatility.
+  \item Under a risk-neutral measure, every undiscounted traded price is a
+        martingale.
+\end{enumerate}
+\end{studentexercise}
+\begin{shortsolution}
+\begin{enumerate}
+  \item The payoff and paths stay fixed; only scenario weights change.
+  \item One also needs \(\E^{\Pp}[Z_T]=1\); strict positivity gives
+        equivalence.
+  \item It is \(Z_t=\E^{\Pp}[Z_T\mid\cF_t]\).
+  \item Zero drift gives a local martingale first; validity requires a
+        true-martingale argument.
+  \item The drift changes, while diffusion and quadratic variation remain.
+  \item Prices discounted by the chosen numeraire are martingales.
+\end{enumerate}
+\end{shortsolution}
+
+\subsection{The Black--Scholes sign drill}
+
+\begin{studentexercise}{five lines from the historical model}
+Assume constant \(r,\mu,\sigma\), with \(\sigma>0\), and
+\(\dd S_t/S_t=\mu\dd t+\sigma\dd W_t^{\Pp}\). Write, in order, the
+market price of risk, density process, \(\Q\)-Brownian motion,
+\(\Q\)-stock dynamics, and discounted-stock dynamics.
+\end{studentexercise}
+\begin{shortsolution}
+\[
+\lambda=\frac{\mu-r}{\sigma},\qquad
+Z_t=e^{-\lambda W_t^{\Pp}-\lambda^2t/2},\qquad
+\frac{\dd\Q}{\dd\Pp}\bigg|_{\cF_T}=Z_T,
+\]
+\[
+W_t^{\Q}=W_t^{\Pp}+\lambda t,\qquad
+\frac{\dd S_t}{S_t}=r\dd t+\sigma\dd W_t^{\Q},\qquad
+\boxed{\dd(e^{-rt}S_t)=\sigma e^{-rt}S_t\dd W_t^{\Q}.}
+\]
+The last expression is a stochastic integral and hence a local martingale;
+calling it a true martingale needs an integrability argument.
+\end{shortsolution}
+
+\clearpage
+\subsection{End-of-lecture checklist}
+
+\begin{keyidea}{Nine checks for a change-of-measure calculation}
+\begin{enumerate}
+  \item State the original measure, filtration, and horizon.
+  \item Identify the drift that must change and the diffusion that cannot.
+  \item Write the candidate stochastic exponential with its compensator.
+  \item Check nonnegativity, unit expectation, and equivalence.
+  \item Use Novikov, boundedness, localization, or another valid criterion.
+  \item State the new Brownian motion with the correct sign.
+  \item Solve for the old differential before substituting into the SDE.
+  \item When conditioning, use \(Z_t\), not the terminal density alone.
+  \item For pricing, name the numeraire and discount every traded asset.
+\end{enumerate}
+\end{keyidea}
+
+\begin{keyidea}{Final synthesis}
+\begin{itemize}
+  \item A density reweights unchanged scenarios, and Bayes' rule requires
+        conditional renormalization.
+  \item Gaussian tilting changes a mean without changing variance; Girsanov
+        is its pathwise Brownian analogue.
+  \item The half-quadratic-variation term makes a stochastic exponential a
+        local martingale, not automatically a true martingale.
+  \item Girsanov moves drift into the probability measure while preserving
+        diffusion and quadratic variation.
+  \item The negative market-price-of-risk density replaces \(\mu\) by \(r\)
+        and makes the discounted stock a local martingale. Lecture 7
+        develops the integrability, replication, and completeness steps
+        needed for general valuation.
+\end{itemize}
+\end{keyidea}
+
+\end{document}

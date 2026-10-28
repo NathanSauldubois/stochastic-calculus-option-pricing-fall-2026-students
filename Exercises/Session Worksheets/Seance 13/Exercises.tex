@@ -1,0 +1,50 @@
+% Weekly exercise sheet for Lecture 13; also included in the synthesis sheet.
+\ifdefined\ExercisesSynthesis
+\else
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern,microtype}
+\usepackage[margin=0.9in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{enumitem,hyperref}
+\newcommand{\E}{\mathbb E}
+\newcommand{\Qbb}{\mathbb Q}
+\newcommand{\dd}{\,\mathrm d}
+\theoremstyle{definition}
+\newtheorem{exercise}{Exercise}[section]
+\newlist{exparts}{enumerate}{1}
+\setlist[exparts,1]{label=\textbf{(\alph*)},itemsep=0.3em,topsep=0.4em,leftmargin=2em}
+\newcommand{\lecturesummary}[1]{\begin{quote}\small\textbf{Focus.} #1\end{quote}}
+\title{Stochastic Calculus and Option Pricing\\Lecture 13 Exercises}
+\author{}
+\date{}
+\begin{document}
+\maketitle
+\vspace{-1.2em}
+\setcounter{section}{12}
+\fi
+
+\section{Week 13 --- Pricing, Hedging, and Model Risk}
+\lecturesummary{This variation uses linear algebra to test what a hedge can
+span when the model has more than one independent source of risk.}
+
+\begin{exercise}[Count shocks before claiming a perfect hedge]
+At a given instant, a model has \(d\) independent Brownian risk factors.
+There are \(m\) traded hedging instruments, each with a vector of exposures
+to those factors.
+\begin{exparts}
+  \item Express the local hedging problem as a linear system.
+  \item Give the rank condition for being able to cancel every local risk
+  direction.
+  \item If the rank is smaller than \(d\) and the target has exposure outside
+  the span of the instruments, explain why fitting today's derivative price
+  cannot remove that unspanned risk.
+\end{exparts}
+\end{exercise}
+
+
+\ifdefined\ExercisesSynthesis\else
+\end{document}
+\fi

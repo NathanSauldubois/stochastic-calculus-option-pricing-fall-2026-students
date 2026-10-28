@@ -1,0 +1,1286 @@
+% !TEX program = pdflatex
+\documentclass[10pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[margin=0.72in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage[most]{tcolorbox}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{CourseBlue}{HTML}{1A3C68}
+\definecolor{CourseGreen}{HTML}{216E39}
+\definecolor{CourseGold}{HTML}{B8860B}
+\definecolor{CourseRed}{HTML}{9A2C2C}
+\definecolor{SoftBlue}{HTML}{F2F6FA}
+\definecolor{SoftGreen}{HTML}{F1F8F3}
+\definecolor{SoftGold}{HTML}{FFF8E8}
+\definecolor{SoftRed}{HTML}{FFF3F3}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.32em}
+\setlist[itemize]{leftmargin=1.5em,itemsep=0.12em,topsep=0.2em}
+\setlist[enumerate]{leftmargin=1.7em,itemsep=0.12em,topsep=0.2em}
+\allowdisplaybreaks
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Stochastic Calculus and Option Pricing}
+\rhead{Lecture 5 Notes}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+
+\newcommand{\E}{\mathbb E}
+\newcommand{\Pp}{\mathbb P}
+\newcommand{\R}{\mathbb R}
+\newcommand{\1}{\mathbf 1}
+\newcommand{\cF}{\mathcal F}
+\newcommand{\dd}{\,\mathrm d}
+\newcommand{\Ito}{\mathrm{It\hat{o}}}
+\newcommand{\Ncdf}{\mathrm N}
+\newcommand{\phiN}{\varphi}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\Cov}{Cov}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{proposition}[definition]{Proposition}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{corollary}[definition]{Corollary}
+\newtheorem{remark}[definition]{Remark}
+
+\newtcolorbox{boardexample}[1]{
+  enhanced,breakable,colback=SoftBlue,colframe=CourseBlue,
+  boxrule=0.55pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.55em,after skip=0.55em,
+  title={Example --- #1},fonttitle=\bfseries}
+\newtcolorbox{studentexercise}[1]{
+  enhanced,breakable,colback=SoftGold,colframe=CourseGold,
+  boxrule=0.55pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.55em,after skip=0.35em,
+  title={Exercise --- #1},fonttitle=\bfseries}
+\newtcolorbox{shortsolution}[1][]{
+  enhanced,breakable,colback=SoftGreen,colframe=CourseGreen,
+  boxrule=0.55pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.25em,after skip=0.6em,
+  title={Short solution#1},fonttitle=\bfseries}
+\newtcolorbox{keyidea}[1]{
+  enhanced,breakable,colback=white,colframe=CourseGreen,
+  boxrule=0.7pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.5em,after skip=0.5em,
+  title={#1},fonttitle=\bfseries}
+\newtcolorbox{warningbox}[1]{
+  enhanced,breakable,colback=SoftRed,colframe=CourseRed,
+  boxrule=0.65pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.5em,after skip=0.5em,
+  title={#1},fonttitle=\bfseries}
+\newtcolorbox{assumptionbox}[1]{
+  enhanced,breakable,colback=SoftGold,colframe=CourseGold,
+  boxrule=0.65pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.5em,after skip=0.5em,
+  title={#1},fonttitle=\bfseries}
+
+\title{\textbf{Black--Scholes from Replication}\\
+\large Lecture 5 Notes --- Self-Financing, PDE, Verification, and Greeks}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-1.4em}
+
+\begin{keyidea}{Goals and logical structure}
+This lecture connects stochastic calculus to option valuation through one
+reproducible chain:
+\[
+\text{\(\Ito\) dynamics}
+\longrightarrow
+\text{self-financing replication}
+\longrightarrow
+\text{Black--Scholes PDE}
+\longrightarrow
+\text{Gaussian expectation and Greeks}.
+\]
+We first practice \(\Ito\)'s formula on examples not used in Lecture 4.
+We then define self-financing carefully in discrete and continuous time,
+derive the PDE for a European payoff \(g(S_T)\), solve and verify it, compute
+the call and put formulas and their Greeks, and conclude with the practical
+limits of continuous-time hedging.
+\end{keyidea}
+
+% ============================================================
+\section{Three New Uses of the It\^o Formula}
+% ============================================================
+
+\subsection{The generator organizes the calculation}
+
+Let
+\[
+\dd X_t=b(t,X_t)\dd t+a(t,X_t)\dd W_t
+\]
+and \(f\in C^{1,2}\). The one-dimensional \(\Ito\) formula is
+\[
+\dd f(t,X_t)
+=\left(f_t+bf_x+\frac12a^2f_{xx}\right)(t,X_t)\dd t
++a(t,X_t)f_x(t,X_t)\dd W_t.
+\]
+It is convenient to define the generator
+\[
+\mathcal Lf(t,x)
+=b(t,x)f_x(t,x)+\frac12a(t,x)^2f_{xx}(t,x),
+\]
+so that
+\[
+\boxed{
+\dd f(t,X_t)
+=\bigl(f_t+\mathcal Lf\bigr)(t,X_t)\dd t
++a(t,X_t)f_x(t,X_t)\dd W_t.}
+\]
+The operator \(f_t+\mathcal Lf\) is exactly the drift of the transformed
+process.
+
+\begin{warningbox}{Driftless is not automatically a true martingale}
+If \(f_t+\mathcal Lf=0\), then \(f(t,X_t)\) is first a local martingale.
+An integrability, boundedness, or localization argument is needed before
+taking expectations or conditional expectations.
+\end{warningbox}
+
+\subsection{Dimension creates drift}
+
+\begin{boardexample}{the squared norm of Brownian motion}
+Let \(W=(W^1,\ldots,W^d)\) be a standard \(d\)-dimensional Brownian
+motion and set
+\[
+R_t=\|W_t\|^2=\sum_{i=1}^d(W_t^i)^2.
+\]
+Applying the multidimensional formula to \(f(x)=\|x\|^2\) gives
+\[
+\boxed{
+\dd R_t=2W_t^\top\dd W_t+d\,\dd t.}
+\]
+Consequently,
+\[
+R_t-dt=2\int_0^tW_s^\top\dd W_s
+\]
+is a square-integrable martingale on bounded horizons, and
+\[
+\E[\|W_t\|^2]=dt.
+\]
+Each independent Brownian direction contributes one unit of quadratic
+variation per unit of time.
+\end{boardexample}
+
+\begin{studentexercise}{replace the identity covariance}
+Suppose \(X_t=CW_t\), where \(C\) is a deterministic \(m\times d\) matrix.
+Find \(\dd\|X_t\|^2\) and \(\E\|X_t\|^2\).
+\end{studentexercise}
+\begin{shortsolution}
+Since \(\dd X_t=C\dd W_t\),
+\[
+\dd[X^i,X^j]_t=(CC^\top)_{ij}\dd t.
+\]
+Therefore
+\[
+\dd\|X_t\|^2
+=2X_t^\top C\dd W_t+\operatorname{tr}(CC^\top)\dd t,
+\]
+and
+\[
+\boxed{\E\|X_t\|^2=t\,\operatorname{tr}(CC^\top).}
+\]
+\end{shortsolution}
+
+\subsection{Adding a path variable restores the Markov state}
+
+Define integrated Brownian motion
+\[
+A_t=\int_0^tW_s\dd s.
+\]
+The pair \((W_t,A_t)\) is a two-dimensional state process:
+\[
+\dd W_t=\dd W_t,\qquad \dd A_t=W_t\dd t.
+\]
+Although \(A_t\) depends on the entire past of \(W\), augmenting the state by
+\(A_t\) makes the dynamics local again.
+
+\begin{boardexample}{a product with integrated Brownian motion}
+For \(Y_t=W_tA_t\), the product rule gives
+\[
+\dd Y_t
+=A_t\dd W_t+W_t\dd A_t+\dd[W,A]_t.
+\]
+The process \(A\) has finite variation, so \([W,A]=0\), and hence
+\[
+\boxed{\dd(W_tA_t)=A_t\dd W_t+W_t^2\dd t.}
+\]
+Taking expectations,
+\[
+\boxed{
+\E[W_tA_t]
+=\int_0^t\E[W_s^2]\dd s
+=\frac{t^2}{2}.}
+\]
+This agrees with the direct covariance calculation
+\[
+\Cov\left(W_t,\int_0^tW_s\dd s\right)
+=\int_0^t\min(t,s)\dd s=\frac{t^2}{2}.
+\]
+\end{boardexample}
+
+\subsection{A future event becomes a backward-PDE martingale}
+
+Let \(\Ncdf\) and \(\phiN\) denote the standard normal cdf and density. Fix
+\(T>0\) and define, for \(t<T\),
+\[
+u(t,x)=\Ncdf\left(\frac{x}{\sqrt{T-t}}\right).
+\]
+Writing \(\tau=T-t\) and \(z=x/\sqrt{\tau}\),
+\[
+u_x=\frac{\phiN(z)}{\sqrt{\tau}},
+\qquad
+u_{xx}=-\frac{x\phiN(z)}{\tau^{3/2}},
+\qquad
+u_t=\frac{x\phiN(z)}{2\tau^{3/2}}.
+\]
+Therefore
+\[
+u_t+\frac12u_{xx}=0
+\]
+and
+\[
+\dd u(t,W_t)
+=\frac{\phiN(W_t/\sqrt{T-t})}{\sqrt{T-t}}\dd W_t.
+\]
+The probabilistic meaning is
+\[
+\boxed{
+u(t,W_t)=\Pp(W_T>0\mid\cF_t).}
+\]
+Indeed, conditional on \(\cF_t\),
+\[
+W_T=W_t+\sqrt{T-t}\,Z,\qquad Z\sim N(0,1).
+\]
+
+\begin{keyidea}{Preview of Black--Scholes}
+A terminal payoff, a backward PDE, a conditional expectation, and a
+replicating stochastic integral will again describe the same process.
+\end{keyidea}
+
+% ============================================================
+\section{Securities, Trading Strategies, and Self-Financing}
+% ============================================================
+
+\subsection{Model assumptions and market assumptions}
+
+On a filtered probability space
+\((\Omega,\cF,(\cF_t)_{0\leq t\leq T},\Pp)\), consider one risky asset
+and one bank account:
+\[
+\frac{\dd S_t}{S_t}=\mu\dd t+\sigma\dd W_t,
+\qquad
+\dd B_t=rB_t\dd t,\qquad B_0=1.
+\]
+Thus \(B_t=e^{rt}\). Throughout the basic Black--Scholes model,
+\(\sigma>0\).
+
+\begin{assumptionbox}{Model assumptions}
+\begin{itemize}
+  \item The stock has continuous geometric Brownian dynamics.
+  \item The parameters \(\mu,\sigma,r\) are constant.
+  \item The stock pays no dividends and does not default.
+  \item One Brownian motion generates all uncertainty in the model.
+\end{itemize}
+\end{assumptionbox}
+
+\begin{assumptionbox}{Market assumptions}
+\begin{itemize}
+  \item Trading is continuous and frictionless.
+  \item There are no transaction costs, bid--ask spreads, or taxes.
+  \item Arbitrary long and short positions are allowed.
+  \item Cash can be borrowed or lent at the same rate \(r\).
+  \item Strategies are predictable and admissible.
+  \item The market satisfies no arbitrage.
+\end{itemize}
+\end{assumptionbox}
+
+\begin{warningbox}{Keep the logical roles separate}
+GBM is a model assumption. No arbitrage is a market principle. Completeness
+comes from having enough traded assets to span the modeled shocks. Constant
+coefficients and zero dividends are simplifications that produce the familiar
+closed form. None of these statements implies all the others.
+\end{warningbox}
+
+\subsection{Portfolio value and predictability}
+
+\begin{definition}[Trading strategy]
+A strategy consists of predictable processes
+\((\Delta_t,\beta_t)\), where \(\Delta_t\) is the number of stock shares and
+\(\beta_t\) is the number of bank-account units held at time \(t\). Its value is
+\[
+\boxed{X_t=\Delta_tS_t+\beta_tB_t.}
+\]
+\end{definition}
+
+Predictability expresses causality: the position used over the next instant
+must be selected from information already available. Suitable admissibility
+conditions also exclude doubling strategies and ensure that the stochastic
+integrals are well defined.
+
+\subsection{Self-financing in discrete time}
+
+The discrete formulation makes the cash-flow accounting transparent. Let
+\(0=t_0<\cdots<t_N=T\). The holdings
+\((\Delta_n,\beta_n)\), chosen at time \(t_n\), are kept over
+\((t_n,t_{n+1}]\).
+
+Immediately before rebalancing at \(t_n\), the old positions are worth
+\[
+X_n^-=\Delta_{n-1}S_{t_n}+\beta_{n-1}B_{t_n}.
+\]
+Immediately after rebalancing, the new positions are worth
+\[
+X_n=\Delta_nS_{t_n}+\beta_nB_{t_n}.
+\]
+
+\begin{definition}[Discrete self-financing condition]
+No cash is added or withdrawn at \(t_n\):
+\[
+X_n=X_n^-.
+\]
+Equivalently,
+\[
+\boxed{
+S_{t_n}(\Delta_n-\Delta_{n-1})
++B_{t_n}(\beta_n-\beta_{n-1})=0.}
+\]
+\end{definition}
+
+Buying stock is financed by reducing the cash position; selling stock
+generates cash. Rebalancing changes composition, not wealth.
+
+Between \(t_n\) and \(t_{n+1}\), the assets move while the holdings remain
+fixed. Hence
+\[
+\boxed{
+X_{n+1}^- -X_n
+=\Delta_n(S_{t_{n+1}}-S_{t_n})
++\beta_n(B_{t_{n+1}}-B_{t_n}).}
+\]
+Portfolio gains come from asset-price changes, not from the act of
+rebalancing.
+
+\subsection{Continuous-time self-financing}
+
+\begin{definition}[Continuous self-financing condition]
+A strategy is self-financing when
+\[
+\boxed{
+X_t=X_0+\int_0^t\Delta_u\dd S_u+\int_0^t\beta_u\dd B_u.}
+\]
+In differential shorthand,
+\[
+\boxed{\dd X_t=\Delta_t\dd S_t+\beta_t\dd B_t.}
+\]
+\end{definition}
+
+The stochastic integrals are limits of predictable left-point trading gains.
+Using
+\[
+\beta_tB_t=X_t-\Delta_tS_t,
+\qquad
+\dd B_t=rB_t\dd t,
+\]
+the gain equation becomes
+\[
+\boxed{
+\dd X_t
+=\Delta_t\dd S_t+r(X_t-\Delta_tS_t)\dd t.}
+\]
+
+\begin{proposition}[Equivalent rebalancing constraint]
+If \(\Delta\) is a continuous semimartingale and
+\(X_t=\Delta_tS_t+\beta_tB_t\), then self-financing is equivalent to
+\[
+\boxed{
+S_t\dd\Delta_t+\dd[\Delta,S]_t+B_t\dd\beta_t=0.}
+\]
+\end{proposition}
+\begin{proof}
+The product rule gives
+\[
+\dd X_t
+=\Delta_t\dd S_t+S_t\dd\Delta_t+\dd[\Delta,S]_t
++\beta_t\dd B_t+B_t\dd\beta_t.
+\]
+Comparing this with the self-financing gain equation yields the claim.
+\end{proof}
+
+\begin{warningbox}{Value identity versus gain identity}
+The identity \(X=\Delta S+\beta B\) says what the portfolio is worth.
+The identity
+\(\dd X=\Delta\dd S+\beta\dd B\) says how its value changes without external
+cash. A dynamic hedge needs both statements.
+\end{warningbox}
+
+% ============================================================
+\section{Replication and the Black--Scholes PDE}
+% ============================================================
+
+\subsection{The European claim and its It\^o dynamics}
+
+Fix a European payoff
+\[
+H=g(S_T).
+\]
+Assume that its value can be written as a sufficiently smooth Markov function
+\[
+V_t=p(t,S_t),
+\qquad
+p(T,s)=g(s).
+\]
+The condition \(p\in C^{1,2}([0,T)\times(0,\infty))\) will be used before
+maturity. The payoff itself may have a kink at \(T\).
+
+By \(\Ito\)'s formula,
+\[
+\boxed{
+\begin{aligned}
+\dd V_t
+={}&\left(
+p_t+\mu S_tp_s+\frac12\sigma^2S_t^2p_{ss}
+\right)(t,S_t)\dd t\\
+&+\sigma S_tp_s(t,S_t)\dd W_t.
+\end{aligned}}
+\]
+
+\subsection{Match a self-financing replicating portfolio}
+
+A replicating strategy satisfies
+\[
+X_t=p(t,S_t)
+\quad\text{for all }t,
+\qquad
+X_T=g(S_T).
+\]
+Its self-financing dynamics are
+\[
+\begin{aligned}
+\dd X_t
+&=\Delta_t\dd S_t+r(X_t-\Delta_tS_t)\dd t\\
+&=\left[rX_t+(\mu-r)S_t\Delta_t\right]\dd t
++\sigma S_t\Delta_t\dd W_t.
+\end{aligned}
+\]
+Matching the Brownian coefficients in \(\dd X_t=\dd V_t\) gives
+\[
+\boxed{\Delta_t=p_s(t,S_t).}
+\]
+The stock holding in the replicating strategy is the option delta.
+
+Now match the drift coefficients with \(X_t=p(t,S_t)\):
+\[
+rp+(\mu-r)sp_s
+=p_t+\mu sp_s+\frac12\sigma^2s^2p_{ss}.
+\]
+The physical drift cancels. We obtain the pricing equation.
+
+\begin{theorem}[Black--Scholes PDE for a European payoff]
+Under the preceding model, market, regularity, and replication assumptions,
+the value \(p\) satisfies
+\[
+\boxed{
+\begin{cases}
+p_t(t,s)+rs\,p_s(t,s)
++\dfrac12\sigma^2s^2p_{ss}(t,s)-rp(t,s)=0,
+&t<T,\ s>0,\\[0.4em]
+p(T,s)=g(s).
+\end{cases}}
+\]
+The replicating holdings are
+\[
+\boxed{
+\Delta_t=p_s(t,S_t),
+\qquad
+\beta_t=\frac{p(t,S_t)-S_tp_s(t,S_t)}{B_t}.}
+\]
+\end{theorem}
+
+\begin{keyidea}{Why \(\mu\) disappears}
+The option and the replicating portfolio have the same exposure to the
+stock. Their physical expected-return terms are therefore identical and
+cancel. Valuation depends on the cost of financing \(r\) and the unhedgeable
+quadratic-variation scale \(\sigma\), not on an estimate of \(\mu\).
+\end{keyidea}
+
+\begin{warningbox}{What the cancellation does not mean}
+The physical drift remains relevant for forecasting, portfolio choice, risk
+management, and the empirical distribution of hedging errors. It disappears
+from the replication price inside the idealized complete market.
+\end{warningbox}
+
+\subsection{No arbitrage and completeness}
+
+The replication argument uses two distinct economic ideas:
+
+\begin{itemize}
+  \item \textbf{Completeness:} the one traded stock spans the one Brownian
+        source of risk, so the option's diffusion coefficient can be matched.
+  \item \textbf{No arbitrage:} a claim and a self-financing portfolio with the
+        same terminal payoff must have the same initial price.
+\end{itemize}
+
+With jumps or an additional stochastic-volatility shock, one stock generally
+cannot match every source of uncertainty. The market may become incomplete,
+and no-arbitrage alone may determine a range of prices rather than a unique
+one.
+
+\begin{studentexercise}{add a continuous dividend yield}
+Suppose the stock pays a continuous dividend yield \(q\). A stock holder
+receives \(qS_t\dd t\) in addition to the price gain \(\dd S_t\). Derive the
+PDE for a European claim.
+\end{studentexercise}
+\begin{shortsolution}
+The stock position earns
+\[
+\Delta_t(\dd S_t+qS_t\dd t).
+\]
+Repeating the self-financing replication argument gives
+\[
+\boxed{
+p_t+(r-q)sp_s+\frac12\sigma^2s^2p_{ss}-rp=0,
+\qquad p(T,s)=g(s).}
+\]
+The no-dividend model is the special case \(q=0\).
+\end{shortsolution}
+
+% ============================================================
+\section{Solving the Black--Scholes PDE}
+% ============================================================
+
+\subsection{Step 1: time to maturity}
+
+We solve
+\[
+p_t+rsp_s+\frac12\sigma^2s^2p_{ss}-rp=0,
+\qquad p(T,s)=g(s).
+\]
+Let
+\[
+\tau=T-t,
+\qquad
+v(\tau,s)=p(T-\tau,s).
+\]
+Since \(p_t=-v_\tau\),
+\[
+\boxed{
+v_\tau
+=rsv_s+\frac12\sigma^2s^2v_{ss}-rv,
+\qquad
+v(0,s)=g(s).}
+\]
+
+\subsection{Step 2: remove the discounting term}
+
+Define
+\[
+u(\tau,s)=e^{r\tau}v(\tau,s).
+\]
+Then
+\[
+u_\tau=ru+e^{r\tau}v_\tau,\qquad
+u_s=e^{r\tau}v_s,\qquad
+u_{ss}=e^{r\tau}v_{ss}.
+\]
+The two \(r u\) terms cancel:
+\[
+\boxed{
+u_\tau
+=rsu_s+\frac12\sigma^2s^2u_{ss},
+\qquad
+u(0,s)=g(s).}
+\]
+
+\subsection{Step 3: logarithmic coordinates}
+
+Set
+\[
+x=\log s,
+\qquad
+w(\tau,x)=u(\tau,e^x).
+\]
+The derivatives satisfy
+\[
+w_x=su_s,\qquad
+w_{xx}=su_s+s^2u_{ss},
+\]
+and therefore
+\[
+u_s=\frac{w_x}{s},
+\qquad
+u_{ss}=\frac{w_{xx}-w_x}{s^2}.
+\]
+Substitution yields
+\[
+\boxed{
+w_\tau
+=\frac12\sigma^2w_{xx}
++\left(r-\frac12\sigma^2\right)w_x,
+\qquad
+w(0,x)=g(e^x).}
+\]
+The coefficient \(r-\sigma^2/2\) is the drift of the log price under the
+pricing dynamics.
+
+\subsection{Step 4: remove transport and solve the heat equation}
+
+Let
+\[
+a=r-\frac12\sigma^2,
+\qquad
+\varphi(\tau,y)=w(\tau,y-a\tau).
+\]
+Then
+\[
+\varphi_\tau=w_\tau-aw_x,\qquad
+\varphi_y=w_x,\qquad
+\varphi_{yy}=w_{xx},
+\]
+so
+\[
+\boxed{
+\varphi_\tau=\frac12\sigma^2\varphi_{yy},
+\qquad
+\varphi(0,y)=g(e^y).}
+\]
+If \(Z\sim N(0,1)\), the heat-kernel solution is
+\[
+\varphi(\tau,y)
+=\E\left[g\left(e^{y+\sigma\sqrt{\tau}Z}\right)\right].
+\]
+Equivalently,
+\[
+\varphi(\tau,y)
+=\int_{\R}g(e^z)
+\frac{\exp\left(-\frac{(z-y)^2}{2\sigma^2\tau}\right)}
+{\sqrt{2\pi\sigma^2\tau}}\dd z.
+\]
+
+\begin{theorem}[General European-payoff formula]
+Let \(\tau=T-t\). Under suitable growth and regularity assumptions,
+\[
+\boxed{
+\begin{aligned}
+p(t,s)
+=e^{-r\tau}\E\Bigg[
+g\Bigg(
+s\exp\Big\{&
+\left(r-\frac12\sigma^2\right)\tau\\
+&+\sigma\sqrt{\tau}Z
+\Big\}
+\Bigg)
+\Bigg],
+\qquad Z\sim N(0,1).
+\end{aligned}}
+\]
+\end{theorem}
+
+\begin{remark}
+This is a general formula, but not necessarily an elementary closed form.
+For an arbitrary payoff \(g\), it reduces valuation to a one-dimensional
+Gaussian integral.
+\end{remark}
+
+\begin{warningbox}{Regularity at maturity}
+Calls, puts, and digital payoffs are not \(C^2\) at maturity. Gaussian
+convolution smooths their prices for every \(t<T\). A fully general treatment
+distinguishes classical, weak, and viscosity solutions; here we use the
+classical formula before maturity and recover the payoff in the terminal
+limit.
+\end{warningbox}
+
+\begin{studentexercise}{price a power payoff}
+For \(g(s)=s^m\), with \(m\in\R\) such that the expectation is finite,
+compute \(p(t,s)\).
+\end{studentexercise}
+\begin{shortsolution}
+Using \(\E[e^{cZ}]=e^{c^2/2}\),
+\[
+\begin{aligned}
+p(t,s)
+&=e^{-r\tau}s^m
+\exp\left(
+m(r-\tfrac12\sigma^2)\tau
++\tfrac12m^2\sigma^2\tau
+\right)\\
+&=\boxed{
+s^m\exp\left(
+(m-1)r\tau+\frac12m(m-1)\sigma^2\tau
+\right).}
+\end{aligned}
+\]
+The cases \(m=0\) and \(m=1\) give a zero-coupon payment and one share,
+respectively.
+\end{shortsolution}
+
+% ============================================================
+\section{Verification: PDE, Expectation, and Hedge}
+% ============================================================
+
+\subsection{The discounted candidate must be a martingale}
+
+Introduce an auxiliary stock, started at \(S_t^r=s\), with dynamics
+\[
+\frac{\dd S_u^r}{S_u^r}
+=r\dd u+\sigma\dd W_u,
+\qquad u\in[t,T].
+\]
+Its terminal value is
+\[
+S_T^r
+=s\exp\left(
+\left(r-\frac12\sigma^2\right)(T-t)
++\sigma(W_T-W_t)
+\right).
+\]
+
+\begin{theorem}[Verification theorem]
+Suppose \(p\in C^{1,2}\) solves the Black--Scholes PDE with terminal
+condition \(g\), and assume the stochastic integral below is a true
+martingale. Then
+\[
+\boxed{
+p(t,s)
+=\E\left[
+e^{-r(T-t)}g(S_T^r)\mid S_t^r=s
+\right].}
+\]
+Moreover, in the original market, the strategy
+\[
+\Delta_t=p_s(t,S_t),
+\qquad
+\beta_t=\frac{p(t,S_t)-S_tp_s(t,S_t)}{B_t}
+\]
+is self-financing and replicates \(g(S_T)\).
+\end{theorem}
+
+\begin{proof}
+Apply \(\Ito\)'s formula and the product rule:
+\[
+\begin{aligned}
+\dd\left(e^{-r(u-t)}p(u,S_u^r)\right)
+={}&e^{-r(u-t)}
+\left[
+p_t+rS_u^rp_s
++\frac12\sigma^2(S_u^r)^2p_{ss}-rp
+\right]\dd u\\
+&+e^{-r(u-t)}\sigma S_u^rp_s\dd W_u.
+\end{aligned}
+\]
+The drift vanishes by the PDE. Taking conditional expectations between
+\(t\) and \(T\) and using \(p(T,\cdot)=g\) proves the representation.
+
+For replication under the original dynamics, rearrange the PDE inside
+\(\Ito\)'s formula:
+\[
+\dd p(t,S_t)
+=p_s(t,S_t)\dd S_t
++r\bigl(p(t,S_t)-S_tp_s(t,S_t)\bigr)\dd t.
+\]
+This equals
+\(\Delta_t\dd S_t+\beta_t\dd B_t\), and the terminal value equals
+\(g(S_T)\).
+\end{proof}
+
+\begin{keyidea}{The logical loop}
+\[
+\boxed{
+\text{self-financing replication}
+\Longleftrightarrow
+\text{Black--Scholes PDE}
+\Longleftrightarrow
+\text{discounted expectation}.}
+\]
+Replication explains uniqueness and identifies the hedge. The expectation
+computes the PDE solution. Verification checks that both descriptions agree.
+\end{keyidea}
+
+% ============================================================
+\section{The European Call and Put}
+% ============================================================
+
+\subsection{A truncated Gaussian identity}
+
+Let
+\[
+\phiN(z)=\frac{e^{-z^2/2}}{\sqrt{2\pi}},
+\qquad
+\Ncdf(x)=\int_{-\infty}^x\phiN(z)\dd z.
+\]
+
+\begin{lemma}[Exponential tilting of a Gaussian tail]
+For \(a,b\in\R\) and \(Z\sim N(0,1)\),
+\[
+\boxed{
+\E\left[e^{aZ}\1_{\{Z>b\}}\right]
+=e^{a^2/2}\Ncdf(a-b).}
+\]
+\end{lemma}
+\begin{proof}
+Complete the square:
+\[
+e^{az}\phiN(z)
+=e^{a^2/2}\phiN(z-a).
+\]
+Integrating over \((b,\infty)\) and substituting \(y=z-a\) gives the result.
+\end{proof}
+
+\subsection{The exercise event produces \texorpdfstring{\(d_-\)}{d-minus}}
+
+For a call,
+\[
+g(s)=(s-K)^+,
+\qquad
+\tau=T-t.
+\]
+Under the auxiliary drift-\(r\) dynamics,
+\[
+S_T^r
+=s\exp\left(
+\left(r-\frac12\sigma^2\right)\tau
++\sigma\sqrt{\tau}Z
+\right).
+\]
+The price splits as
+\[
+C(t,s)
+=e^{-r\tau}
+\left(
+\E[S_T^r\1_{\{S_T^r>K\}}]
+-K\Pp(S_T^r>K)
+\right).
+\]
+Now
+\[
+S_T^r>K
+\iff
+Z>-d_-,
+\]
+where
+\[
+\boxed{
+d_-=
+\frac{\log(s/K)+(r-\frac12\sigma^2)\tau}
+{\sigma\sqrt{\tau}}.}
+\]
+Therefore
+\[
+\Pp(S_T^r>K)=\Ncdf(d_-).
+\]
+
+\subsection{The stock-weighted term produces \texorpdfstring{\(d_+\)}{d-plus}}
+
+Apply the truncated Gaussian lemma with
+\(a=\sigma\sqrt{\tau}\) and \(b=-d_-\):
+\[
+\E\left[
+e^{\sigma\sqrt{\tau}Z}\1_{\{Z>-d_-\}}
+\right]
+=e^{\sigma^2\tau/2}
+\Ncdf(d_-+\sigma\sqrt{\tau}).
+\]
+Define
+\[
+\boxed{
+d_+=d_-+\sigma\sqrt{\tau}
+=\frac{\log(s/K)+(r+\frac12\sigma^2)\tau}
+{\sigma\sqrt{\tau}}.}
+\]
+It follows that
+\[
+\E[S_T^r\1_{\{S_T^r>K\}}]
+=se^{r\tau}\Ncdf(d_+).
+\]
+
+\begin{theorem}[Black--Scholes call and put formulas]
+For \(\tau=T-t\),
+\[
+\boxed{
+C(t,s)
+=s\Ncdf(d_+)-Ke^{-r\tau}\Ncdf(d_-),}
+\]
+where
+\[
+\boxed{
+d_\pm
+=\frac{\log(s/K)+r\tau}{\sigma\sqrt{\tau}}
+\pm\frac12\sigma\sqrt{\tau}.}
+\]
+The put price is
+\[
+\boxed{
+P(t,s)
+=Ke^{-r\tau}\Ncdf(-d_-)-s\Ncdf(-d_+).}
+\]
+\end{theorem}
+
+\begin{proof}[Put formula]
+The terminal identity
+\[
+(S_T-K)^+-(K-S_T)^+=S_T-K
+\]
+is replicated by one share minus a zero-coupon payment \(K\). No arbitrage
+gives put--call parity:
+\[
+C(t,s)-P(t,s)=s-Ke^{-r\tau}.
+\]
+Insert the call formula and use
+\(\Ncdf(-x)=1-\Ncdf(x)\).
+\end{proof}
+
+\begin{warningbox}{Do not interpret both normal terms as the same probability}
+\(\Ncdf(d_-)\) is the exercise probability under the drift-\(r\) pricing
+dynamics. The factor \(\Ncdf(d_+)\) comes from a stock-weighted truncated
+expectation. Its later interpretation requires a stock-numeraire measure.
+\end{warningbox}
+
+\begin{boardexample}{boundary and maturity checks}
+The formula satisfies
+\[
+\begin{array}{lll}
+s\downarrow0: & d_\pm\to-\infty, & C(t,s)\to0,\\
+s\uparrow\infty: & d_\pm\to+\infty, & C(t,s)\sim s-Ke^{-r\tau},\\
+\tau\downarrow0: & & C(t,s)\to(s-K)^+.
+\end{array}
+\]
+It also satisfies the no-arbitrage bounds
+\[
+(s-Ke^{-r\tau})^+\leq C(t,s)\leq s.
+\]
+These checks catch sign errors in \(r\tau\), discounting, and \(d_\pm\).
+\end{boardexample}
+
+\begin{studentexercise}{a cash-or-nothing digital}
+Find the price of the payoff
+\[
+g(S_T)=\1_{\{S_T>K\}}.
+\]
+\end{studentexercise}
+\begin{shortsolution}
+The payoff is one unit of cash exactly on the call exercise event. Therefore
+\[
+\boxed{
+D(t,s)=e^{-r\tau}\Ncdf(d_-).}
+\]
+The discontinuity at maturity produces a sharply concentrated delta near
+the strike as \(\tau\downarrow0\).
+\end{shortsolution}
+
+% ============================================================
+\section{Greeks and the Replicating Strategy}
+% ============================================================
+
+\subsection{One identity simplifies every derivative}
+
+For the call formula,
+\[
+C=s\Ncdf(d_+)-Ke^{-r\tau}\Ncdf(d_-).
+\]
+The normal densities satisfy
+\[
+\boxed{
+s\phiN(d_+)=Ke^{-r\tau}\phiN(d_-).}
+\]
+Indeed, \(d_-=d_+-\sigma\sqrt{\tau}\) and direct simplification gives
+\[
+\frac{\phiN(d_-)}{\phiN(d_+)}
+=\exp\left(\frac{d_+^2-d_-^2}{2}\right)
+=\frac{se^{r\tau}}{K}.
+\]
+
+\subsection{Delta and gamma}
+
+Because
+\[
+\partial_s d_+=\partial_s d_-
+=\frac{1}{s\sigma\sqrt{\tau}},
+\]
+differentiating the call price gives
+\[
+\begin{aligned}
+C_s
+={}&\Ncdf(d_+)
++s\phiN(d_+)\partial_sd_+
+-Ke^{-r\tau}\phiN(d_-)\partial_sd_-\\
+={}&\Ncdf(d_+).
+\end{aligned}
+\]
+Thus
+\[
+\boxed{\Delta_C=C_s=\Ncdf(d_+).}
+\]
+Differentiating again,
+\[
+\boxed{
+\Gamma_C=C_{ss}
+=\frac{\phiN(d_+)}{s\sigma\sqrt{\tau}}.}
+\]
+
+\begin{keyidea}{Hedging interpretation}
+Delta is the number of shares in the replicating portfolio. Gamma measures
+how quickly the delta changes. Large gamma makes continuous-time replication
+especially sensitive to discrete rebalancing, transaction costs, jumps, and
+volatility misspecification.
+\end{keyidea}
+
+\subsection{Vega, theta, and rho}
+
+Differentiating with respect to volatility and using the density identity
+gives
+\[
+\boxed{
+\mathrm{Vega}_C=C_\sigma
+=s\phiN(d_+)\sqrt{\tau}.}
+\]
+Vega is positive because the call payoff is convex.
+
+Theta is most efficiently computed from the PDE:
+\[
+C_t=rC-rsC_s-\frac12\sigma^2s^2C_{ss}.
+\]
+Substitution yields
+\[
+\boxed{
+\Theta_C=C_t
+=-\frac{s\sigma\phiN(d_+)}{2\sqrt{\tau}}
+-rKe^{-r\tau}\Ncdf(d_-).}
+\]
+Here theta means calendar-time sensitivity \(\partial C/\partial t\).
+
+Finally,
+\[
+\partial_rd_+=\partial_rd_-=\frac{\sqrt{\tau}}{\sigma}.
+\]
+The density contributions cancel, giving
+\[
+\boxed{
+\mathrm{Rho}_C=C_r
+=K\tau e^{-r\tau}\Ncdf(d_-).}
+\]
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+Greek & Call formula & Main role\\
+\midrule
+\(\Delta\) & \(\Ncdf(d_+)\) & stock hedge\\
+\(\Gamma\) & \(\phiN(d_+)/(s\sigma\sqrt{\tau})\) & hedge curvature\\
+Vega & \(s\phiN(d_+)\sqrt{\tau}\) & volatility sensitivity\\
+\(\Theta\) &
+\(-s\sigma\phiN(d_+)/(2\sqrt{\tau})-rKe^{-r\tau}\Ncdf(d_-)\)
+& time decay\\
+Rho & \(K\tau e^{-r\tau}\Ncdf(d_-)\) & rate sensitivity\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{studentexercise}{put Greeks from parity}
+Use
+\[
+P=C-s+Ke^{-r\tau}
+\]
+to derive the five put Greeks.
+\end{studentexercise}
+\begin{shortsolution}
+\[
+\begin{aligned}
+\Delta_P&=\Ncdf(d_+)-1=-\Ncdf(-d_+),\\
+\Gamma_P&=\Gamma_C,\qquad
+\mathrm{Vega}_P=\mathrm{Vega}_C,\\
+\Theta_P&=-\frac{s\sigma\phiN(d_+)}{2\sqrt{\tau}}
++rKe^{-r\tau}\Ncdf(-d_-),\\
+\mathrm{Rho}_P&=-K\tau e^{-r\tau}\Ncdf(-d_-).
+\end{aligned}
+\]
+\end{shortsolution}
+
+\begin{warningbox}{Greeks are local model derivatives}
+A Greek measures an infinitesimal sensitivity while holding the rest of the
+model fixed. It is not a bound on finite losses. Near maturity or around a
+payoff kink, higher-order terms and discrete trading can dominate a
+first-order approximation.
+\end{warningbox}
+
+% ============================================================
+\section{Discrete Hedging and Model Limitations}
+% ============================================================
+
+\subsection{The continuous hedge becomes a grid strategy}
+
+On a grid \(0=t_0<\cdots<t_N=T\), a practical delta hedge uses
+\[
+\Delta_n=C_s(t_n,S_{t_n})
+\]
+over \((t_n,t_{n+1}]\). In discounted units,
+\[
+\bar S_t=e^{-rt}S_t,\qquad
+\bar X_t=e^{-rt}X_t.
+\]
+The self-financing recursion is
+\[
+\boxed{
+\bar X_{t_{n+1}}
+=\bar X_{t_n}
++\Delta_n(\bar S_{t_{n+1}}-\bar S_{t_n}).}
+\]
+Starting from the Black--Scholes price,
+\[
+\boxed{
+\bar X_T^N
+=C(0,S_0)
++\sum_{n=0}^{N-1}
+\Delta_n(\bar S_{t_{n+1}}-\bar S_{t_n}).}
+\]
+The terminal hedging error is
+\[
+\mathrm{PL}_T^N
+=X_T^N-(S_T-K)^+.
+\]
+In the ideal model, the error converges to zero as the trading mesh tends to
+zero under suitable conditions.
+
+\begin{warningbox}{Why real hedging errors remain}
+\begin{itemize}
+  \item Trading occurs at discrete times and incurs costs.
+  \item Volatility is not known and is not constant.
+  \item Prices can jump and liquidity can disappear.
+  \item Funding, collateral, dividends, and borrowing rates differ.
+  \item The model may omit relevant state variables.
+\end{itemize}
+The Black--Scholes hedge is exact only inside its assumptions.
+\end{warningbox}
+
+\begin{studentexercise}{leading delta--gamma hedging error}
+Over a short interval \(\Delta t\), freeze delta at the beginning of the
+interval. Use a second-order Taylor expansion to identify the term that a
+delta-only hedge does not remove.
+\end{studentexercise}
+\begin{shortsolution}
+For a smooth option value,
+\[
+\Delta C
+\approx C_t\Delta t+C_s\Delta S+\frac12C_{ss}(\Delta S)^2.
+\]
+After subtracting the frozen-delta stock gain \(C_s\Delta S\), the leading
+unhedged price-move term is
+\[
+\boxed{\frac12\Gamma(\Delta S)^2.}
+\]
+The PDE balances its model-implied mean with theta and financing in
+continuous time. Realized squared moves need not match the model-implied
+variance over a discrete interval.
+\end{shortsolution}
+
+% ============================================================
+\section{Guided Practice and Common Traps}
+% ============================================================
+
+\subsection{A complete replication drill}
+
+\begin{studentexercise}{a smooth European payoff}
+Let \(g(s)=s^2\).
+\begin{enumerate}
+  \item Use the general expectation formula to find \(p(t,s)\).
+  \item Compute the replicating holdings \(\Delta_t,\beta_t\).
+  \item Verify the PDE directly.
+\end{enumerate}
+\end{studentexercise}
+\begin{shortsolution}
+The power-payoff formula with \(m=2\) gives
+\[
+p(t,s)=s^2e^{(r+\sigma^2)(T-t)}.
+\]
+Hence
+\[
+\Delta_t=2S_te^{(r+\sigma^2)(T-t)}
+\]
+and
+\[
+\beta_t
+=-\frac{S_t^2e^{(r+\sigma^2)(T-t)}}{B_t}.
+\]
+Direct substitution of
+\[
+p_t=-(r+\sigma^2)p,\qquad
+p_s=2p/s,\qquad
+p_{ss}=2p/s^2
+\]
+into the Black--Scholes PDE gives zero.
+\end{shortsolution}
+
+\subsection{Error diagnosis}
+
+\begin{studentexercise}{correct four statements}
+Correct the following claims:
+\begin{enumerate}
+  \item \(X_t=\Delta_tS_t+\beta_tB_t\) automatically implies
+        self-financing.
+  \item Rebalancing changes portfolio wealth.
+  \item A delta-hedged claim always earns \(r\).
+  \item The call exercise probability is \(\Ncdf(d_+)\).
+\end{enumerate}
+\end{studentexercise}
+\begin{shortsolution}
+\begin{enumerate}
+  \item The value identity must be supplemented by
+        \(\dd X=\Delta\dd S+\beta\dd B\).
+  \item Self-financing rebalancing changes composition but not current wealth.
+  \item The entire self-financing locally riskless portfolio earns \(r\)
+        under no arbitrage; the option alone remains risky.
+  \item Under the pricing dynamics, the exercise probability is
+        \(\Ncdf(d_-)\).
+\end{enumerate}
+\end{shortsolution}
+
+\subsection{End-of-lecture checklist}
+
+\begin{keyidea}{Ten checks for a replication argument}
+\begin{enumerate}
+  \item State the stock and bank-account dynamics.
+  \item Separate model assumptions from market assumptions.
+  \item Specify the payoff and terminal condition.
+  \item Define holdings and portfolio value.
+  \item Impose predictability and self-financing.
+  \item Apply \(\Ito\)'s formula to the candidate value.
+  \item Match diffusion to identify delta.
+  \item Match drift to derive the PDE.
+  \item Check regularity, boundary behavior, and integrability.
+  \item Verify that the strategy is self-financing and matches the payoff.
+\end{enumerate}
+\end{keyidea}
+
+\begin{keyidea}{Final synthesis}
+\begin{itemize}
+  \item Self-financing is a cash-flow constraint, not merely a portfolio
+        identity.
+  \item Completeness allows Brownian risk to be replicated; no arbitrage makes
+        the replication price unique.
+  \item The physical drift cancels because the option and hedge carry the same
+        stock exposure.
+  \item Logarithmic coordinates turn the Black--Scholes PDE into a heat
+        equation.
+  \item The \(d_-\) term describes exercise under pricing dynamics; \(d_+\)
+        comes from a stock-weighted Gaussian expectation.
+  \item Delta is the hedge, gamma measures its instability, and the remaining
+        Greeks diagnose parameter and carry sensitivity.
+\end{itemize}
+\end{keyidea}
+
+\end{document}

@@ -1,0 +1,531 @@
+% !TEX program = pdflatex
+\documentclass[10pt,aspectratio=169]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,bm,mathtools}
+\usepackage{booktabs,array}
+
+\usetheme[numbering=fraction,progressbar=frametitle]{metropolis}
+\setbeamertemplate{frame numbering}[fraction]
+\setbeamertemplate{navigation symbols}{}
+
+\definecolor{CourseBlue}{HTML}{1A3C68}
+\definecolor{CourseGreen}{HTML}{216E39}
+\definecolor{CourseGold}{HTML}{B8860B}
+\definecolor{CourseRed}{HTML}{9A2C2C}
+\definecolor{SoftBlue}{HTML}{F2F6FA}
+\definecolor{SoftGreen}{HTML}{F1F8F3}
+\definecolor{SoftRed}{HTML}{FFF3F3}
+
+\setbeamercolor{normal text}{fg=black,bg=white}
+\setbeamercolor{structure}{fg=CourseBlue}
+\setbeamercolor{title}{fg=CourseBlue}
+\setbeamerfont{title}{size=\Large,series=\bfseries}
+\setbeamercolor{frametitle}{bg=CourseBlue,fg=white}
+\setbeamerfont{frametitle}{series=\bfseries,size=\large}
+\setbeamertemplate{frametitle}{
+  \nointerlineskip
+  \begin{beamercolorbox}[wd=\paperwidth,ht=3.2ex,dp=1.4ex,leftskip=1em,rightskip=1em]{frametitle}
+    \usebeamerfont{frametitle}\insertframetitle
+  \end{beamercolorbox}
+}
+\setbeamercolor{block title}{bg=CourseBlue,fg=white}
+\setbeamercolor{block body}{bg=SoftBlue,fg=black}
+\setbeamercolor{block title example}{bg=CourseGreen,fg=white}
+\setbeamercolor{block body example}{bg=SoftGreen,fg=black}
+\setbeamercolor{block title alerted}{bg=CourseRed,fg=white}
+\setbeamercolor{block body alerted}{bg=SoftRed,fg=black}
+\setbeamertemplate{blocks}[rounded][shadow=false]
+
+\newenvironment{modelbox}{\begin{beamercolorbox}[rounded=true,sep=0.7em,wd=\textwidth]{block body}
+  \textbf{\color{CourseBlue}MODEL}\quad}{\end{beamercolorbox}}
+\newenvironment{marketbox}{\begin{beamercolorbox}[rounded=true,sep=0.7em,wd=\textwidth]{block body example}
+  \textbf{\color{CourseGreen}NO-ARBITRAGE}\quad}{\end{beamercolorbox}}
+\newenvironment{simplificationbox}{\begin{beamercolorbox}[rounded=true,sep=0.7em,wd=\textwidth]{block body alerted}
+  \textbf{\color{CourseRed}WATCH OUT}\quad}{\end{beamercolorbox}}
+\newenvironment{pausebox}{\begin{beamercolorbox}[rounded=true,sep=0.8em,wd=\textwidth]{block body}
+  \textbf{\color{CourseGold}YOUR TURN}\quad}{\end{beamercolorbox}}
+
+\newcommand{\E}{\mathbb E}
+\newcommand{\Q}{\mathbb Q}
+\newcommand{\F}{\mathcal F}
+\newcommand{\dd}{\,\mathrm d}
+\newcommand{\Pz}{P}
+
+\AtBeginSection[]{
+  \begin{frame}[plain]\vfill
+    {\Large\bfseries\color{CourseBlue}\insertsectionhead\par}
+    \medskip{\color{CourseBlue}\rule{0.92\textwidth}{0.8pt}}\vfill
+  \end{frame}
+}
+
+\title{Change of Numeraire}
+\subtitle{Choosing the unit that makes pricing simple}
+\author{}
+\date{Lecture 11}
+
+\begin{document}
+
+\begin{frame}[plain]
+  \vfill
+  {\LARGE\bfseries\color{CourseBlue}Change of Numeraire\par}
+  \medskip{\large Choosing the unit that makes pricing simple\par}
+  \medskip{\color{CourseGold}\rule{0.94\textwidth}{0.8pt}}
+  \medskip{Lecture 11\par}\vfill
+\end{frame}
+
+\begin{frame}{One price, many useful representations}
+\begin{block}{The question}
+Risk-neutral pricing discounts by the money-market account. What changes if a
+different positive traded asset is used as the unit of account?
+\end{block}
+\begin{enumerate}
+  \item Define a numeraire and the measure that comes with it.
+  \item Derive the pricing formula in any unit of account.
+  \item See why a bond numeraire produces a forward measure.
+  \item Apply the same logic to domestic and foreign currency viewpoints.
+\end{enumerate}
+\begin{marketbox}
+The no-arbitrage price does not change. We change only its representation:
+the unit, the measure, and the martingale process.
+\end{marketbox}
+\end{frame}
+
+\section{Units, measures, and martingales}
+
+\begin{frame}{Risk-neutral valuation already uses a numeraire}
+With money-market account \(B_t\), the usual pricing formula is
+\[
+V_t=B_t\,\E^\Q\!\left[\frac{X_T}{B_T}\mid\F_t\right].
+\]
+Equivalently, for a constant rate \(r\),
+\[
+V_t=\E^\Q\!\left[e^{-r(T-t)}X_T\mid\F_t\right].
+\]
+\begin{block}{What is a numeraire?}
+It is the strictly positive traded asset used as the unit in which prices
+are quoted. Here, one unit means one unit of cash invested in \(B\).
+\end{block}
+\begin{marketbox}
+Under the measure associated with \(B\), every traded price divided by
+\(B_t\) is a martingale.
+\end{marketbox}
+\end{frame}
+
+\begin{frame}{A numeraire is a change of unit, not a new economy}
+Let \(N_t>0\) be a traded asset. Its denominated price for an asset \(S\) is
+\[
+S_t^{(N)}=\frac{S_t}{N_t}.
+\]
+\begin{center}
+\begin{tabular}{c|c|c}
+\toprule
+Choice of unit & Martingale object & Associated measure\\
+\midrule
+Money-market account \(B_t\) & \(S_t/B_t\) & \(\Q\)\\
+Zero-coupon bond \(P(t,T)\) & \(S_t/P(t,T)\) & \(\Q^T\)\\
+Stock \(S_t\) & \(X_t/S_t\) & \(\Q^S\)\\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{simplificationbox}
+Dividing by \(N_t\) but keeping the old measure is generally wrong. The
+numeraire and probability measure must change together.
+\end{simplificationbox}
+\end{frame}
+
+\begin{frame}{Ratios carry an It\^o correction}
+Suppose, under one measure,
+\[
+\frac{\dd S_t}{S_t}=\mu_S\dd t+\sigma_S\dd W_t,\qquad
+\frac{\dd N_t}{N_t}=\mu_N\dd t+\sigma_N\dd W_t.
+\]
+Then the ratio satisfies
+\[
+\frac{\dd(S_t/N_t)}{S_t/N_t}
+=
+\bigl(\mu_S-\mu_N+\sigma_N^2-\sigma_S\sigma_N\bigr)\dd t
++(\sigma_S-\sigma_N)\dd W_t.
+\]
+\begin{pausebox}
+Is the drift of \(S_t/N_t\) simply \(\mu_S-\mu_N\)?
+\end{pausebox}
+\pause
+\begin{alertblock}{No}
+The quadratic-variation terms are real. The change of measure is precisely
+what removes the remaining drift of the denominated price.
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{Every positive traded numeraire has its own martingale measure}
+Start under the money-market measure \(\Q\). The measure associated with
+a positive traded numeraire \(N\) is defined by
+\[
+\boxed{
+\left.\frac{\dd\Q^N}{\dd\Q}\right|_{\F_t}
+=
+\frac{N_t/B_t}{N_0/B_0}.}
+\]
+\begin{block}{Why this is a valid density}
+\(N_t/B_t\) is a positive \(\Q\)-martingale because \(N\) is traded.
+After normalizing at time \(0\), its expectation is one.
+\end{block}
+\begin{marketbox}
+Under \(\Q^N\), every traded asset price divided by \(N_t\) is a martingale.
+\end{marketbox}
+\end{frame}
+
+\begin{frame}{Changing measure reweights states; it does not create states}
+For two positive numeraires \(N\) and \(M\),
+\[
+\boxed{
+\left.\frac{\dd\Q^M}{\dd\Q^N}\right|_{\F_t}
+=
+\frac{M_t/N_t}{M_0/N_0}.}
+\]
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{Economic reading}
+States in which \(M\) performs well relative to \(N\) receive more weight
+under \(\Q^M\) than under \(\Q^N\).
+\end{block}
+\column{0.48\textwidth}
+\begin{exampleblock}{What stays fixed}
+The measures are equivalent: they assign zero probability to exactly the
+same events.
+\end{exampleblock}
+\end{columns}
+\begin{pausebox}
+Does a change of numeraire alter which market scenarios are possible?
+\end{pausebox}
+\pause
+\begin{exampleblock}{Answer}
+No. It changes probability weights, not the scenarios themselves.
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{The general pricing formula has the same three steps}
+For a claim paying \(X_T\) at time \(T\),
+\[
+\boxed{
+V_t=N_t\,\E^{\Q^N}\!\left[\frac{X_T}{N_T}\mid\F_t\right].}
+\]
+\begin{enumerate}
+  \item Divide the payoff by the numeraire at the payment date.
+  \item Take conditional expectation under the associated measure.
+  \item Multiply by the current numeraire value.
+\end{enumerate}
+\begin{marketbox}
+A good numeraire makes the normalized payoff \(X_T/N_T\) simple and makes
+the relevant normalized price a martingale.
+\end{marketbox}
+\end{frame}
+
+\begin{frame}{The money-market formula is one special case}
+Set \(N_t=B_t\). Then \(\Q^N=\Q\) and
+\[
+V_t=B_t\,\E^\Q\!\left[\frac{X_T}{B_T}\mid\F_t\right].
+\]
+For deterministic \(r\),
+\[
+\frac{B_t}{B_T}=e^{-r(T-t)},
+\]
+which gives the familiar discounted expectation.
+\begin{pausebox}
+What is the density process when the new numeraire is again \(B_t\)?
+\end{pausebox}
+\pause
+\begin{exampleblock}{Answer}
+It is identically one. Choosing the money-market account does not change
+the usual risk-neutral measure.
+\end{exampleblock}
+\end{frame}
+
+\section{Forward measures simplify payment-date pricing}
+
+\begin{frame}{A zero-coupon bond absorbs discounting}
+Fix payment date \(T\) and choose the bond \(P(t,T)\) as numeraire. Since
+\(P(T,T)=1\),
+\[
+\boxed{
+V_t=P(t,T)\,\E^{\Q^T}[X_T\mid\F_t].}
+\]
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{Under \(\Q\)}
+Discount factor and payoff may both be random:
+\[
+V_t=\E^\Q\!\left[e^{-\int_t^T r_s\dd s}X_T\mid\F_t\right].
+\]
+\end{block}
+\column{0.48\textwidth}
+\begin{exampleblock}{Under \(\Q^T\)}
+The discounting is embedded in \(P(t,T)\); only the payoff remains in the
+expectation.
+\end{exampleblock}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Forward prices are martingales under their payment-date measure}
+For an asset with no intermediate cash flows, define
+\[
+F(t,T)=\frac{S_t}{P(t,T)}.
+\]
+Under the \(T\)-forward measure,
+\[
+\boxed{F(t,T)=\E^{\Q^T}[S_T\mid\F_t].}
+\]
+\begin{block}{What this buys us}
+The forward price has zero drift under the measure naturally attached to the
+delivery date. This is often much cleaner than tracking a stochastic short
+rate under the money-market measure.
+\end{block}
+\end{frame}
+
+\begin{frame}{A forward contract is priced by one martingale condition}
+A forward on a non-dividend-paying asset delivers one share at \(T\) for
+delivery price \(K\). Its value is
+\[
+V_t=S_t-KP(t,T)=P(t,T)\bigl(F(t,T)-K\bigr).
+\]
+\begin{pausebox}
+If \(S_0=100\) and \(P(0,T)=0.95\), what delivery price makes the forward
+worth zero at inception?
+\end{pausebox}
+\pause
+\begin{exampleblock}{Answer}
+Set \(K=F(0,T)=S_0/P(0,T)=105.26\). The forward measure did not change the
+economic price; it exposed the natural martingale behind it.
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Choose the numeraire that cancels a payoff factor}
+Suppose a claim has payoff \(X_T=S_TY_T\). Under the stock numeraire,
+\[
+\boxed{V_t=S_t\,\E^{\Q^S}[Y_T\mid\F_t].}
+\]
+The factor \(S_T\) has disappeared from the expectation.
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{Good use case}
+Payoffs naturally proportional to the terminal stock, such as exchange
+options or share-settled claims.
+\end{block}
+\column{0.48\textwidth}
+\begin{alertblock}{Condition}
+The candidate must be a strictly positive traded asset. A payoff that can
+hit zero is not automatically a valid numeraire.
+\end{alertblock}
+\end{columns}
+\end{frame}
+
+\begin{frame}{A practical numeraire-selection checklist}
+\begin{enumerate}
+  \item What is the payoff date and currency?
+  \item Does the payoff contain a positive traded factor?
+  \item Does a bond maturing on the payment date remove discounting?
+  \item Under which measure is the relevant ratio a martingale?
+  \item Can the final answer be checked against money-market pricing?
+\end{enumerate}
+\begin{pausebox}
+A payoff is paid at \(T\) and depends on future bond prices. Which first
+candidate for the numeraire should you test?
+\end{pausebox}
+\pause
+\begin{exampleblock}{Answer}
+The zero-coupon bond \(P(t,T)\). It matches the payment date and generates
+the \(T\)-forward measure.
+\end{exampleblock}
+\end{frame}
+
+\section{FX makes the two viewpoints concrete}
+
+\begin{frame}{An exchange rate links two money-market accounts}
+Let \(X_t\) be domestic currency per unit of foreign currency. With constant
+rates,
+\[
+B_d(t)=e^{r_dt},\qquad B_f(t)=e^{r_ft}.
+\]
+\begin{center}
+\begin{tabular}{c|c|c}
+\toprule
+Object & Units & Domestic value\\
+\midrule
+One foreign currency unit & foreign & \(X_t\) domestic\\
+Foreign bank account & foreign & \(\boxed{X_tB_f(t)}\) domestic\\
+Domestic bank account & domestic & \(B_d(t)\) domestic\\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{marketbox}
+\(X_tB_f(t)\) is a positive traded asset in domestic currency. It is the
+natural bridge between domestic and foreign pricing viewpoints.
+\end{marketbox}
+\end{frame}
+
+\begin{frame}{Domestic no-arbitrage fixes the FX drift}
+Under the domestic money-market numeraire, the discounted domestic value of
+foreign cash must be a martingale:
+\[
+\frac{X_tB_f(t)}{B_d(t)}
+\quad\text{is a }\Q^d\text{-martingale}.
+\]
+Therefore
+\[
+\boxed{
+\frac{\dd X_t}{X_t}=(r_d-r_f)\dd t+\sigma\dd W_t^{\Q^d}.}
+\]
+\begin{block}{Interpretation}
+The foreign rate acts exactly like a continuous dividend yield. Holding
+foreign currency gives access to foreign interest, just as holding a stock
+can generate dividends.
+\end{block}
+\end{frame}
+
+\begin{frame}{The FX forward is the first diagnostic}
+For delivery of one unit of foreign currency at \(T\),
+\[
+\boxed{F_{0,T}=X_0e^{(r_d-r_f)T}.}
+\]
+\begin{pausebox}
+Take \(X_0=1.10\) USD/EUR, \(r_d=5\%\), \(r_f=3\%\), and \(T=1\).
+What is the no-arbitrage one-year forward rate in USD/EUR?
+\end{pausebox}
+\pause
+\begin{exampleblock}{Answer}
+\[
+F_{0,1}=1.10e^{0.02}=1.1222\ \text{USD/EUR}.
+\]
+Domestic interest pushes the forward up; foreign interest pushes it down.
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{An FX call is Black--Scholes with a foreign yield}
+A domestic-currency call on one unit of foreign currency pays
+\((X_T-K)^+\). Its domestic value is
+\[
+\boxed{
+C_t=X_te^{-r_f\tau}\Phi(d_1)-Ke^{-r_d\tau}\Phi(d_2),}
+\]
+where \(\tau=T-t\) and
+\[
+d_1=\frac{\ln(X_t/K)+(r_d-r_f+\tfrac12\sigma^2)\tau}
+{\sigma\sqrt{\tau}},\qquad d_2=d_1-\sigma\sqrt{\tau}.
+\]
+\begin{marketbox}
+Read this as the usual dividend-paying-stock formula: domestic rate discounts
+the strike, foreign rate discounts the spot.
+\end{marketbox}
+\end{frame}
+
+\begin{frame}{Worked FX option: identify the two discount factors}
+Let \(X_0=1.10\), \(K=1.12\), \(r_d=5\%\), \(r_f=3\%\),
+\(\sigma=12\%\), and \(T=1\). Then
+\[
+d_1=0.077,\qquad d_2=-0.043,
+\]
+and
+\[
+C_0=1.10e^{-0.03}\Phi(0.077)
+-1.12e^{-0.05}\Phi(-0.043)\approx0.052.
+\]
+\begin{block}{Reading the answer}
+The option costs approximately \(0.052\) USD per EUR of notional. The two
+rates appear in different places because the contract exchanges two currencies.
+\end{block}
+\end{frame}
+
+\begin{frame}{FX put--call parity reveals the same structure}
+For domestic prices \(C_t\) and \(P_t\) with the same \(K,T\),
+\[
+\boxed{
+C_t-P_t=X_te^{-r_f(T-t)}-Ke^{-r_d(T-t)}.}
+\]
+\begin{pausebox}
+Which term is the present value of one unit of foreign currency received at
+\(T\): \(X_te^{-r_f(T-t)}\) or \(X_te^{-r_d(T-t)}\)?
+\end{pausebox}
+\pause
+\begin{exampleblock}{Answer}
+\(X_te^{-r_f(T-t)}\). Invest one foreign unit at the foreign rate, then
+convert its future value into domestic currency.
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Domestic and foreign measures are linked by the foreign bank account}
+In domestic currency, choose
+\[
+N_t^f=X_tB_f(t)
+\]
+as the foreign-cash numeraire. The density from the domestic measure is
+\[
+\boxed{
+\left.\frac{\dd\Q^f}{\dd\Q^d}\right|_{\F_t}
+=
+\frac{X_tB_f(t)/B_d(t)}{X_0B_f(0)/B_d(0)}.}
+\]
+\begin{block}{The two viewpoints}
+Domestic pricing measures values in domestic cash; foreign pricing measures
+values relative to foreign cash. They give the same no-arbitrage price after
+the appropriate currency conversion.
+\end{block}
+\end{frame}
+
+\begin{frame}{A change of numeraire is useful only with the matching measure}
+\begin{center}
+\begin{tabular}{p{0.30\textwidth}|p{0.30\textwidth}|p{0.25\textwidth}}
+\toprule
+Pricing situation & Helpful numeraire & Martingale quantity\\
+\midrule
+Ordinary equity claim & Money-market account & \(S_t/B_t\)\\
+Payoff at one fixed date & Bond \(P(t,T)\) & \(S_t/P(t,T)\)\\
+Payoff proportional to stock & Stock \(S_t\) & \(X_t/S_t\)\\
+FX in domestic currency & Domestic cash \(B_d\) & \(X_tB_f(t)/B_d(t)\)\\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{simplificationbox}
+Never mix the numerator from one convention with the measure from another.
+That is the most common source of sign and drift mistakes.
+\end{simplificationbox}
+\end{frame}
+
+\section{Takeaways}
+
+\begin{frame}{The lecture reduces to one reusable formula}
+\[
+\boxed{
+V_t=N_t\,\E^{\Q^N}\!\left[\frac{X_T}{N_T}\mid\F_t\right].}
+\]
+\begin{enumerate}
+  \item A numeraire is a positive traded unit of account.
+  \item It determines an equivalent measure under which denominated prices
+  are martingales.
+  \item The price is invariant; the representation can become much simpler.
+  \item Bond numeraires create forward measures; FX supplies a natural
+  two-currency application.
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{Final check: choose the unit before doing the algebra}
+\begin{pausebox}
+A claim pays at date \(T\) in domestic currency and its payoff is a function
+of a \(T\)-maturity forward rate. What numeraire is the natural first choice,
+and what is the resulting pricing measure?
+\end{pausebox}
+\pause
+\begin{exampleblock}{Answer}
+Start with the zero-coupon bond \(P(t,T)\). It leads to the \(T\)-forward
+measure and removes discounting from the expectation at the payment date.
+\end{exampleblock}
+\vfill
+\begin{center}
+{\large\color{CourseBlue}\bfseries The numeraire changes the view, not the value.}
+\end{center}
+\end{frame}
+
+\end{document}

@@ -1,0 +1,631 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{blue},
+  commentstyle=\color{gray},
+  stringstyle=\color{orange},
+  frame=single,
+  language=Python
+}
+
+\title{Scientific Python}
+\date{September 17, 2024}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\section*{Introduction}
+
+Python is an interpreted language. This makes writing a program easier. However, a consequence is that loops are slow. In scientific computing, it is common to work with large containers and to iterate over them. This requires a specific usage that is different from ``general Python'', and is made possible thanks to two packages:
+\begin{itemize}
+\item The \texttt{numpy} package,
+\item The \texttt{pandas} package.
+\end{itemize}
+
+The \texttt{numpy} library provides essential containers in scientific computing, such as vectors or matrices, and supplies a whole set of mathematical functions that make it possible to avoid using loops. The \texttt{pandas} package, on the other hand, offers a specific container: the data table, and all the functions to manipulate and study it.
+
+\section{Generalities}
+
+\subsection{Installation}
+
+Python is an interpreted language. It requires downloading the interpreter (what is generally called Python), which can be downloaded from the official website:  
+\url{https://www.python.org/downloads/}.
+
+However, it is not very practical to use it for development as is. It allows executing Python files directly and writing in the console, but this is hardly convenient. For a more user-friendly development, it is useful to use an integrated development environment (IDE). One may for example use RCode:  
+\url{https://rcode.dev/}.
+
+\subsection{First steps}
+
+Python has weak typing: one does not specify the type, but all variables have one. This type is implicit.
+
+Assignment of a variable is done with the operator \texttt{=}.
+
+\begin{lstlisting}
+x = 3
+x
+\end{lstlisting}
+
+The function \texttt{type} makes it possible to obtain the type of a variable.
+
+\begin{lstlisting}
+x = "Python"
+type(x)
+<class 'str'>
+type(True)
+<class 'bool'>
+type(1)
+<class 'int'>
+type(1.)
+<class 'float'>
+\end{lstlisting}
+
+\subsection{Conditionals}
+
+The type \texttt{bool} represents Booleans: the variable takes the value \texttt{True} or \texttt{False}.
+
+The operator \texttt{and} corresponds to logical AND.
+
+\begin{lstlisting}
+True and False
+\end{lstlisting}
+
+The operator \texttt{or} corresponds to logical OR.
+
+\begin{lstlisting}
+True or False
+\end{lstlisting}
+
+The operator \texttt{not} corresponds to logical NOT.
+
+\begin{lstlisting}
+not True
+\end{lstlisting}
+
+A condition is written with \texttt{if} in the following way:
+
+\begin{lstlisting}
+if (condition):
+    instructions
+\end{lstlisting}
+
+or without parentheses:
+
+\begin{lstlisting}
+if condition:
+    instructions
+\end{lstlisting}
+
+The indentation above is fundamental. It defines the scope of the \texttt{if}. Indentation is part of the syntax: as long as the next line is indented, it belongs to the \texttt{if}.
+
+The condition is a Boolean that takes the value \texttt{True} or \texttt{False}.
+
+\begin{lstlisting}
+x = 7  # This is a comment
+if x % 2 == 1:  # If x modulo 2 equals 1
+    print("x is odd")  # print writes in the console
+\end{lstlisting}
+
+It is possible to add an alternative using the keyword \texttt{else} followed by a colon.
+
+\begin{lstlisting}
+x = x + 1  # x = 8
+if x % 2 == 1:  # FALSE
+    print("x is odd")
+else:
+    print("x is even")
+\end{lstlisting}
+
+Once again, indentation defines the scope of the \texttt{else}.
+
+\subsection{Loops}
+
+A \texttt{for} loop is an instruction that is carried out over a set $i\in I$.
+
+The semantics of the \texttt{for} loop is:
+\begin{lstlisting}
+for i in I:
+    instructions
+\end{lstlisting}
+
+The most common case is to perform an instruction over
+\[
+i\in\{0,1,\dots,n-1\}
+\]
+for $n\in\mathbb{N}^*$.  
+The function \texttt{range} evaluated at $n$ makes it possible to represent this set. The variable $I$ can therefore be \texttt{range(n)}.
+
+\begin{lstlisting}
+for i in range(4):
+    print("Iteration i = " + str(i))  # str(i) converts i to a string
+                                     # + concatenates strings
+\end{lstlisting}
+
+It is possible to start the iteration at some $n_0>0$ with \texttt{range(n0, n)}.
+
+\medskip
+The \texttt{while} loop makes it possible to repeat an instruction as long as a condition is satisfied. Its syntax is:
+
+\begin{lstlisting}
+while (condition):
+    instructions
+\end{lstlisting}
+
+or without parentheses:
+
+\begin{lstlisting}
+while condition:
+    instructions
+\end{lstlisting}
+
+A \texttt{for} loop can always be written as a \texttt{while} loop:
+\begin{lstlisting}
+i = 1
+while i <= n:
+    instructions
+    i = i + 1
+\end{lstlisting}
+
+Be careful with infinite loops when using \texttt{while}.
+
+\subsection{Functions}
+
+A function takes one or several arguments (possibly none) and returns a variable (possibly none).
+
+The syntax to define a function is:
+
+\begin{lstlisting}
+def function_name(arg1, ..., argn):
+    instructions
+\end{lstlisting}
+
+The call is made with:
+
+\begin{lstlisting}
+function_name(arg1, ..., argn)
+\end{lstlisting}
+
+If the function returns a value, it ends with \texttt{return}; as soon as a \texttt{return} is encountered, the execution of the function stops.
+
+Below is an example with the factorial function.
+
+\begin{lstlisting}
+def factorial(n):
+    if n == 0:
+        return 1
+    else:
+        f = 1
+        for i in range(2, n+1):
+            f *= i
+        return f
+
+factorial(0), factorial(1), factorial(5)
+\end{lstlisting}
+
+Above, \texttt{*=} multiplies the variable on the left of the operator by the element on the right while modifying it; the corresponding line is equivalent to \texttt{f = f*i}.
+
+\subsection{Containers}
+
+\subsubsection{Lists}
+
+A list is a collection of elements without constraints. It can mix simple variables of any type with objects.
+
+\begin{lstlisting}
+l = [1, 4, "RCode"]
+print(l)
+\end{lstlisting}
+
+Access to elements is done with \texttt{[i]} where $i$ ranges from $0$ to the size of the list minus one.
+
+\begin{lstlisting}
+[l[0], l[2]]
+\end{lstlisting}
+
+It is possible to include lists inside lists.
+
+\begin{lstlisting}
+h = [l, 8]
+print(h)
+\end{lstlisting}
+
+Calling the first element of index $0$ returns the list \texttt{l}.
+
+\begin{lstlisting}
+h[0]
+\end{lstlisting}
+
+\subsubsection{Tuples}
+
+Tuples are exactly like lists except that they are not modifiable.
+
+\begin{lstlisting}
+t = (1, 4, "RCode")
+print(t)
+\end{lstlisting}
+
+One can even omit the parentheses:
+\begin{lstlisting}
+t = 1, 4, "RCode"
+\end{lstlisting}
+
+\subsubsection{Dictionaries}
+
+Dictionaries are lists in which each member is named.
+
+\begin{lstlisting}
+c1 = "id"
+d = {c1: 1, "x": 4, "label": "RCode"}
+print(d)
+\end{lstlisting}
+
+Access is by name:
+\begin{lstlisting}
+d["label"]
+\end{lstlisting}
+
+\section{The numpy package}
+
+In scientific computing, it is frequent to have arrays whose elements are all of the same type. The Python list is too flexible.
+
+The \texttt{numpy} package introduces a dedicated array object called \texttt{numpy.ndarray} (vectors, matrices, etc.).
+
+Always import numpy:
+
+\begin{lstlisting}
+import numpy as np
+\end{lstlisting}
+
+\subsection{The vector}
+
+A vector is a collection of values of the same type.
+
+We can create a vector with \texttt{np.array}:
+
+\begin{lstlisting}
+x = np.array([1, 3, 7])
+x
+\end{lstlisting}
+
+To initialize an array of size $n$:
+
+\begin{lstlisting}
+n = 10
+z = np.zeros(n)
+z
+\end{lstlisting}
+
+Also \texttt{np.ones}, \texttt{np.empty}.
+
+\texttt{np.arange(a,b)} creates integers on $[a,b[$:
+
+\begin{lstlisting}
+np.arange(0, 5)
+\end{lstlisting}
+
+A vector has an attribute \texttt{.size}:
+
+\begin{lstlisting}
+x.size
+\end{lstlisting}
+
+Indexing:
+
+\begin{lstlisting}
+x[0]
+\end{lstlisting}
+
+Boolean mask selection:
+
+\begin{lstlisting}
+x = np.array([1, 3, 5])
+x[np.array([False, True, True])]
+\end{lstlisting}
+
+Index selection:
+
+\begin{lstlisting}
+x[np.array([0, 2, 2, 1])]
+\end{lstlisting}
+
+Slicing:
+
+\begin{lstlisting}
+x[0:2]
+\end{lstlisting}
+
+Deleting:
+
+\begin{lstlisting}
+np.delete(x, 1)
+\end{lstlisting}
+
+\medskip
+\textbf{First fundamental rule.}  
+All operators applied to two vectors of the same size return a vector where the operator has been applied element by element.
+
+\begin{lstlisting}
+y = np.arange(0, 3)
+x + y
+x * y
+x ** y
+x == y
+\end{lstlisting}
+
+\medskip
+\textbf{Second fundamental rule.}  
+All operators applied to a vector and a scalar return a vector where the operator has been applied to each element.
+
+\begin{lstlisting}
+2*x + 1
+x ** 2
+x % 2
+x <= 2
+\end{lstlisting}
+
+\subsection{Aggregation functions}
+
+An aggregation function takes a vector and returns a real number.
+
+\medskip
+Sum:
+\[
+\texttt{np.sum(x)} = \sum_{i=1}^{n} x_i .
+\]
+
+Mean:
+\[
+\texttt{np.mean(x)} = \frac{1}{n} \sum_{i=1}^{n} x_i .
+\]
+
+Variance:
+\[
+\texttt{np.var(x)} = \sum_{i=1}^{n} \left(x_i - \texttt{np.mean}(x)\right)^2 .
+\]
+
+Standard deviation:
+\[
+\texttt{np.std(x)} = \sqrt{\texttt{np.var(x)}} .
+\]
+
+\subsection{Vector language and efficient programming}
+
+We say that a function $f$ is \emph{vectorial} if it takes one or several vectors as arguments (and possibly other arguments of size 1) and returns a vector where the function has been applied element by element.
+
+\begin{lstlisting}
+for i in range(x.size):
+    x[i] = f(i, x[i], z[i])
+\end{lstlisting}
+
+If $f$ is vectorial:
+\begin{lstlisting}
+x = f(np.arange(x.size), x, z)
+\end{lstlisting}
+
+\medskip
+\textbf{Remark.} Prefer \texttt{np.arange(x.size)} over \texttt{range(x.size)} when using \texttt{numpy}.
+
+Example:
+\begin{lstlisting}
+np.sum(np.arange(n+1)**2)
+\end{lstlisting}
+
+Norm of $x+y$:
+\begin{lstlisting}
+np.sqrt(np.sum(x**2 + y**2))
+\end{lstlisting}
+
+Conditional update pattern:
+\begin{lstlisting}
+ind = h(np.arange(x.size), x, z)
+x[ind] = f(np.arange(x.size)[ind], x[ind], z[ind])
+\end{lstlisting}
+
+Example for $y=(x-1)_+$:
+\begin{lstlisting}
+y = np.zeros(x.size)
+ind = x >= 1
+y[ind] = x[ind] - 1
+\end{lstlisting}
+
+\subsection{Simulation of random variables}
+
+The \texttt{numpy} package uses a sequence of pseudo-random numbers generated by an arithmetic recurrence.
+
+\begin{itemize}
+\item The default algorithm used is the Mersenne--Twister. Its period is $2^{19937}-1$, which is approximately $10^{6000}$.
+\item This algorithm is often considered to be the best compromise between efficiency and quality.
+\item The generator is initialized automatically.
+\item It is possible to choose a seed with \texttt{np.random.seed}.
+\item This allows one to reproduce the same simulations for debugging purposes.
+\end{itemize}
+
+Uniform on $[0,1]$:
+\begin{lstlisting}
+np.random.random(size=None)
+\end{lstlisting}
+
+Example:
+\begin{lstlisting}
+n = 5
+U = np.random.random(n)
+U
+\end{lstlisting}
+
+Uniform on $[a,b]$:
+\begin{lstlisting}
+np.random.uniform(low=0., high=1., size=None)
+\end{lstlisting}
+
+Standard normal:
+\begin{lstlisting}
+np.random.randn(size=None)
+\end{lstlisting}
+
+Example:
+\begin{lstlisting}
+n = 5
+Z = np.random.randn(n)
+Z
+\end{lstlisting}
+
+General normal:
+\begin{lstlisting}
+np.random.normal(loc=0., scale=1., size=None)
+\end{lstlisting}
+
+Some distributions:
+\begin{itemize}
+\item Binomial $B(m,p)$: \texttt{np.random.binomial(m, p, n)}
+\item Poisson $P(\lambda)$: \texttt{np.random.poisson(a, n)}
+\item Geometric starting from $0$, $G(p)$: \texttt{np.random.geometric(p, n)}
+\item Negative binomial $NB(m,p)$: \texttt{np.random.negative\_binomial(m, p, n)}
+\item Log-normal $LN(m,s^2)$: \texttt{np.random.lognormal(m, s, n)}
+\item Exponential $E(b)$: \texttt{np.random.exponential(1/b, n)}
+\item Gamma $G(a,b)$: \texttt{np.random.gamma(a, 1/b, n)}
+\end{itemize}
+
+For densities/cdf/quantiles use \texttt{scipy.stats}:
+\begin{lstlisting}
+import scipy.stats as stats
+x = np.linspace(-3., 3., 601)
+
+stats.norm.pdf(x)
+stats.norm.cdf(x)
+a = np.linspace(0., 1., 21)
+stats.norm.ppf(a)
+\end{lstlisting}
+
+\newpage
+
+\subsection{Drawing graphs with matplotlib}
+
+A simple and standard way to draw graphs in Python is to use the \texttt{matplotlib} package.
+The usual import is:
+
+\begin{lstlisting}
+import matplotlib.pyplot as plt
+\end{lstlisting}
+
+\medskip
+To plot a curve from data points \texttt{x} and \texttt{y} (same size):
+
+\begin{lstlisting}
+x = np.linspace(0., 2*np.pi, 200)
+y = np.sin(x)
+
+plt.figure()
+plt.plot(x, y)
+plt.xlabel("x")
+plt.ylabel("sin(x)")
+plt.title("A first plot")
+plt.grid(True)
+plt.show()
+\end{lstlisting}
+
+\medskip
+It is possible to draw several curves on the same figure, and add a legend:
+
+\begin{lstlisting}
+y2 = np.cos(x)
+
+plt.figure()
+plt.plot(x, y, label="sin")
+plt.plot(x, y2, label="cos")
+plt.legend()
+plt.grid(True)
+plt.show()
+\end{lstlisting}
+
+\medskip
+\textbf{Remark.} When studying performance, a log-scale is often useful:
+
+\begin{lstlisting}
+plt.figure()
+plt.plot(n_values, times_vec, label="vectorized")
+plt.plot(n_values, times_loop, label="for-loop")
+plt.xscale("log")
+plt.yscale("log")
+plt.xlabel("n")
+plt.ylabel("time (s)")
+plt.legend()
+plt.grid(True)
+plt.show()
+\end{lstlisting}
+
+To save the figure to a file, use \texttt{plt.savefig("figure.png")} before \texttt{plt.show()}.
+
+\subsection{Measuring computation time with the time module}
+
+\paragraph{Remark (timing functions).}
+To measure computation time in Python, one may use either \texttt{time.time()} or \texttt{time.perf\_counter()}.
+The function \texttt{time.time()} returns the current \emph{wall-clock} time (a Unix timestamp), so it is convenient and often sufficient when the computation is long enough (e.g.\ a few tenths of a second or more).
+However, it is not designed for precise benchmarking: its resolution can be limited, and the measurement may be affected by external factors such as system clock adjustments.
+In contrast, \texttt{time.perf\_counter()} is a high-resolution \emph{monotonic} timer dedicated to performance measurements, and it typically provides more stable results when the code runs in only a few milliseconds (which is common for vectorized NumPy operations).
+If you choose to use \texttt{time.time()}, it is recommended to repeat the measurement a few times and keep the minimum (or the median) to reduce measurement noise.
+
+\begin{lstlisting}
+import time
+
+t0 = time.perf_counter()
+# code to time
+t1 = time.perf_counter()
+print("Elapsed time:", t1 - t0, "seconds")
+\end{lstlisting}
+
+\medskip
+A convenient pattern is to write a small helper function that measures the runtime of a function call:
+
+\begin{lstlisting}
+def time_call(func, *args, repeat=3):
+    """Return a robust estimate of the runtime of func(*args)."""
+    # warm-up (helps reduce first-call overhead)
+    func(*args)
+
+    tmin = float("inf")
+    for _ in range(repeat):
+        t0 = time.perf_counter()
+        func(*args)
+        t1 = time.perf_counter()
+        tmin = min(tmin, t1 - t0)
+    return tmin
+\end{lstlisting}
+
+\medskip
+Finally, to compare a vectorized implementation with a loop implementation, one can measure times for increasing sizes and plot the curves:
+
+\begin{lstlisting}
+import numpy as np
+import matplotlib.pyplot as plt
+
+n_values = np.array([10**3, 3*10**3, 10**4, 3*10**4, 10**5, 3*10**5, 10**6])
+
+times_vec = []
+times_loop = []
+
+for n in n_values:
+    times_vec.append(time_call(f_vec, n, repeat=3))
+    times_loop.append(time_call(f_loop, n, repeat=3))
+
+times_vec = np.array(times_vec)
+times_loop = np.array(times_loop)
+
+plt.figure()
+plt.plot(n_values, times_vec, marker='o', label='vectorized')
+plt.plot(n_values, times_loop, marker='o', label='for-loop')
+plt.xlabel('n')
+plt.ylabel('time (s)')
+plt.title('Runtime comparison')
+plt.grid(True)
+plt.legend()
+plt.show()
+\end{lstlisting}
+
+\end{document}

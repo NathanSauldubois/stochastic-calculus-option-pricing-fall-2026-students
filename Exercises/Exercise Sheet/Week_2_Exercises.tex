@@ -1,0 +1,172 @@
+% Week 2 section of the canonical synthesis exercise sheet.
+% Included by Exercises.tex.
+
+\section{Week 2 --- Brownian Motion, Stopping Times, and Quadratic Variation}
+
+\subsection*{Part I --- Gaussian Structure and Brownian Transformations}
+
+\begin{exercise}[Level 2 --- Gaussian vectors and the covariance kernel]
+Let \((W_t)_{t\geq0}\) be a standard Brownian motion and fix
+\(0<r<s<t\).
+\begin{exparts}
+  \item Find the joint law of the increment vector
+  \[
+  (W_r,\,W_s-W_r,\,W_t-W_s).
+  \]
+  \item Deduce that \((W_r,W_s,W_t)\) is Gaussian and compute its covariance
+  matrix.
+  \item Compute the conditional distribution of \(W_t\) given \(\F_s\),
+  then given \(W_s=x\).
+  \item Show that the Brownian covariance kernel
+  \(K(u,v)=\min(u,v)\) is positive semidefinite, meaning that
+  \[
+  \sum_{i,j=1}^n a_i a_j K(t_i,t_j)\geq0
+  \]
+  for all dates \(t_1,\ldots,t_n\) and coefficients
+  \(a_1,\ldots,a_n\).
+  \item Explain why the mean function and the covariance kernel determine
+  every finite-dimensional Brownian law.
+\end{exparts}
+\end{exercise}
+
+\begin{exercise}[Level 2 --- Symmetry, scaling, renewal, and time reversal]
+Fix \(c>0\) and \(s>0\). Consider
+\[
+X_t=-W_t,
+\qquad
+Y_t=\frac{W_{ct}}{\sqrt c},
+\qquad
+Z_t=W_{s+t}-W_s,qquad t\geq0,
+\]
+and \(R_t=W_{s-t}-W_s\) for \(0\leq t\leq s\).
+\begin{exparts}
+  \item Verify from the defining properties that \(X\) and \(Y\) are
+  standard Brownian motions.
+  \item Show that \(Z\) is a standard Brownian motion independent of
+  \(\F_s\). Interpret this as deterministic-time renewal.
+  \item Show that \(R\) has the same finite-dimensional laws as Brownian
+  motion restricted to \([0,s]\).
+  \item Deduce the square-root-of-time identity
+  \[
+  \max_{0\leq u\leq ct}W_u
+  \overset{d}=\sqrt c\max_{0\leq u\leq t}W_u.
+  \]
+  \item State the almost-sure \(\limsup\) and \(\liminf\) identities from
+  the law of the iterated logarithm, both as \(t\to\infty\) and as
+  \(t\downarrow0\).
+\end{exparts}
+\end{exercise}
+
+\subsection*{Part II --- Markov Property, Martingales, and Stopping}
+
+\begin{exercise}[Level 2 --- Markov semigroup and martingale correction]
+For bounded measurable \(f\) and \(h>0\), define
+\[
+(P_hf)(x)=\int_{\R}f(x+y)
+\frac{e^{-y^2/(2h)}}{\sqrt{2\pi h}}\dd y.
+\]
+\begin{exparts}
+  \item Prove the conditional-expectation form of the Markov property:
+  \[
+  \E[f(W_{t+h})\mid\F_t]=(P_hf)(W_t).
+  \]
+  \item Prove the semigroup identity \(P_{h+k}=P_hP_k\).
+  \item For \(0\leq s<t\), compute
+  \(\E[W_t\mid\F_s]\) and \(\E[W_t^2\mid\F_s]\).
+  \item Deduce directly that \(W_t\) and \(W_t^2-t\) are martingales.
+  \item State the general proposition defining \(\langle X\rangle\) for a
+  continuous square-integrable martingale \(X\), and identify
+  \(\langle W\rangle_t\).
+\end{exparts}
+\end{exercise}
+
+\begin{exercise}[Level 2 --- Stopping times and information at stopping]
+Fix \(T>0\), \(a>0\), and \(\ell<0<u\). Consider
+\[
+\tau_a=\inf\{t\geq0:W_t=a\},
+\qquad
+\tau_{\ell,u}=\inf\{t\geq0:W_t\notin(\ell,u)\},
+\]
+\[
+\rho_T=\sup\{0\leq t\leq T:W_t=0\},
+\qquad
+\gamma_T=\operatorname*{arg\,max}_{0\leq t\leq T}W_t.
+\]
+\begin{exparts}
+  \item Determine which of \(T,\tau_a,\tau_{\ell,u},\rho_T,\gamma_T\)
+  are stopping times and justify each answer.
+  \item Prove, using path continuity, that
+  \[
+  \{\tau_a\leq t\}
+  =\left\{\max_{0\leq v\leq t}W_v\geq a\right\}.
+  \]
+  \item Give the definition of \(\F_\tau\). Explain why \(W_\tau\) is
+  \(\F_\tau\)-measurable for an almost surely finite stopping time \(\tau\).
+\end{exparts}
+\end{exercise}
+
+\subsection*{Part III --- Quadratic Variation}
+
+\begin{exercise}[Level 2 --- Realized quadratic variation]
+Fix \(T>0\), let \(t_i=iT/n\), and define
+\[
+Q_n=\sum_{i=0}^{n-1}(W_{t_{i+1}}-W_{t_i})^2.
+\]
+\begin{exparts}
+  \item Compute \(\E[Q_n]\) and \(\operatorname{Var}(Q_n)\).
+  \item Deduce that \(Q_n\to T\) in \(L^2\).
+  \item Let \(A\) be continuously differentiable. Prove that \([A]_T=0\).
+  \item Show that the cross-term
+  \[
+  \sum_i(A_{t_{i+1}}-A_{t_i})(W_{t_{i+1}}-W_{t_i})
+  \]
+  converges to zero in probability.
+  \item Deduce that, for \(X_t=A_t+\sigma W_t\),
+  \([X]_T=\sigma^2T\).
+  \item If \(X\) is observed on the grid, propose a consistent estimator of
+  \(\sigma^2\) based on its squared increments.
+\end{exparts}
+\end{exercise}
+
+\subsection*{Part IV --- Price Models and Trading Gains}
+
+\begin{exercise}[Level 2 --- Symbolic analysis of geometric Brownian motion]
+Let \(S_0>0\), \(\sigma>0\), and
+\[
+S_t=S_0\exp\!\left(
+\left(\mu-\tfrac12\sigma^2\right)t+\sigma W_t
+\right).
+\]
+\begin{exparts}
+  \item Find the law of \(\log(S_t/S_0)\) and the conditional law of
+  \(\log(S_t/S_s)\) given \(\F_s\), for \(0\leq s<t\).
+  \item Compute \(\E[S_t]\), \(\operatorname{Var}(S_t)\), and the median of
+  \(S_t\).
+  \item For a level \(K>0\), express \(\Pb(S_t>K)\) using \(\Phi\).
+  \item Compute \([\log S]_t\) and explain why the drift does not appear.
+  \item For a partition of \([0,T]\), show how squared log-returns provide
+  a consistent estimator of \(\sigma^2\) as the mesh tends to zero.
+\end{exparts}
+\end{exercise}
+
+\begin{exercise}[Level 2 --- A two-step adapted trading gain]
+Fix \(0<t_1<T\). Let \(\Delta_0\in\R\) and let \(\Delta_1\) be a
+square-integrable \(\F_{t_1}\)-measurable random variable. Define
+\[
+G_T=\Delta_0W_{t_1}+\Delta_1(W_T-W_{t_1}).
+\]
+\begin{exparts}
+  \item Explain why the measurability of \(\Delta_1\) is the no-look-ahead
+  condition.
+  \item Prove that \(\E[G_T]=0\).
+  \item Show that the two gain terms are orthogonal in \(L^2\), and deduce
+  \[
+  \E[G_T^2]
+  =\Delta_0^2t_1+(T-t_1)\E[\Delta_1^2].
+  \]
+  \item Explain why choosing
+  \(\Delta_1=\1_{\{W_T-W_{t_1}>0\}}\) is inadmissible.
+  \item Write the corresponding piecewise constant process \(\Delta_t\)
+  and express \(G_T\) as \(\int_0^T\Delta_t\dd W_t\).
+\end{exparts}
+\end{exercise}

@@ -1,0 +1,1430 @@
+% !TEX program = pdflatex
+\documentclass[10pt,aspectratio=169]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,bm,mathtools}
+\usepackage{booktabs}
+\usepackage{array}
+
+\usetheme[numbering=fraction,progressbar=frametitle]{metropolis}
+\setbeamertemplate{frame numbering}[fraction]
+\setbeamertemplate{navigation symbols}{}
+
+\definecolor{CourseBlue}{HTML}{1A3C68}
+\definecolor{CourseGreen}{HTML}{216E39}
+\definecolor{CourseGold}{HTML}{B8860B}
+\definecolor{CourseRed}{HTML}{9A2C2C}
+\definecolor{SoftBlue}{HTML}{F2F6FA}
+\definecolor{SoftGreen}{HTML}{F1F8F3}
+\definecolor{SoftRed}{HTML}{FFF3F3}
+
+\setbeamercolor{normal text}{fg=black,bg=white}
+\setbeamercolor{structure}{fg=CourseBlue}
+\setbeamercolor{title}{fg=CourseBlue}
+\setbeamerfont{title}{size=\Large,series=\bfseries}
+\setbeamercolor{frametitle}{bg=CourseBlue,fg=white}
+\setbeamerfont{frametitle}{series=\bfseries,size=\large}
+\setbeamertemplate{frametitle}{
+  \nointerlineskip
+  \begin{beamercolorbox}[wd=\paperwidth,ht=3.2ex,dp=1.4ex,leftskip=1em,rightskip=1em]{frametitle}
+    \usebeamerfont{frametitle}\insertframetitle
+  \end{beamercolorbox}
+}
+\setbeamercolor{block title}{bg=CourseBlue,fg=white}
+\setbeamercolor{block body}{bg=SoftBlue,fg=black}
+\setbeamercolor{block title example}{bg=CourseGreen,fg=white}
+\setbeamercolor{block body example}{bg=SoftGreen,fg=black}
+\setbeamercolor{block title alerted}{bg=CourseRed,fg=white}
+\setbeamercolor{block body alerted}{bg=SoftRed,fg=black}
+\setbeamertemplate{blocks}[rounded][shadow=false]
+
+\newenvironment{modelbox}{%
+  \begin{beamercolorbox}[rounded=true,sep=0.7em,wd=\textwidth]{block body}
+  \textbf{\color{CourseBlue}MODEL ASSUMPTION}\quad
+}{\end{beamercolorbox}}
+\newenvironment{marketbox}{%
+  \begin{beamercolorbox}[rounded=true,sep=0.7em,wd=\textwidth]{block body example}
+  \textbf{\color{CourseGreen}MARKET ASSUMPTION}\quad
+}{\end{beamercolorbox}}
+\newenvironment{simplificationbox}{%
+  \begin{beamercolorbox}[rounded=true,sep=0.7em,wd=\textwidth]{block body alerted}
+  \textbf{\color{CourseRed}SIMPLIFICATION}\quad
+}{\end{beamercolorbox}}
+\newenvironment{pausebox}{%
+  \begin{beamercolorbox}[rounded=true,sep=0.8em,wd=\textwidth]{block body}
+  \textbf{\color{CourseGold}YOUR TURN}\quad
+}{\end{beamercolorbox}}
+
+\newcommand{\dd}{\,\mathrm d}
+\newcommand{\E}{\mathbb E}
+\newcommand{\Pp}{\mathbb P}
+\newcommand{\Q}{\mathbb Q}
+\newcommand{\R}{\mathbb R}
+\newcommand{\cF}{\mathcal F}
+\newcommand{\Ncdf}{\mathrm N}
+\newcommand{\phiN}{\varphi}
+\newcommand{\1}{\mathbf 1}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\Cov}{Cov}
+
+\AtBeginSection[]{
+  \begin{frame}[plain]
+    \vfill
+    {\Large\bfseries\color{CourseBlue}\insertsectionhead\par}
+    \medskip
+    {\color{CourseBlue}\rule{0.92\textwidth}{0.8pt}}
+    \vfill
+  \end{frame}
+}
+
+\title{Black--Scholes from Replication}
+\subtitle{It\^o practice, self-financing strategies, the pricing PDE, verification, and Greeks}
+\author{}
+\date{Lecture 5}
+
+\begin{document}
+
+\begin{frame}[plain]
+  \vfill
+  {\LARGE\bfseries\color{CourseBlue}Black--Scholes from Replication\par}
+  \medskip
+  {\large It\^o practice, self-financing strategies, the pricing PDE,
+  verification, and Greeks\par}
+  \medskip
+  {\color{CourseGold}\rule{0.94\textwidth}{0.8pt}}
+  \medskip
+  {Lecture 5\par}
+  \vfill
+\end{frame}
+
+\begin{frame}{Today one idea will connect calculus, pricing, and hedging}
+\begin{enumerate}
+  \item Use It\^o's formula on three new objects.
+  \item Define a self-financing trading strategy precisely.
+  \item Replicate \(g(S_T)\) and derive the Black--Scholes PDE.
+  \item Solve the PDE through time reversal, discounting, and \(\log S\).
+  \item Verify the candidate price and recover the hedge.
+  \item Specialize to a call and compute its Greeks.
+\end{enumerate}
+\begin{block}{Central message}
+The price is the initial wealth of a self-financing strategy that reproduces
+the payoff in every state of the model.
+\end{block}
+\end{frame}
+
+% ============================================================
+\section{Three New It\^o Calculations}
+% ============================================================
+
+\begin{frame}{The formula is a chain rule plus quadratic variation}
+If
+\[
+\dd X_t=b_t\dd t+a_t\dd W_t,
+\qquad f\in C^{1,2},
+\]
+then
+\[
+\boxed{
+\dd f(t,X_t)
+=\left(f_t+b_tf_x+\frac12a_t^2f_{xx}\right)\dd t
++a_tf_x\dd W_t.}
+\]
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{Calculation habit}
+Compute \(f_t,f_x,f_{xx}\) first. Substitute the process only afterward.
+\end{block}
+\column{0.48\textwidth}
+\begin{alertblock}{Logical habit}
+Zero drift first gives a local martingale. Check integrability before claiming
+a true martingale.
+\end{alertblock}
+\end{columns}
+\end{frame}
+
+\begin{frame}{A two-dimensional Brownian motion gives drift 2}
+Let \(W=(W^1,W^2)\) be a standard two-dimensional Brownian motion and
+\[
+R_t=\|W_t\|^2=(W_t^1)^2+(W_t^2)^2.
+\]
+This is the squared radius, or squared Bessel process of dimension 2.
+\begin{pausebox}
+Compute \(\dd R_t\). Which deterministic term makes the result a martingale?
+\end{pausebox}
+\pause
+Applying It\^o to each squared coordinate gives
+\[
+\boxed{\dd R_t=2W_t^\top\dd W_t+2\dd t,}
+\qquad
+\boxed{R_t-2t=2\int_0^tW_s^\top\dd W_s.}
+\]
+On bounded horizons the integrand is square-integrable, so \(R_t-2t\) is a
+true martingale.
+\end{frame}
+
+\begin{frame}{In d dimensions, the drift counts independent directions}
+Now let \(W\) be a standard \(d\)-dimensional Brownian motion. Then
+\[
+\E\|W_t\|^2=dt,
+\qquad
+[\,\|W\|^2\,]_t=4\int_0^t\|W_s\|^2\dd s.
+\]
+\begin{exampleblock}{Interpretation}
+Each Brownian coordinate contributes one unit of quadratic variation per unit
+of time. Dimension appears as drift after a nonlinear transformation.
+\end{exampleblock}
+\begin{simplificationbox}
+The coordinates are independent and normalized:
+\(\dd[W^i,W^j]_t=\delta_{ij}\dd t\). With covariance matrix \(\Sigma\), the
+correction becomes \(\operatorname{tr}(\Sigma)\dd t\).
+\end{simplificationbox}
+\end{frame}
+
+\begin{frame}{Example 2 combines a finite-variation state with Brownian motion}
+Define integrated Brownian motion
+\[
+A_t=\int_0^tW_s\dd s,
+\qquad Y_t=W_tA_t.
+\]
+\begin{pausebox}
+Use the product rule to find \(\dd Y_t\), then compute \(\E[Y_t]\).
+\end{pausebox}
+\pause
+Since \(\dd A_t=W_t\dd t\) and \(A\) has finite variation,
+\(\dd[W,A]_t=0\). Therefore
+\[
+\boxed{\dd(W_tA_t)=A_t\dd W_t+W_t^2\dd t.}
+\]
+Taking expectations,
+\[
+\boxed{\E[W_tA_t]=\int_0^t\E[W_s^2]\dd s=\frac{t^2}{2}.}
+\]
+\end{frame}
+
+\begin{frame}{The same answer is a covariance computed two ways}
+Because both variables are centered,
+\[
+\E[W_tA_t]=\Cov\left(W_t,\int_0^tW_s\dd s\right).
+\]
+\begin{pausebox}
+Verify the answer directly from \(\Cov(W_t,W_s)=\min(t,s)\).
+\end{pausebox}
+\pause
+\[
+\Cov\left(W_t,\int_0^tW_s\dd s\right)
+=\int_0^t\Cov(W_t,W_s)\dd s
+=\int_0^t s\dd s
+=\frac{t^2}{2}.
+\]
+\begin{block}{Why this example matters}
+It\^o calculus handles path-dependent state variables after we enlarge the
+state from \(W_t\) to \((W_t,A_t)\).
+\end{block}
+\end{frame}
+
+\begin{frame}{Example 3 turns a future event into a martingale}
+Fix \(T>0\). For \(t<T\), consider
+\[
+u(t,x)=\Ncdf\!\left(\frac{x}{\sqrt{T-t}}\right),
+\]
+where \(\Ncdf\) and \(\phiN\) are the standard normal cdf and density.
+\begin{pausebox}
+Compute \(u_t,u_x,u_{xx}\). Does \(u(t,W_t)\) have drift?
+\end{pausebox}
+\pause
+With \(\tau=T-t\) and \(z=x/\sqrt{\tau}\),
+\[
+u_x=\frac{\phiN(z)}{\sqrt{\tau}},
+\qquad
+u_{xx}=-\frac{x\phiN(z)}{\tau^{3/2}},
+\qquad
+u_t=\frac{x\phiN(z)}{2\tau^{3/2}}.
+\]
+\end{frame}
+
+\begin{frame}{The backward heat equation removes the drift}
+The derivatives satisfy
+\[
+\boxed{u_t+\frac12u_{xx}=0.}
+\]
+It\^o's formula therefore gives
+\[
+\boxed{
+\dd u(t,W_t)
+=\frac{\phiN(W_t/\sqrt{T-t})}{\sqrt{T-t}}\,\dd W_t.}
+\]
+\pause
+Moreover,
+\[
+u(t,W_t)=\Pp(W_T>0\mid\cF_t),
+\]
+because \(W_T=W_t+\sqrt{T-t}\,Z\), with \(Z\sim N(0,1)\) independent of
+\(\cF_t\).
+\begin{exampleblock}{Preview}
+A terminal payoff, a backward PDE, and a conditional expectation are three
+views of the same object. Black--Scholes will add discounting and replication.
+\end{exampleblock}
+\end{frame}
+
+
+% ============================================================
+\section{Replication Creates the Pricing Equation}
+% ============================================================
+
+\begin{frame}{Black--Scholes starts with a model and a trading technology}
+\begin{columns}[T,onlytextwidth]
+\column{0.49\textwidth}
+\begin{modelbox}
+One stock follows
+\[
+\frac{\dd S_t}{S_t}=\mu\dd t+\sigma\dd W_t,\quad \sigma>0.
+\]
+One bank account satisfies
+\[
+\dd B_t=rB_t\dd t,\quad B_t=e^{rt}.
+\]
+\end{modelbox}
+\column{0.49\textwidth}
+\begin{marketbox}
+Trading is continuous and frictionless. Stock and bank account can be bought
+or shorted, and borrowing/lending occurs at the same rate \(r\).
+\end{marketbox}
+\end{columns}
+\medskip
+\begin{simplificationbox}
+For now, \(r,\mu,\sigma\) are constant, the stock pays no dividend, and its
+paths are continuous.
+\end{simplificationbox}
+\end{frame}
+
+\begin{frame}{The assumptions have different logical roles}
+\small
+\begin{tabular}{>{\bfseries}p{0.18\textwidth}p{0.34\textwidth}p{0.38\textwidth}}
+\toprule
+Type & Assumption & Where it enters\\
+\midrule
+Model & GBM, constant \(\sigma\), no jumps & It\^o dynamics and PDE coefficients\\
+Market & No arbitrage & A locally riskless position must earn \(r\)\\
+Market & Continuous frictionless trading & Delta can be adjusted continuously\\
+Market & One Brownian risk, one stock & Every smooth European claim can be hedged\\
+Simplification & Constant \(r,\sigma\), no dividends & Closed-form \(d_\pm\) formula\\
+Regularity & \(p\in C^{1,2}\) before maturity & Classical It\^o formula applies\\
+\bottomrule
+\end{tabular}
+\begin{alertblock}{Do not merge these claims}
+A realistic price model need not create a complete market; a no-arbitrage
+market need not admit a closed-form formula.
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{A European claim fixes only the terminal value}
+The claim pays
+\[
+H=g(S_T)
+\]
+at maturity \(T\). We seek a deterministic Markov price
+\[
+V_t=p(t,S_t),
+\qquad
+\boxed{p(T,s)=g(s).}
+\]
+\begin{modelbox}
+The Markov representation assumes the current stock price is a sufficient
+state variable for this claim.
+\end{modelbox}
+\begin{simplificationbox}
+We initially assume \(p\in C^{1,2}([0,T)\times(0,\infty))\). Vanilla payoffs
+have a kink at maturity, but the price becomes smooth for \(t<T\).
+\end{simplificationbox}
+\end{frame}
+
+\begin{frame}{A trading strategy separates holdings from gains}
+At time \(t\), hold
+\[
+\Delta_t\ \text{shares of stock},
+\qquad
+\beta_t\ \text{units of the bank account}.
+\]
+The portfolio value is
+\[
+\boxed{X_t=\Delta_tS_t+\beta_tB_t.}
+\]
+\begin{marketbox}
+\(\Delta\) and \(\beta\) must be predictable: the position used over the next
+instant is chosen using currently available information.
+\end{marketbox}
+\begin{block}{Replication objective}
+Choose \(X_0,\Delta,\beta\) so that \(X_T=g(S_T)\) in every state allowed by
+the model.
+\end{block}
+\end{frame}
+
+\begin{frame}{Self-financing is a budget constraint on rebalancing}
+\begin{center}
+\Large
+\[
+\text{change in wealth}
+=
+\text{gain on the assets}
++\text{external cash flow}.
+\]
+\end{center}
+\pause
+\begin{block}{Self-financing}
+After the initial investment, the external cash flow is zero.
+\end{block}
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{exampleblock}{Allowed}
+\(\Delta\) and \(\beta\) may change through time as information arrives.
+\end{exampleblock}
+\column{0.48\textwidth}
+\begin{alertblock}{Not allowed}
+Rebalancing cannot create wealth or require a new deposit.
+\end{alertblock}
+\end{columns}
+\medskip
+We first write this budget constraint in discrete time, where every cash flow
+is visible, and then pass to continuous time.
+\end{frame}
+
+\begin{frame}{In discrete time, rebalancing preserves current wealth}
+\small
+At date \(t_n\), value the old and new holdings at the \emph{same} prices:
+\[
+X_n^-=\Delta_{n-1}S_n+\beta_{n-1}B_n,
+\qquad
+X_n=\Delta_nS_n+\beta_nB_n.
+\]
+\begin{pausebox}
+If no cash enters or leaves at \(t_n\), what equality must hold?
+\end{pausebox}
+\pause
+\[
+X_n=X_n^-
+\quad\Longleftrightarrow\quad
+\boxed{
+S_n(\Delta_n-\Delta_{n-1})
++B_n(\beta_n-\beta_{n-1})=0.}
+\]
+\begin{block}{Interpretation}
+Buying additional shares is financed by reducing cash; selling shares
+increases cash. Rebalancing only changes the composition of wealth.
+\end{block}
+\end{frame}
+
+\begin{frame}{In discrete time, gains come only from asset-price moves}
+\small
+After rebalancing at \(t_n\), keep \((\Delta_n,\beta_n)\) over
+\((t_n,t_{n+1}]\). Just before the next rebalance,
+\[
+X_{n+1}^-=\Delta_nS_{n+1}+\beta_nB_{n+1}.
+\]
+\begin{pausebox}
+Subtract \(X_n=\Delta_nS_n+\beta_nB_n\). What is the wealth increment?
+\end{pausebox}
+\pause
+\[
+\boxed{
+X_{n+1}^--X_n
+=\Delta_n(S_{n+1}-S_n)
++\beta_n(B_{n+1}-B_n).}
+\]
+\begin{exampleblock}{Key distinction}
+Rebalancing changes holdings but not wealth. Asset-price changes generate
+gains and losses.
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Continuous self-financing is the limit of discrete gains}
+\small
+On a trading grid, accumulated wealth satisfies
+\[
+X_t-X_0
+=\sum_n\Delta_n(S_{n+1}-S_n)
++\sum_n\beta_n(B_{n+1}-B_n).
+\]
+As the mesh tends to zero, the predictable left-point sums become stochastic
+integrals:
+\[
+\boxed{
+X_t=X_0+\int_0^t\Delta_u\dd S_u+\int_0^t\beta_u\dd B_u,}
+\qquad
+\boxed{\dd X_t=\Delta_t\dd S_t+\beta_t\dd B_t.}
+\]
+\pause
+Together with \(X_t=\Delta_tS_t+\beta_tB_t\), the product rule yields the
+equivalent rebalancing constraint
+\[
+\boxed{
+S_t\dd\Delta_t+\dd[\Delta,S]_t+B_t\dd\beta_t=0.}
+\]
+\end{frame}
+
+\begin{frame}{First calculation: expand the option dynamics}
+\[
+V_t=p(t,S_t),
+\qquad
+\dd S_t=\mu S_t\dd t+\sigma S_t\dd W_t.
+\]
+\begin{pausebox}
+Use It\^o's formula. Separate the drift and diffusion coefficients.
+\end{pausebox}
+\pause
+\[
+\boxed{
+\begin{aligned}
+\dd V_t
+={}&\left(
+p_t+\mu S_tp_s+\frac12\sigma^2S_t^2p_{ss}
+\right)\dd t\\
+&+\sigma S_tp_s\dd W_t.
+\end{aligned}}
+\]
+All derivatives are evaluated at \((t,S_t)\).
+\end{frame}
+
+\begin{frame}{The bank-account gain comes from the cash balance}
+\small
+The portfolio value is
+\[
+X_t=\Delta_tS_t+\beta_tB_t
+\quad\Longrightarrow\quad
+\boxed{\beta_tB_t=X_t-\Delta_tS_t.}
+\]
+Since \(\dd B_t=rB_t\dd t\), the bank-account gain is
+\[
+\boxed{\beta_t\dd B_t
+=r\beta_tB_t\dd t
+=r(X_t-\Delta_tS_t)\dd t.}
+\]
+\begin{pausebox}
+Now insert \(\dd S_t=\mu S_t\dd t+\sigma S_t\dd W_t\).
+\end{pausebox}
+\pause
+\[
+\boxed{
+\dd X_t
+=\left[rX_t+(\mu-r)S_t\Delta_t\right]\dd t
++\sigma S_t\Delta_t\dd W_t.}
+\]
+\begin{marketbox}
+Here \(r\) applies to both positive and negative bank balances.
+\end{marketbox}
+\end{frame}
+
+\begin{frame}{Matching random shocks determines the hedge}
+Replication requires
+\[
+X_t=V_t=p(t,S_t)
+\quad\text{and}\quad
+\dd X_t=\dd V_t.
+\]
+\begin{pausebox}
+Match the \(\dd W_t\) coefficients. What must \(\Delta_t\) be?
+\end{pausebox}
+\pause
+\[
+\sigma S_t\Delta_t=\sigma S_tp_s(t,S_t).
+\]
+Since \(S_t>0\) and \(\sigma>0\),
+\[
+\boxed{\Delta_t=p_s(t,S_t).}
+\]
+\begin{block}{Economic meaning}
+Delta is not merely a sensitivity. In this complete diffusion model, it is
+the stock holding in the replicating strategy.
+\end{block}
+\end{frame}
+
+\begin{frame}{Matching drifts produces one final cancellation}
+Set \(X_t=p(t,S_t)\) and \(\Delta_t=p_s(t,S_t)\).
+\begin{pausebox}
+Match the drift coefficients and simplify. Which parameter disappears?
+\end{pausebox}
+\pause
+\[
+rp+(\mu-r)sp_s
+=p_t+\mu sp_s+\frac12\sigma^2s^2p_{ss}.
+\]
+The terms containing the physical drift cancel:
+\[
+\boxed{
+p_t+rsp_s+\frac12\sigma^2s^2p_{ss}-rp=0,}
+\qquad
+\boxed{p(T,s)=g(s).}
+\]
+\end{frame}
+
+\begin{frame}{The Black--Scholes PDE is a replication equation}
+\[
+\boxed{
+\begin{cases}
+p_t(t,s)+rs\,p_s(t,s)
++\dfrac12\sigma^2s^2p_{ss}(t,s)-rp(t,s)=0,\\[0.4em]
+p(T,s)=g(s).
+\end{cases}}
+\]
+\begin{exampleblock}{What created each term?}
+\begin{itemize}
+  \item \(p_t\): passage of calendar time;
+  \item \(rsp_s\): financing the stock position;
+  \item \(\tfrac12\sigma^2s^2p_{ss}\): quadratic variation and gamma;
+  \item \(-rp\): financing the total option value.
+\end{itemize}
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Why does the expected stock return disappear?}
+The stock exposure appears twice:
+\[
+\underbrace{\mu sp_s}_{\text{option's stock exposure}}
+\qquad\text{and}\qquad
+\underbrace{\mu s\Delta}_{\text{replicating stock position}}.
+\]
+With \(\Delta=p_s\), they are identical and cancel.
+\begin{block}{Pricing conclusion}
+In the model, valuation depends on \(r\) and \(\sigma\), not on the estimated
+physical drift \(\mu\).
+\end{block}
+\begin{alertblock}{What this does not say}
+Real-world probabilities remain essential for forecasting, risk management,
+and expected returns.
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{Replication needs no arbitrage and enough traded risk}
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{marketbox}
+\textbf{No arbitrage.} Two self-financing portfolios with the same terminal
+payoff must have the same initial value.
+\end{marketbox}
+\column{0.48\textwidth}
+\begin{marketbox}
+\textbf{Completeness.} One stock spans the one Brownian source of uncertainty,
+so the option's diffusion exposure can be matched.
+\end{marketbox}
+\end{columns}
+\medskip
+\begin{alertblock}{When the argument breaks}
+With jumps, stochastic volatility driven by another shock, trading
+constraints, or transaction costs, one stock generally cannot eliminate all
+risk. The replication price may cease to be unique.
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{The bank-account holding follows from the value identity}
+Once \(\Delta_t=p_s(t,S_t)\),
+\[
+\beta_t
+=\frac{p(t,S_t)-S_tp_s(t,S_t)}{B_t}.
+\]
+\begin{pausebox}
+At maturity, what does the portfolio hold when \(g(s)=(s-K)^+\), away from
+the strike?
+\end{pausebox}
+\pause
+\[
+\Delta_T=
+\begin{cases}1,&S_T>K,\\0,&S_T<K,\end{cases}
+\qquad
+\beta_TB_T=
+\begin{cases}-K,&S_T>K,\\0,&S_T<K.\end{cases}
+\]
+The call is replicated by one share financed by \(K\) of borrowing when it
+finishes in the money.
+\end{frame}
+
+\begin{frame}{Self-financing is not the same as zero transaction costs}
+\small
+\begin{marketbox}
+The model has no commissions or bid--ask spread. But buying shares still
+requires cash: the bank-account holding must adjust to pay for them.
+\end{marketbox}
+\begin{enumerate}
+\setlength{\itemsep}{0.2em}
+  \item \textbf{Rebalancing does not create wealth.} Buying shares is paid
+        for from the cash account; this is funding, not a transaction fee.
+  \item \textbf{Matching Delta removes only the Brownian shock.} The
+        portfolio must also satisfy the self-financing wealth equation.
+  \item \textbf{The option need not earn \(r\) by itself.} After matching
+        its stock exposure, the whole locally riskless portfolio earns \(r\).
+  \item \textbf{\(\mu\) is not replaced by \(r\).} It cancels because the
+        option and its replicating stock position have the same exposure.
+\end{enumerate}
+\end{frame}
+
+% ============================================================
+\section{Solve the PDE by Taking Logs}
+% ============================================================
+
+\begin{frame}{The terminal-value problem is our starting point}
+\[
+p_t+rsp_s+\frac12\sigma^2s^2p_{ss}-rp=0,
+\qquad
+p(T,s)=g(s).
+\]
+The coefficient \(s^2\) prevents this from being the standard heat equation.
+\begin{block}{Four transformations}
+\[
+\text{time to maturity}
+\longrightarrow
+\text{remove discounting}
+\longrightarrow
+\log s
+\longrightarrow
+\text{remove transport}.
+\]
+\end{block}
+\begin{simplificationbox}
+Constant \(r\) and \(\sigma\) make these transformations explicit. The pricing
+principle survives more general coefficients, but the closed form usually does
+not.
+\end{simplificationbox}
+\end{frame}
+
+\begin{frame}{Step 1 turns the terminal condition into initial data}
+Set
+\[
+\tau=T-t,
+\qquad
+v(\tau,s)=p(T-\tau,s).
+\]
+\begin{pausebox}
+Transform the PDE and its terminal condition.
+\end{pausebox}
+\pause
+Because \(p_t=-v_\tau\),
+\[
+\boxed{
+v_\tau
+=rsv_s+\frac12\sigma^2s^2v_{ss}-rv,
+\qquad
+v(0,s)=g(s).}
+\]
+\end{frame}
+
+\begin{frame}{Step 2 removes the financing term}
+Define
+\[
+u(\tau,s)=e^{r\tau}v(\tau,s).
+\]
+\begin{pausebox}
+Compute \(u_\tau,u_s,u_{ss}\) and simplify the PDE.
+\end{pausebox}
+\pause
+\[
+u_\tau=ru+e^{r\tau}v_\tau,
+\qquad
+u_s=e^{r\tau}v_s,
+\qquad
+u_{ss}=e^{r\tau}v_{ss}.
+\]
+Thus
+\[
+\boxed{
+u_\tau=rsu_s+\frac12\sigma^2s^2u_{ss},
+\qquad u(0,s)=g(s).}
+\]
+\end{frame}
+
+\begin{frame}{Step 3 makes multiplicative motion additive}
+Let
+\[
+x=\log s,
+\qquad
+w(\tau,x)=u(\tau,e^x).
+\]
+\begin{pausebox}
+Express \(u_s\) and \(u_{ss}\) using \(w_x,w_{xx}\).
+\end{pausebox}
+\pause
+\[
+w_x=su_s,
+\qquad
+w_{xx}=su_s+s^2u_{ss}.
+\]
+Therefore
+\[
+\boxed{
+u_s=\frac{w_x}{s},
+\qquad
+u_{ss}=\frac{w_{xx}-w_x}{s^2}.}
+\]
+\end{frame}
+
+\begin{frame}{The log transform leaves heat plus constant transport}
+Insert the derivatives:
+\[
+\boxed{
+w_\tau
+=\frac12\sigma^2w_{xx}
++\left(r-\frac12\sigma^2\right)w_x,
+\qquad
+w(0,x)=g(e^x).}
+\]
+\begin{pausebox}
+Why does \(r-\sigma^2/2\) look familiar?
+\end{pausebox}
+\pause
+It is the drift of \(\log S\) when the stock's pricing drift is \(r\):
+\[
+\dd\log S_t
+=\left(r-\frac12\sigma^2\right)\dd t+\sigma\dd W_t.
+\]
+\end{frame}
+
+\begin{frame}{Step 4 moves with the transport velocity}
+Write
+\[
+a=r-\frac12\sigma^2,
+\qquad
+\varphi(\tau,y)=w(\tau,y-a\tau).
+\]
+\begin{pausebox}
+Differentiate \(\varphi\). Which PDE does it satisfy?
+\end{pausebox}
+\pause
+\[
+\varphi_\tau=w_\tau-aw_x,
+\qquad
+\varphi_y=w_x,
+\qquad
+\varphi_{yy}=w_{xx}.
+\]
+Hence
+\[
+\boxed{
+\varphi_\tau=\frac12\sigma^2\varphi_{yy},
+\qquad
+\varphi(0,y)=g(e^y).}
+\]
+\end{frame}
+
+\begin{frame}{The heat equation averages terminal values with a Gaussian}
+If \(Z\sim N(0,1)\), then
+\[
+\boxed{
+\varphi(\tau,y)
+=\E\!\left[g\!\left(e^{y+\sigma\sqrt{\tau}Z}\right)\right].}
+\]
+Equivalently,
+\[
+\varphi(\tau,y)
+=\int_{\R}g(e^z)
+\frac{\exp\!\left(-\frac{(z-y)^2}{2\sigma^2\tau}\right)}
+{\sqrt{2\pi\sigma^2\tau}}\dd z.
+\]
+\begin{block}{Meaning}
+Diffusion smooths the terminal payoff by averaging it over future Gaussian
+log-price shocks.
+\end{block}
+\end{frame}
+
+\begin{frame}{Undoing the transformations gives the general price}
+For \(\tau=T-t\),
+\[
+\boxed{
+\begin{aligned}
+p(t,s)
+=e^{-r\tau}\E\Big[
+g\Big(s\exp\{&(r-\tfrac12\sigma^2)\tau\\
+&+\sigma\sqrt{\tau}Z\}\Big)
+\Big],
+\qquad Z\sim N(0,1).
+\end{aligned}}
+\]
+\begin{modelbox}
+Inside the expectation, the auxiliary stock grows at drift \(r\), not at the
+physical drift \(\mu\).
+\end{modelbox}
+\begin{alertblock}{Scope}
+This is the general European-payoff formula in the Black--Scholes model. It is
+a Gaussian integral, not a closed form for every \(g\).
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{Regularity and growth conditions are doing real work}
+The formal derivation is valid for a smooth payoff of controlled growth.
+For common nonsmooth payoffs:
+\begin{itemize}
+  \item the terminal condition may have kinks or discontinuities;
+  \item the Gaussian convolution is smooth for every \(t<T\);
+  \item the terminal condition is recovered in the appropriate limiting sense.
+\end{itemize}
+\begin{simplificationbox}
+We suppress the distinction between classical, weak, and viscosity solutions.
+For vanilla calls and puts, the pricing formula is well defined and the
+required derivatives exist before maturity.
+\end{simplificationbox}
+\end{frame}
+
+% ============================================================
+\section{Feynman--Kac Verification}
+% ============================================================
+
+\begin{frame}{Feynman--Kac represents the PDE solution as an expectation}
+\small
+We want to turn the PDE solution \(p\) into an expectation. Its spatial
+drift term is \(rs\,p_s\), and its discount term is \(-rp\).
+\begin{pausebox}
+Choose a process whose drift makes It\^o's formula reproduce those terms.
+\end{pausebox}
+\pause
+For each starting pair \((t,s)\), define \(S^r\) on \([t,T]\) by
+\[
+\frac{\dd S_u^r}{S_u^r}=r\dd u+\sigma\dd W_u,
+\qquad S_t^r=s.
+\]
+Write \(\Pp^r_{t,s}\) and \(\E^r_{t,s}\) for probability and expectation
+under this process started at \(s\) at time \(t\).
+\begin{simplificationbox}
+\(S^r\) is an auxiliary pricing process, not the physical stock forecast.
+Its drift \(r\) matches the PDE; later, a change of measure gives it a
+risk-neutral interpretation.
+\end{simplificationbox}
+\end{frame}
+
+\begin{frame}{Discounting and the PDE remove the drift}
+\small
+\begin{pausebox}
+Apply It\^o's formula to \(e^{-r(u-t)}p(u,S_u^r)\). Identify its drift
+and explain why that drift vanishes.
+\end{pausebox}
+\pause
+It\^o's formula gives
+\[
+\begin{aligned}
+\dd\!\left(e^{-r(u-t)}p(u,S_u^r)\right)
+=e^{-r(u-t)}
+\bigg[&p_t+rS_u^{r}p_s\\
+&+\frac12\sigma^2(S_u^{r})^2p_{ss}-rp\bigg]\dd u\\
+&+e^{-r(u-t)}\sigma S_u^{r}p_s\dd W_u.
+\end{aligned}
+\]
+The drift bracket is exactly the Black--Scholes PDE, evaluated at
+\((u,S_u^r)\), so it vanishes:
+\[
+\boxed{
+\dd\!\left(e^{-r(u-t)}p(u,S_u^r)\right)
+=e^{-r(u-t)}\sigma S_u^rp_s\dd W_u.}
+\]
+\end{frame}
+
+\begin{frame}{The terminal condition turns the martingale into the price}
+If the stochastic integral is a true martingale, its expected future value
+equals its current value. Thus
+\[
+p(t,s)
+=\E^r_{t,s}\!\left[
+e^{-r(T-t)}p(T,S_T^{r})
+\right].
+\]
+\pause
+Now use the terminal condition \(p(T,x)=g(x)\):
+\[
+\boxed{
+p(t,s)
+=\E^r_{t,s}\!\left[
+e^{-r(T-t)}g(S_T^{r})
+\right].}
+\]
+\begin{alertblock}{Verification condition}
+For example, it is enough that the displayed stochastic integral has finite
+expected quadratic variation. Otherwise, localization and uniform
+integrability are needed.
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{The same price function gives the hedge in the actual market}
+\small
+Now return to the traded stock \(S_t\), whose physical drift is \(\mu\).
+Given a sufficiently regular PDE solution, define
+\[
+\Delta_t=p_s(t,S_t),
+\qquad
+\beta_t=\frac{p(t,S_t)-S_tp_s(t,S_t)}{B_t}.
+\]
+\begin{pausebox}
+Check that these holdings are self-financing and match the payoff.
+\end{pausebox}
+\pause
+The PDE rearranges It\^o's formula as
+\[
+\dd p(t,S_t)
+=p_s(t,S_t)\dd S_t
++r\bigl(p(t,S_t)-S_tp_s(t,S_t)\bigr)\dd t.
+\]
+Therefore
+\[
+\dd p(t,S_t)=\Delta_t\dd S_t+\beta_t\dd B_t,
+\qquad
+p(T,S_T)=g(S_T).
+\]
+\begin{block}{Two roles, one price function}
+\(S^r\) represents the price as an expectation; \(S\) is the traded asset
+used to implement the replicating hedge.
+\end{block}
+\end{frame}
+
+\begin{frame}{Expectation and replication prove different facts}
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{PDE / replication}
+Explains why the price is unique, why \(\mu\) disappears, and why
+\(\Delta=p_s\).
+\end{block}
+\column{0.48\textwidth}
+\begin{exampleblock}{Expectation / verification}
+Computes the PDE solution and checks terminal matching and discounted
+martingale dynamics.
+\end{exampleblock}
+\end{columns}
+\medskip
+\[
+\boxed{
+\text{self-financing replication}
+\Longleftrightarrow
+\text{PDE}
+\Longleftrightarrow
+\text{discounted expectation}.}
+\]
+\begin{simplificationbox}
+We built an auxiliary drift-\(r\) process directly. A later measure-change
+argument identifies it with risk-neutral pricing under \(\Q\).
+\end{simplificationbox}
+\end{frame}
+
+% ============================================================
+\section{The European Call Formula}
+% ============================================================
+
+\begin{frame}{The call payoff splits into two truncated expectations}
+Let
+\[
+g(s)=(s-K)^+,
+\qquad \tau=T-t.
+\]
+Under the auxiliary drift-\(r\) dynamics,
+\[
+S_T^r
+=s\exp\left(
+(r-\tfrac12\sigma^2)\tau+\sigma\sqrt{\tau}Z
+\right).
+\]
+Therefore
+\[
+C(t,s)
+=e^{-r\tau}\left(
+\E^r_{t,s}[S_T^r\1_{\{S_T^r>K\}}]
+-K\Pp^r_{t,s}(S_T^r>K)
+\right).
+\]
+\end{frame}
+
+\begin{frame}{The exercise event creates \(d_-\)}
+\begin{pausebox}
+Rewrite \(S_T^r>K\) as a threshold event for \(Z\sim N(0,1)\).
+\end{pausebox}
+\pause
+\[
+S_T^r>K
+\iff
+Z>
+\frac{\log(K/s)-(r-\sigma^2/2)\tau}{\sigma\sqrt{\tau}}
+=-d_-,
+\]
+where
+\[
+\boxed{
+d_-=
+\frac{\log(s/K)+(r-\tfrac12\sigma^2)\tau}
+{\sigma\sqrt{\tau}}.}
+\]
+Thus
+\[
+\boxed{\Pp^r_{t,s}(S_T^r>K)=\Ncdf(d_-).}
+\]
+\end{frame}
+
+\begin{frame}{A stock-weighted exercise probability shifts the Gaussian}
+\small
+The remaining call term is
+\(\E^r_{t,s}[e^{aZ}\1_{\{Z>-d_-\}}]\), where \(a=\sigma\sqrt{\tau}\).
+Unlike the strike term, it weights exercise states by the stock price and
+therefore favors larger \(Z\).
+\begin{pausebox}
+Complete the square to evaluate this weighted Gaussian tail.
+\end{pausebox}
+\pause
+Letting $\varphi$ be the standard gaussian density. 
+\[
+\begin{aligned}
+e^{az}\phiN(z)&=e^{a^2/2}\phiN(z-a),\\
+\E^r_{t,s}[e^{aZ}\1_{\{Z>-d_-\}}]
+&=e^{a^2/2}\Ncdf(d_-+a).
+\end{aligned}
+\]
+Thus \(\boxed{d_+=d_-+a}\): \(d_-\) measures exercise probability, while
+\(d_+\) prices the stock delivered in those exercise states.
+\end{frame}
+
+\begin{frame}{The Black--Scholes call formula follows}
+The stock part becomes
+\[
+\E^r_{t,s}[S_T^r\1_{\{S_T^r>K\}}]
+=se^{r\tau}\Ncdf(d_+).
+\]
+Hence
+\[
+\boxed{
+C(t,s)=s\Ncdf(d_+)-Ke^{-r\tau}\Ncdf(d_-),}
+\]
+with
+\[
+\boxed{
+d_\pm
+=\frac{\log(s/K)+r\tau}{\sigma\sqrt{\tau}}
+\pm\frac12\sigma\sqrt{\tau}.}
+\]
+\begin{simplificationbox}
+This closed form uses constant \(r,\sigma\), no dividends, European exercise,
+and lognormal stock dynamics.
+\end{simplificationbox}
+\end{frame}
+
+\begin{frame}{The two normal terms have different meanings}
+\[
+C(t,s)
+=\underbrace{s\Ncdf(d_+)}_{\text{stock delivered in exercise states}}
+-\underbrace{Ke^{-r\tau}\Ncdf(d_-)}_{\text{discounted strike paid}}.
+\]
+\begin{alertblock}{Probability warning}
+\(\Ncdf(d_-)\) is the exercise probability under the auxiliary pricing
+dynamics. \(\Ncdf(d_+)\) is not the same probability; it arises from a
+stock-weighted expectation.
+\end{alertblock}
+\begin{block}{Useful relation}
+\[
+d_+-d_-=\sigma\sqrt{\tau}.
+\]
+\end{block}
+\end{frame}
+
+\begin{frame}{The formula survives basic boundary checks}
+\begin{pausebox}
+Predict the limits when \(s\downarrow0\), \(s\uparrow\infty\), and
+\(\tau\downarrow0\).
+\end{pausebox}
+\pause
+\[
+\begin{array}{lll}
+s\downarrow0: & d_\pm\to-\infty, & C(t,s)\to0,\\
+s\uparrow\infty: & d_\pm\to+\infty, & C(t,s)\sim s-Ke^{-r\tau},\\
+\tau\downarrow0: & & C(t,s)\to(s-K)^+.
+\end{array}
+\]
+Also \(0\le C(t,s)\le s\).
+\begin{exampleblock}{Why check limits?}
+They catch sign mistakes in discounting, \(\tau=T-t\), and \(d_\pm\).
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Put--call parity gives the put without another integral}
+At maturity,
+\[
+(S_T-K)^+-(K-S_T)^+=S_T-K.
+\]
+Replication and no arbitrage imply
+\[
+\boxed{C(t,s)-P(t,s)=s-Ke^{-r\tau}.}
+\]
+\begin{pausebox}
+Deduce the Black--Scholes put price.
+\end{pausebox}
+\pause
+\[
+\boxed{
+P(t,s)
+=Ke^{-r\tau}\Ncdf(-d_-)-s\Ncdf(-d_+).}
+\]
+\end{frame}
+
+% ============================================================
+\section{Greeks Are Hedge and Model Diagnostics}
+% ============================================================
+
+\begin{frame}{One density identity makes every derivative shorter}
+Let
+\[
+C=s\Ncdf(d_+)-Ke^{-r\tau}\Ncdf(d_-),
+\qquad
+\phiN(x)=\frac{e^{-x^2/2}}{\sqrt{2\pi}}.
+\]
+\begin{pausebox}
+Show that the two density terms satisfy a simple identity.
+\end{pausebox}
+\pause
+Using \(d_-=d_+-\sigma\sqrt{\tau}\),
+\[
+\frac{\phiN(d_-)}{\phiN(d_+)}
+=\exp\left(\frac{d_+^2-d_-^2}{2}\right)
+=\frac{se^{r\tau}}{K}.
+\]
+Thus
+\[
+\boxed{s\phiN(d_+)=Ke^{-r\tau}\phiN(d_-).}
+\]
+\end{frame}
+
+\begin{frame}{Delta is the stock holding in the replicating strategy}
+\[
+C(t,s)=s\Ncdf(d_+)-Ke^{-r\tau}\Ncdf(d_-),
+\qquad
+d_\pm=\frac{\log(s/K)+(r\pm\frac12\sigma^2)\tau}
+{\sigma\sqrt{\tau}}.
+\]
+\begin{pausebox}
+Starting from the displayed formula, differentiate \(C(t,s)\) with respect
+to \(s\). Keep both \(d_\pm\) terms until they cancel.
+\end{pausebox}
+\pause
+Since
+\[
+\partial_s d_+=\partial_s d_-=\frac{1}{s\sigma\sqrt{\tau}},
+\]
+\[
+\begin{aligned}
+\Delta=C_s
+={}&\Ncdf(d_+)+s\phiN(d_+)\partial_sd_+\\
+&-Ke^{-r\tau}\phiN(d_-)\partial_sd_-.
+\end{aligned}
+\]
+The density identity gives
+\[
+\boxed{\Delta_{\mathrm{call}}=\Ncdf(d_+).}
+\]
+\end{frame}
+
+\begin{frame}{Gamma measures how fast the hedge must move}
+\begin{pausebox}
+Differentiate \(\Delta=\Ncdf(d_+)\) once more with respect to \(s\).
+\end{pausebox}
+\pause
+\[
+\Gamma=C_{ss}
+=\phiN(d_+)\partial_sd_+
+=\boxed{\frac{\phiN(d_+)}{s\sigma\sqrt{\tau}}.}
+\]
+\begin{exampleblock}{Interpretation}
+\(\Gamma>0\) for a call. The hedge changes most rapidly near the strike and
+near maturity.
+\end{exampleblock}
+\begin{marketbox}
+Continuous rebalancing is costless in the model. In practice, large gamma
+means frequent trading, costs, and discrete-hedging error.
+\end{marketbox}
+\end{frame}
+
+\begin{frame}{Vega quantifies volatility-model sensitivity}
+\begin{pausebox}
+Differentiate the call price with respect to \(\sigma\). Use the density
+identity instead of expanding every term separately.
+\end{pausebox}
+\pause
+The \(d_\pm\)-derivative terms simplify to
+\[
+\boxed{
+\mathrm{Vega}=C_\sigma=s\phiN(d_+)\sqrt{\tau}.}
+\]
+\begin{block}{Interpretation}
+Vega is positive: more volatility increases the value of a convex payoff.
+\end{block}
+\begin{simplificationbox}
+Black--Scholes treats \(\sigma\) as known and constant. Market implied
+volatility varies by strike and maturity.
+\end{simplificationbox}
+\end{frame}
+
+\begin{frame}{Theta is quickest to compute from the PDE}
+\begin{pausebox}
+Use the PDE with the known call delta and gamma to find \(\Theta=C_t\).
+\end{pausebox}
+\pause
+\[
+\Theta
+=rC-rs\Delta-\frac12\sigma^2s^2\Gamma.
+\]
+Substitution gives
+\[
+\boxed{
+\Theta_{\mathrm{call}}
+=-\frac{s\sigma\phiN(d_+)}{2\sqrt{\tau}}
+-rKe^{-r\tau}\Ncdf(d_-).}
+\]
+\begin{alertblock}{Convention}
+Here theta means \(\partial C/\partial t\), calendar time moving forward.
+Some systems report the opposite sign or a one-day rescaling.
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{Rho measures sensitivity to the financing rate}
+\begin{pausebox}
+Differentiate \(C(t,s)\) with respect to \(r\).
+\end{pausebox}
+\pause
+Because
+\[
+\partial_r d_+=\partial_r d_-=\frac{\sqrt{\tau}}{\sigma},
+\]
+the density contributions cancel, leaving
+\[
+\boxed{
+\mathrm{Rho}_{\mathrm{call}}
+=C_r=K\tau e^{-r\tau}\Ncdf(d_-).}
+\]
+\begin{simplificationbox}
+The formula assumes a single deterministic rate used for discounting,
+borrowing, and lending. Real funding and collateral conventions are richer.
+\end{simplificationbox}
+\end{frame}
+
+\begin{frame}{Put Greeks follow from parity}
+Differentiate
+\[
+P=C-s+Ke^{-r\tau}.
+\]
+\begin{pausebox}
+Find the put delta, gamma, vega, theta, and rho.
+\end{pausebox}
+\pause
+\[
+\begin{aligned}
+\Delta_P&=\Ncdf(d_+)-1=-\Ncdf(-d_+),\\
+\Gamma_P&=\Gamma_C,\qquad \mathrm{Vega}_P=\mathrm{Vega}_C,\\
+\Theta_P&=-\frac{s\sigma\phiN(d_+)}{2\sqrt{\tau}}
++rKe^{-r\tau}\Ncdf(-d_-),\\
+\mathrm{Rho}_P&=-K\tau e^{-r\tau}\Ncdf(-d_-).
+\end{aligned}
+\]
+\end{frame}
+
+\begin{frame}{The five main Greeks answer different questions}
+\small
+\begin{tabular}{>{\bfseries}l l l}
+\toprule
+Greek & Formula for a call & Main risk question\\
+\midrule
+\(\Delta\) & \(\Ncdf(d_+)\) & How many shares hedge?\\
+\(\Gamma\) & \(\phiN(d_+)/(s\sigma\sqrt{\tau})\) & How fast does delta change?\\
+Vega & \(s\phiN(d_+)\sqrt{\tau}\) & What if volatility is wrong?\\
+\(\Theta\) & \(-s\sigma\phiN(d_+)/(2\sqrt{\tau})-rKe^{-r\tau}\Ncdf(d_-)\) & What does time cost?\\
+Rho & \(K\tau e^{-r\tau}\Ncdf(d_-)\) & What if rates change?\\
+\bottomrule
+\end{tabular}
+\begin{block}{Hierarchy}
+Delta is the model hedge. Gamma controls hedge instability. Vega, theta, and
+rho expose parameter and carry sensitivity.
+\end{block}
+\end{frame}
+
+\begin{frame}{A Greek is local, while hedging error accumulates}
+With discrete trading over \(\Delta t\),
+\[
+\Delta C
+\approx
+\Delta\,\Delta S
++\Theta\,\Delta t
++\frac12\Gamma(\Delta S)^2.
+\]
+\begin{pausebox}
+Which idealizations become most fragile for a high-gamma option?
+\end{pausebox}
+\pause
+\begin{itemize}
+  \item continuous trading;
+  \item zero transaction costs and unlimited liquidity;
+  \item continuous stock paths;
+  \item known constant volatility.
+\end{itemize}
+\end{frame}
+
+% ============================================================
+\section{What the Derivation Really Established}
+% ============================================================
+
+\begin{frame}{The complete chain is one reproducible argument}
+\[
+\boxed{
+\begin{gathered}
+\text{GBM model + frictionless complete market}\\
+\Downarrow\\
+\text{self-financing replication with }\Delta=p_s\\
+\Downarrow\\
+p_t+rsp_s+\tfrac12\sigma^2s^2p_{ss}-rp=0\\
+\Downarrow\\
+p(t,s)=e^{-r\tau}\E[g(S_T^r)\mid S_t^r=s]\\
+\Downarrow\\
+C=s\Ncdf(d_+)-Ke^{-r\tau}\Ncdf(d_-).
+\end{gathered}}
+\]
+\end{frame}
+
+\begin{frame}{Final check: identify the decisive assumption}
+\begin{pausebox}
+\begin{enumerate}
+  \item The \(\dd W\) exposure can be eliminated.
+  \item The hedged position earns \(r\).
+  \item The call has a \(d_\pm\) closed form.
+  \item Delta can be followed exactly.
+\end{enumerate}
+\end{pausebox}
+\pause
+\begin{enumerate}
+  \item One traded stock spans the one Brownian risk: completeness.
+  \item No arbitrage and unrestricted borrowing/lending at \(r\).
+  \item Constant \(r,\sigma\), lognormal dynamics, no dividends, European payoff.
+  \item Continuous frictionless trading with predictable admissible strategies.
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{Keep these six ideas}
+\begin{enumerate}
+  \item It\^o's second-order term creates gamma exposure.
+  \item Self-financing is a gain equation, not merely a value identity.
+  \item Matching diffusion determines delta.
+  \item Matching drift gives the PDE and removes \(\mu\).
+  \item The logarithmic transform turns the PDE into heat flow.
+  \item Verification connects the PDE solution, discounted expectation, and
+        replicating strategy.
+\end{enumerate}
+\begin{exampleblock}{Next conceptual step}
+Risk-neutral measure changes explain probabilistically why the auxiliary
+drift is \(r\).
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Optional extension: continuous dividends}
+Suppose the stock pays a continuous dividend yield \(q\). Under the
+risk-neutral measure,
+\[
+\frac{\dd S_t}{S_t}=(r-q)\dd t+\sigma\dd W_t^\Q,
+\qquad \dd B_t=rB_t\dd t.
+\]
+For a European call with payoff \((S_T-K)^+\),
+\[
+C(t,s)=e^{-r\tau}\E^\Q\!\left[(S_T-K)^+\mid S_t=s\right],
+\qquad \tau=T-t.
+\]
+\begin{pausebox}
+Derive the pricing PDE and the call formula. What changes in the stock term,
+and what stays the same in the strike term?
+\end{pausebox}
+\end{frame}
+
+\end{document}

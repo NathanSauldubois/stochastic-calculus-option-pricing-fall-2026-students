@@ -1,0 +1,605 @@
+\documentclass[11pt]{article}
+
+% ============================================================
+% Packages
+% ============================================================
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{microtype}
+
+% ============================================================
+% Macros
+% ============================================================
+
+\newcommand{\Pbb}{\mathbb{P}}
+\newcommand{\Qbb}{\mathbb{Q}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Nbb}{\mathcal{N}}
+\newcommand{\dd}{\,\mathrm{d}}
+\newcommand{\1}{\mathbf{1}}
+
+% Brownian / stochastic calculus
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\Filtration}{(\mathcal{F}_t)_{t\ge 0}}
+
+% ============================================================
+% Environments
+% ============================================================
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+
+% ============================================================
+% Title
+% ============================================================
+
+\title{\textbf{Girsanov's Theorem and Risk-Neutral Pricing}\\
+\large Lecture Notes}
+\author{Nathan Sauldubois}
+\date{MSFE6233 --- Option Pricing}
+
+\begin{document}
+\maketitle
+
+ ============================================================
+\section*{Part A --- Martingale pricing approach (from replication to pricing formulas)}
+% ============================================================
+
+
+
+\subsection*{A.1 The fundamental pricing identity for a replicable claim}
+
+Let \(H\in L^1(\Qbb)\) be an \(\mathcal F_T\)-measurable payoff (e.g.\ \(H=g(S_T)\)).
+Assume \(H\) is replicated by a self-financing strategy with wealth process \(X\), so that
+$$
+X_T = H.
+$$
+Under an equivalent martingale measure \(\Qbb\) associated with the money-market num\'eraire \(B^{(0)}\),
+the discounted wealth process
+$$
+\bar X_t := \frac{X_t}{B_t^{(0)}} = D_tX_t
+$$
+is a martingale (under suitable integrability assumptions).
+
+\paragraph{Quick proof via self-financing decomposition.}
+Let the traded assets be the money-market account \(B^{(0)}\) and risky assets \(S^1,\dots,S^d\).
+Suppose a self-financing strategy \((\phi_t^0,\phi_t^1,\dots,\phi_t^d)\) replicates \(H\), with wealth
+$$
+X_t=\phi_t^0 B_t^{(0)}+\sum_{i=1}^d \phi_t^i S_t^i,
+\qquad X_T=H.
+$$
+Define discounted prices
+$$
+\bar S_t^i:=\frac{S_t^i}{B_t^{(0)}}=D_tS_t^i,
+\qquad
+\bar X_t:=\frac{X_t}{B_t^{(0)}}=D_tX_t.
+$$
+Then
+$$
+\bar X_t=\phi_t^0+\sum_{i=1}^d \phi_t^i \bar S_t^i.
+$$
+Using the self-financing condition and discounting (equivalently, applying It\^o/product rule and cancelling the financing terms), one gets the discounted gain form
+$$
+\dd \bar X_t=\sum_{i=1}^d \phi_t^i\,\dd \bar S_t^i.
+$$
+Under an equivalent martingale measure \(\Qbb\) associated with the num\'eraire \(B^{(0)}\), each \(\bar S^i\) is a \(\Qbb\)-martingale. Hence, under suitable integrability/admissibility assumptions, the stochastic integral above is a \(\Qbb\)-martingale, so \(\bar X\) is a \(\Qbb\)-martingale:
+$$
+\bar X_t=\E^{\Qbb}[\bar X_T\mid\mathcal F_t].
+$$
+Since \(X_T=H\), this yields
+$$
+D_tX_t=\E^{\Qbb}[D_TX_T\mid\mathcal F_t]
+=\E^{\Qbb}[D_TH\mid\mathcal F_t].
+$$
+
+
+
+Therefore,
+$$
+D_tX_t = \E^{\Qbb}[D_TH \mid \mathcal F_t].
+$$
+Since the arbitrage-free price process of the claim must coincide with the value of the replicating portfolio,
+we obtain the pricing formula
+$$
+\boxed{
+\ V_t
+=
+\frac{1}{D_t}\E^{\Qbb}[D_TH\mid \mathcal F_t]
+=
+\E^{\Qbb}\!\left[\frac{B_t^{(0)}}{B_T^{(0)}}H\;\middle|\;\mathcal F_t\right].
+}
+$$
+
+If rates are deterministic (or more generally if the discount factor is explicit),
+this becomes
+$$
+\boxed{
+\ V_t
+=
+\E^{\Qbb}\!\left[e^{-\int_t^T r_s\,\dd s}\,H\;\middle|\;\mathcal F_t\right].
+}
+$$
+
+\paragraph{Important interpretation.}
+This is \emph{not} saying that \(\Qbb\) is the real-world probability.
+It is the probability under which \emph{discounted traded assets are martingales},
+which is exactly the right condition for no-arbitrage pricing.
+
+
+\subsection*{A.2 Markov vs non-Markov viewpoint}
+
+\paragraph{Markov case (e.g.\ Black--Scholes).}
+If the state variable is Markov (for example \(S\) under risk-neutral dynamics), then for a European payoff \(H=g(S_T)\),
+the price can often be written as a deterministic function:
+$$
+V_t = v(t,S_t),
+$$
+and the martingale pricing formula becomes
+$$
+v(t,s)=\E^{\Qbb}\!\left[e^{-\int_t^T r_u\,\dd u}g(S_T)\,\middle|\,S_t=s\right].
+$$
+In this case one may derive a PDE (Feynman--Kac / replication PDE) and solve analytically or numerically.
+
+\paragraph{Non-Markov case.}
+If the payoff is path-dependent (Asian, lookback, barrier with running maximum, etc.) or the model coefficients depend on path/history,
+the pricing formula still makes sense:
+$$
+V_t=\E^{\Qbb}\!\left[e^{-\int_t^T r_u\,\dd u}H\mid \mathcal F_t\right].
+$$
+The object is now a conditional expectation on the full filtration, not necessarily a function of \((t,S_t)\) alone.
+This is one major reason the martingale approach is so useful.
+
+
+\subsection*{A.3 Dividend-paying stock (modeling details and quick extension)}
+
+\paragraph{What changes when the stock pays dividends?}
+When a stock pays dividends, there are \emph{two} sources of return for the investor:
+\begin{itemize}[leftmargin=1.4em]
+    \item capital gains/losses from changes in the stock price \(S_t\),
+    \item dividend payments received over time.
+\end{itemize}
+So the stock \emph{price process} alone is no longer the full economic value process of a buy-and-hold position.
+
+\paragraph{Continuous dividend yield model.}
+A common modeling choice is to assume the stock pays dividends at a \emph{proportional rate} \(q_t\ge 0\) (called the dividend yield).
+This means that holding one share over a small interval \([t,t+\dd t]\) generates a cash dividend
+$$
+q_t S_t\,\dd t.
+$$
+Hence, for one share, the \emph{instantaneous total gain} is
+$$
+\dd S_t + q_t S_t\,\dd t.
+$$
+
+\paragraph{Price process vs gain process.}
+It is important to distinguish:
+\begin{itemize}[leftmargin=1.4em]
+    \item the \emph{ex-dividend price} \(S_t\): the market price of the stock itself (excluding future dividends),
+    \item the \emph{gain process} \(G_t\): price change plus accumulated dividends.
+\end{itemize}
+In differential form, the gain process associated with one share is modeled by
+$$
+\dd G_t := \dd S_t + q_t S_t\,\dd t.
+$$
+A \emph{one-share position} is not self-financing if we only look at $S_t$,
+because dividends are paid out as cash.
+The correct ``total value'' in \emph{discounted units} is the \emph{discounted gain process}
+\[
+\bar G_t
+\;:=\;
+D_t S_t \;+\; \int_0^t D_u\,q_u S_u\,\dd u.
+\]
+Interpretation: $D_t S_t$ is the discounted stock value, and
+$\int_0^t D_u q_u S_u\,\dd u$ is the discounted value of dividends received (and invested in the num\'eraire).
+
+\begin{remark}[Why not use $D_tG_t$ directly?]
+If you define $G_t$ by $\dd G_t=\dd S_t+q_tS_t\,\dd t$, then $G_t=S_t+\int_0^t q_uS_u\,\dd u$ is \emph{not}
+the value of a self-financing ``buy one share + invest dividends in the bank account'' strategy.
+Discounting must be applied to the \emph{cashflows at their payment times}, which is exactly why
+$\bar G_t = D_tS_t+\int_0^t D_u q_u S_u\,\dd u$ is the clean object.
+\end{remark}
+
+\paragraph{Compute $\dd(D_tS_t)$.}
+Assume under some measure (later $\Qbb$) the stock has dynamics
+\[
+\frac{\dd S_t}{S_t} = \alpha_t\,\dd t + \sigma_t\,\dd B_t,
+\qquad \sigma_t>0.
+\]
+Then by the product rule (no cross term since $D$ has finite variation),
+\[
+\dd(D_tS_t)=D_t\,\dd S_t + S_t\,\dd D_t
+= D_t\big(\alpha_t S_t\,\dd t+\sigma_t S_t\,\dd B_t\big) - r_t D_t S_t\,\dd t.
+\]
+Hence
+\[
+\boxed{\;
+\dd(D_tS_t)
+=
+D_tS_t\big((\alpha_t-r_t)\,\dd t + \sigma_t\,\dd B_t\big).
+\;}
+\]
+
+\paragraph{Compute the differential of discounted gains.}
+Differentiate $\bar G_t = D_tS_t + \int_0^t D_u q_u S_u\,\dd u$:
+\[
+\dd \bar G_t
+=
+\dd(D_tS_t) \;+\; D_t q_t S_t\,\dd t.
+\]
+Substituting the expression for $\dd(D_tS_t)$ gives
+\[
+\dd \bar G_t
+=
+D_tS_t\big((\alpha_t-r_t)\,\dd t + \sigma_t\,\dd B_t\big) + D_t q_t S_t\,\dd t
+=
+D_tS_t\big((\alpha_t-r_t+q_t)\,\dd t + \sigma_t\,\dd B_t\big).
+\]
+
+\paragraph{Risk-neutral condition and drift identification.}
+Under the equivalent martingale measure $\Qbb$ associated with the num\'eraire $B^{(0)}$,
+the discounted value of any self-financing traded strategy must be a (local) martingale.
+In particular, the discounted gain $\bar G$ must have \emph{zero drift} under $\Qbb$.
+Therefore the $\dd t$ coefficient must vanish:
+\[
+\alpha_t-r_t+q_t=0
+\qquad\Longrightarrow\qquad
+\boxed{\ \alpha_t = r_t-q_t.\ }
+\]
+Hence, under $\Qbb$,
+\[
+\boxed{\ \frac{\dd S_t}{S_t}=(r_t-q_t)\,\dd t+\sigma_t\,\dd B_t^{\Qbb}. \ }
+\]
+
+\paragraph{Intuition (one line).}
+Under $\Qbb$, the \emph{total expected return} of holding the stock (price appreciation $+$ dividend yield)
+must match the short rate $r_t$; since dividends contribute $q_t$, the price drift becomes $r_t-q_t$.
+\paragraph{Equivalent martingale statement.}
+An equivalent way to package the same idea is to define the \emph{reinvested stock (cum-dividend) process}
+$$
+\widetilde S_t
+:= S_t \exp\!\left(\int_0^t q_u\,\dd u\right).
+$$
+Then, under \(\Qbb\),
+$$
+D_t\widetilde S_t
+\quad\text{is a (local) martingale,}
+$$
+which is another way of expressing that discounted total gains have zero drift.
+
+\paragraph{Pricing consequence.}
+For a European payoff \(H=g(S_T)\), the pricing formula remains
+$$
+V_t=\E^{\Qbb}\!\left[e^{-\int_t^T r_s\,\dd s}H\mid \mathcal F_t\right],
+$$
+but the law of \(S\) under \(\Qbb\) now uses drift \(r_t-q_t\) (instead of \(r_t\) in the no-dividend case).
+
+\paragraph{Constant coefficients case.}
+If \(r,q,\sigma\) are constant, then under \(\Qbb\),
+$$
+S_T=S_t\exp\!\left(\Big(r-q-\tfrac12\sigma^2\Big)(T-t)+\sigma(B_T-B_t)\right),
+$$
+which is the standard Black--Scholes-with-dividends specification.
+
+
+\subsection*{A.4 Existence vs uniqueness: what changes in incomplete markets?}
+
+The martingale pricing approach also clarifies the role of market completeness.
+
+\paragraph{Complete market (e.g.\ Black--Scholes with one Brownian source and one risky asset).}
+\begin{itemize}[leftmargin=1.4em]
+    \item There is a unique EMM \(\Qbb\).
+    \item Every sufficiently integrable claim is replicable.
+    \item The arbitrage-free price is unique and given by the martingale pricing formula.
+\end{itemize}
+
+\paragraph{Incomplete market.}
+\begin{itemize}[leftmargin=1.4em]
+    \item There may be many EMMs.
+    \item A given claim may fail to be replicable.
+    \item No-arbitrage alone gives a \emph{range} of possible prices (typically expectations under different EMMs), not a unique price.
+\end{itemize}
+
+This is one of the key conceptual reasons to distinguish:
+$$
+\text{``no-arbitrage pricing''} \quad \text{vs} \quad \text{``replication pricing''}.
+$$
+
+\subsection*{A.5 Final synthesis (how to present the method to students)}
+
+A practical summary of the martingale pricing workflow:
+
+\begin{enumerate}[leftmargin=1.6em]
+    \item Identify the num\'eraire (usually the money-market account \(B^{(0)}\)).
+    \item Find an equivalent martingale measure \(\Qbb\) (in Black--Scholes: via Girsanov).
+    \item Write the risk-neutral dynamics of the underlying(s).
+    \item Use the pricing identity
+    $$
+    V_t=\E^{\Qbb}\!\left[\frac{B_t^{(0)}}{B_T^{(0)}}H\mid\mathcal F_t\right].
+    $$
+    \item Compute the conditional expectation:
+    \begin{itemize}[leftmargin=1.4em]
+        \item analytically (Black--Scholes),
+        \item by PDE / Feynman--Kac,
+        \item by Monte Carlo,
+        \item or numerically by other methods.
+    \end{itemize}
+\end{enumerate}
+
+\paragraph{Pedagogical takeaway.}
+Replication explains \emph{why} the price is unique.
+The martingale measure explains \emph{how} to compute it as a conditional expectation.
+
+\subsection*{A.6 From martingale pricing to hedging: Martingale Representation Theorem (MRT)}
+
+\paragraph{What is still missing?}
+The martingale pricing formula gives the \emph{price process}
+$$
+V_t=\frac{1}{D_t}\E^{\Qbb}[D_T H\mid \mathcal F_t].
+$$
+This tells us \emph{what the price is}, but not yet \emph{how to trade dynamically} to replicate the claim.
+
+The missing step is the \emph{martingale representation theorem}: in a Brownian filtration, every square-integrable martingale can be written as a stochastic integral with respect to the Brownian motion.
+
+\paragraph{Set-up under \(\Qbb\) (very important).}
+From now on in this subsection, we work \emph{under the risk-neutral measure \(\Qbb\)}.
+Assume for simplicity:
+\begin{itemize}[leftmargin=1.4em]
+    \item the filtration is generated by a \(d\)-dimensional Brownian motion \(B\) under \(\Qbb\),
+    \item the claim satisfies \(D_T H\in L^2(\Qbb)\).
+\end{itemize}
+
+Define the discounted price martingale
+$$
+M_t:=\E^{\Qbb}[D_T H\mid \mathcal F_t].
+$$
+Then \(M\) is a square-integrable \(\Qbb\)-martingale, and
+$$
+V_t=\frac{M_t}{D_t}.
+$$
+
+\paragraph{Martingale Representation Theorem (informal statement).}
+There exists a predictable process \(\psi_t\in\R^d\) such that
+$$
+\boxed{\ M_t=M_0+\int_0^t \psi_u\cdot \dd B_u,\qquad 0\le t\le T. \ }
+$$
+Equivalently,
+$$
+\dd M_t=\psi_t\cdot \dd B_t.
+$$
+
+\paragraph{Interpretation.}
+The process \(\psi_t\) is the \emph{hedging signal} in Brownian coordinates.
+It tells us how the discounted claim price reacts to the risk factors (the Brownian shocks) under \(\Qbb\).
+
+\subsection*{A.7 How to recover the hedging strategy from the martingale representation}
+
+\paragraph{One risky asset (Black--Scholes type case).}
+Assume there is one risky asset \(S\) and, under \(\Qbb\),
+$$
+\frac{\dd S_t}{S_t}=r_t\,\dd t+\sigma_t\,\dd B_t,
+\qquad \sigma_t>0,
+$$
+so the discounted stock satisfies
+$$
+\dd \bar S_t = \dd(D_tS_t)=\sigma_t \bar S_t\,\dd B_t.
+$$
+
+Let \(V\) be the price process of a replicable claim and \(\bar V_t:=D_tV_t\).
+Since \(\bar V_t=M_t\), the MRT gives
+$$
+\dd \bar V_t=\psi_t\,\dd B_t.
+$$
+
+On the other hand, if the claim is replicated by a self-financing strategy holding \(\Delta_t\) shares of stock, then (discounted gain form)
+$$
+\dd \bar V_t=\Delta_t\,\dd \bar S_t
+=\Delta_t\,\sigma_t \bar S_t\,\dd B_t.
+$$
+Comparing the \(\dd B_t\)-coefficients yields
+$$
+\boxed{\ \Delta_t=\frac{\psi_t}{\sigma_t \bar S_t}
+=\frac{\psi_t}{\sigma_t D_t S_t}. \ }
+$$
+
+\paragraph{Key message.}
+In the martingale approach, the hedge is obtained by:
+\begin{enumerate}[leftmargin=1.6em]
+    \item writing the discounted price as a \(\Qbb\)-martingale,
+    \item representing it as an It\^o integral (MRT),
+    \item matching the stochastic term with the discounted asset dynamics.
+\end{enumerate}
+
+So the hedge is \emph{not lost} in the martingale approach --- it is encoded in the martingale representation coefficient \(\psi\).
+
+
+\subsection*{A.8 PDE approach vs martingale approach for hedging (pedagogical comparison)}
+
+\paragraph{PDE / Markov approach (more explicit hedge).}
+In the Markov Black--Scholes setting, if
+$$
+V_t=v(t,S_t),
+$$
+then It\^o's formula directly gives
+$$
+\dd V_t = \cdots + \partial_s v(t,S_t)\,\dd S_t,
+$$
+so the hedge is immediately visible:
+$$
+\boxed{\ \Delta_t=\partial_s v(t,S_t). \ }
+$$
+This is one reason the PDE approach is pedagogically convenient: students can \emph{see} the delta as a derivative of the price function.
+
+\paragraph{Martingale approach (more abstract, but more general).}
+In the martingale approach, we first get
+$$
+V_t=\frac{1}{D_t}\E^{\Qbb}[D_T H\mid \mathcal F_t],
+$$
+then use MRT to write the discounted price martingale as
+$$
+\dd(D_tV_t)=\psi_t\cdot \dd B_t.
+$$
+The hedge is then obtained by matching this stochastic term with the discounted asset dynamics.
+
+So the hedge exists and is computable in principle, but it is encoded in a process \(\psi_t\), not immediately as a simple derivative.
+
+\paragraph{How the two viewpoints match in Black--Scholes.}
+In the one-dimensional Black--Scholes model, under \(\Qbb\),
+$$
+\dd \bar V_t=\psi_t\,\dd B_t
+\qquad\text{and}\qquad
+\dd \bar V_t=\Delta_t\,\sigma_t \bar S_t\,\dd B_t,
+$$
+hence
+$$
+\psi_t=\Delta_t\,\sigma_t \bar S_t.
+$$
+If in addition \(V_t=v(t,S_t)\) is smooth, then the PDE/It\^o computation gives
+$$
+\Delta_t=\partial_s v(t,S_t),
+$$
+so the martingale-representation hedge and the PDE delta hedge are exactly the same object.
+
+\paragraph{Practical teaching message.}
+\begin{itemize}[leftmargin=1.4em]
+    \item \textbf{PDE route:} best for explicit formulas and seeing \(\Delta=\partial_s v\).
+    \item \textbf{Martingale route:} best for conceptual clarity and extension to non-Markov/path-dependent settings.
+    \item In complete Brownian models, both routes produce the same hedge.
+\end{itemize}
+
+
+\subsection*{A.9 Asian options: path dependence and conditional expectation on the enlarged state}
+
+\paragraph{Why Asian options are different.}
+An Asian option depends on an \emph{average} of the underlying price, rather than only on the terminal value \(S_T\).
+Hence the payoff is path-dependent, and the state variable \(S_t\) alone is not enough to describe the claim.
+
+A standard example is the fixed-strike arithmetic-average call:
+\[
+H=\left(\frac{1}{T}\int_0^T S_u\,\dd u - K\right)^+.
+\]
+
+\paragraph{Risk-neutral pricing formula.}
+The martingale pricing formula still applies without any change:
+\[
+\boxed{
+\ V_t
+=
+\E^{\Qbb}\!\left[
+e^{-\int_t^T r_s\,\dd s}\,H
+\;\middle|\;
+\mathcal F_t
+\right].
+}
+\]
+The only difference is that \(H\) now depends on the whole path \((S_u)_{0\le u\le T}\), not only on \(S_T\).
+
+\paragraph{Natural state augmentation.}
+To recover a Markov structure, introduce the running integral
+\[
+A_t:=\int_0^t S_u\,\dd u.
+\]
+Then the payoff can be written as
+\[
+H=\left(\frac{A_T}{T}-K\right)^+.
+\]
+The pair \((S_t,A_t)\) is now Markov under the risk-neutral measure, with dynamics
+\[
+\frac{\dd S_t}{S_t}=r_t\,\dd t+\sigma_t\,\dd B_t,
+\qquad
+\dd A_t=S_t\,\dd t.
+\]
+
+\paragraph{Pricing as a function of the enlarged state.}
+In a Markov setting, the price may be written as
+\[
+V_t=v(t,S_t,A_t),
+\]
+and the pricing formula becomes
+\[
+v(t,s,a)
+=
+\E^{\Qbb}\!\left[
+e^{-\int_t^T r_u\,\dd u}
+\left(\frac{A_T}{T}-K\right)^+
+\;\middle|\;
+S_t=s,\ A_t=a
+\right].
+\]
+
+\paragraph{PDE viewpoint (if desired).}
+If coefficients are regular enough, the function \(v(t,s,a)\) solves a linear PDE in the enlarged state space:
+\[
+\partial_t v
++ r_t s\,\partial_s v
++ s\,\partial_a v
++ \frac12 \sigma_t^2 s^2\,\partial_{ss}v
+- r_t v
+=0,
+\]
+with terminal condition
+\[
+v(T,s,a)=\left(\frac{a}{T}-K\right)^+.
+\]
+So the price is still governed by a linear pricing equation, but in higher dimension.
+
+\paragraph{Arithmetic average vs geometric average.}
+There are two common cases:
+\begin{itemize}[leftmargin=1.4em]
+    \item \textbf{Arithmetic Asian option:}
+    \[
+    H=\left(\frac{1}{T}\int_0^T S_u\,\dd u-K\right)^+.
+    \]
+    This is the most common in practice, but it usually has no simple closed form in Black--Scholes.
+    \item \textbf{Geometric Asian option:}
+    \[
+    H=\left(\exp\!\left(\frac{1}{T}\int_0^T \ln S_u\,\dd u\right)-K\right)^+.
+    \]
+    In the Black--Scholes model, this case is tractable because the logarithm of the geometric average is Gaussian.
+\end{itemize}
+
+\paragraph{Discrete-monitoring version.}
+In practice, many Asian options use a discrete average:
+\[
+H=\left(\frac{1}{n}\sum_{k=1}^n S_{t_k}-K\right)^+.
+\]
+Then the risk-neutral pricing formula is
+\[
+V_t
+=
+\E^{\Qbb}\!\left[
+e^{-\int_t^T r_s\,\dd s}
+\left(\frac{1}{n}\sum_{k=1}^n S_{t_k}-K\right)^+
+\;\middle|\;
+\mathcal F_t
+\right].
+\]
+This is particularly convenient for Monte Carlo simulation.
+
+\paragraph{Why the martingale approach is especially useful here.}
+Asian options are a canonical example where the martingale approach is more natural than the basic PDE intuition:
+\begin{itemize}[leftmargin=1.4em]
+    \item the payoff is path-dependent,
+    \item the pricing formula remains valid immediately,
+    \item simulation / Monte Carlo under \(\Qbb\) is straightforward,
+    \item while explicit closed forms are rare (except in special cases).
+\end{itemize}
+
+\paragraph{Key message.}
+For Asian options:
+\begin{itemize}[leftmargin=1.4em]
+    \item the pricing identity is unchanged;
+    \item what changes is the \emph{state}: one must track the running average (or running integral);
+    \item the martingale approach handles this naturally, even when the model is not one-dimensional Markov in \(S_t\) alone.
+\end{itemize}
+
+
+\end{document}

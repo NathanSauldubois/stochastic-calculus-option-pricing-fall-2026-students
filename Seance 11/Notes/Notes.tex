@@ -1,0 +1,180 @@
+% !TEX program = pdflatex
+\documentclass[10pt]{article}
+\usepackage[utf8]{inputenc}\usepackage[T1]{fontenc}\usepackage[english]{babel}
+\usepackage{lmodern,microtype}\usepackage[margin=.72in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools,booktabs,array,xcolor,enumitem}
+\usepackage[most]{tcolorbox}\usepackage{fancyhdr}\usepackage[hidelinks]{hyperref}
+\definecolor{CourseBlue}{HTML}{1A3C68}\definecolor{CourseGreen}{HTML}{216E39}
+\definecolor{CourseGold}{HTML}{B8860B}\definecolor{CourseRed}{HTML}{9A2C2C}
+\definecolor{SoftBlue}{HTML}{F2F6FA}\definecolor{SoftGreen}{HTML}{F1F8F3}
+\definecolor{SoftGold}{HTML}{FFF8E8}\definecolor{SoftRed}{HTML}{FFF3F3}
+\setlength{\parindent}{0pt}\setlength{\parskip}{.32em}
+\setlist[itemize]{leftmargin=1.5em,itemsep=.12em,topsep=.2em}
+\setlist[enumerate]{leftmargin=1.7em,itemsep=.12em,topsep=.2em}
+\pagestyle{fancy}\fancyhf{}\lhead{Stochastic Calculus and Option Pricing}
+\rhead{Lecture 11 Notes}\cfoot{\thepage}\renewcommand{\headrulewidth}{.3pt}
+\newcommand{\E}{\mathbb E}\newcommand{\Q}{\mathbb Q}\newcommand{\cF}{\mathcal F}
+\newcommand{\dd}{\,\mathrm d}\newcommand{\esssup}{\operatorname*{ess\,sup}}
+\theoremstyle{definition}\newtheorem{definition}{Definition}[section]
+\newtheorem{proposition}[definition]{Proposition}
+\newtcolorbox{boardexample}[1]{enhanced,breakable,colback=SoftBlue,colframe=CourseBlue,boxrule=.55pt,arc=1mm,title={Example --- #1},fonttitle=\bfseries}
+\newtcolorbox{studentexercise}[1]{enhanced,breakable,colback=SoftGold,colframe=CourseGold,boxrule=.55pt,arc=1mm,title={Exercise --- #1},fonttitle=\bfseries}
+\newtcolorbox{shortsolution}[1][]{enhanced,breakable,colback=SoftGreen,colframe=CourseGreen,boxrule=.55pt,arc=1mm,title={Short solution#1},fonttitle=\bfseries}
+\newtcolorbox{keyidea}[1]{enhanced,breakable,colback=white,colframe=CourseGreen,boxrule=.7pt,arc=1mm,title={#1},fonttitle=\bfseries}
+\newtcolorbox{warningbox}[1]{enhanced,breakable,colback=SoftRed,colframe=CourseRed,boxrule=.65pt,arc=1mm,title={#1},fonttitle=\bfseries}
+\title{\textbf{Change of Numeraire}\\\large Lecture 11 Notes --- Units, Measures, Forward Pricing, and FX}
+\author{}\date{}
+\begin{document}\maketitle\vspace{-1.4em}
+\begin{keyidea}{Goals and logical structure}
+Risk-neutral valuation already uses a unit: the money-market account. We
+change that unit deliberately:
+\[
+\text{positive traded numeraire}\longrightarrow\text{matching measure}
+\longrightarrow\text{martingale price ratio}\longrightarrow\text{simpler pricing}.
+\]
+The price does not change; only its representation does.
+\end{keyidea}
+
+\section{Numeraires, measures, and ratios}
+\subsection{The general pricing formula}
+With money-market account \(B_t\), a payoff \(X_T\) is worth
+\[
+V_t=B_t\E^\Q\!\left[\frac{X_T}{B_T}\middle|\cF_t\right].
+\]
+\begin{definition}[Numeraire]
+A numeraire \(N_t\) is a strictly positive traded asset used as the unit of
+account. The \(N\)-denominated price of an asset \(S\) is \(S_t/N_t\).
+\end{definition}
+\begin{proposition}[Change-of-numeraire density]
+Starting under \(\Q\), the measure associated with \(N\) is
+\[
+\left.\frac{\dd\Q^N}{\dd\Q}\right|_{\cF_t}
+=\frac{N_t/B_t}{N_0/B_0}.
+\]
+Under \(\Q^N\), every traded price divided by \(N_t\) is a martingale.
+\end{proposition}
+\begin{keyidea}{One reusable formula}
+\[
+\boxed{V_t=N_t\E^{\Q^N}\!\left[\frac{X_T}{N_T}\middle|\cF_t\right].}
+\]
+Divide the payoff by the numeraire, take expectation under its associated
+measure, then restore the current unit.
+\end{keyidea}
+\begin{warningbox}{Unit and measure must move together}
+Dividing by a new numeraire while retaining the old measure generally leaves
+a drift. The measure change reweights scenarios but does not create or
+remove possible market scenarios.
+\end{warningbox}
+\begin{studentexercise}{a bond numeraire}
+If \(N_t=P(t,T)\), what quantity is a martingale and what is the measure
+called?
+\end{studentexercise}
+\begin{shortsolution}
+For every traded asset \(S\), \(S_t/P(t,T)\) is a martingale under the
+\(T\)-forward measure \(\Q^T\).
+\end{shortsolution}
+
+\subsection{Ratios need It\^o corrections}
+If
+\[
+\frac{\dd S_t}{S_t}=\mu_S\dd t+\sigma_S\dd W_t,\qquad
+\frac{\dd N_t}{N_t}=\mu_N\dd t+\sigma_N\dd W_t,
+\]
+then
+\[
+\frac{\dd(S_t/N_t)}{S_t/N_t}
+=\bigl(\mu_S-\mu_N+\sigma_N^2-\sigma_S\sigma_N\bigr)\dd t
++(\sigma_S-\sigma_N)\dd W_t.
+\]
+The drift is not just \(\mu_S-\mu_N\): quadratic variation matters.
+
+\section{Forward measures match payment dates}
+\subsection{A bond absorbs discounting}
+Choose the bond \(P(t,T)\). Since \(P(T,T)=1\),
+\[
+\boxed{V_t=P(t,T)\E^{\Q^T}[X_T\mid\cF_t].}
+\]
+For a non-dividend-paying asset,
+\[
+F(t,T)=\frac{S_t}{P(t,T)}
+\]
+is a \(\Q^T\)-martingale.
+\begin{boardexample}{a zero-value forward}
+A forward delivering one share for \(K\) has value
+\[
+V_t=S_t-KP(t,T)=P(t,T)(F(t,T)-K).
+\]
+If \(S_0=100\) and \(P(0,T)=.95\), the fair delivery price is
+\(F(0,T)=105.26\).
+\end{boardexample}
+\subsection{A factor-cancelling choice}
+If \(X_T=S_TY_T\), the stock numeraire yields
+\[
+V_t=S_t\E^{\Q^S}[Y_T\mid\cF_t].
+\]
+The candidate must be strictly positive; an arbitrary payoff is not a
+numeraire.
+\begin{studentexercise}{first candidate}
+A claim pays at \(T\) and depends on future bond prices. Which numeraire is
+the natural first candidate?
+\end{studentexercise}
+\begin{shortsolution}
+\(P(t,T)\): it matches the payment date and removes discounting from the
+expectation under \(\Q^T\).
+\end{shortsolution}
+
+\section{FX: two currencies, two units}
+Let \(X_t\) be domestic currency per foreign currency unit and
+\[
+B_d(t)=e^{r_dt},\qquad B_f(t)=e^{r_ft}.
+\]
+The domestic value of the foreign bank account is \(X_tB_f(t)\). Therefore,
+under the domestic measure,
+\[
+\boxed{\frac{\dd X_t}{X_t}=(r_d-r_f)\dd t+\sigma\dd W_t^{\Q^d}.}
+\]
+Foreign interest plays the role of a continuous dividend yield.
+\begin{boardexample}{FX forward}
+\[
+F_{0,T}=X_0e^{(r_d-r_f)T}.
+\]
+For \(X_0=1.10\) USD/EUR, \(r_d=5\%\), \(r_f=3\%\), and \(T=1\),
+\(F_{0,1}=1.1222\) USD/EUR.
+\end{boardexample}
+
+\subsection{FX options}
+A domestic call on one foreign-currency unit pays \((X_T-K)^+\):
+\[
+C_t=X_te^{-r_f\tau}\Phi(d_1)-Ke^{-r_d\tau}\Phi(d_2),
+\]
+\[
+d_1=\frac{\log(X_t/K)+(r_d-r_f+\frac12\sigma^2)\tau}{\sigma\sqrt{\tau}},
+\qquad d_2=d_1-\sigma\sqrt{\tau}.
+\]
+Parity makes the two discount factors visible:
+\[
+\boxed{C_t-P_t=X_te^{-r_f\tau}-Ke^{-r_d\tau}.}
+\]
+\begin{warningbox}{Keep currencies explicit}
+The spot term represents foreign cash and is discounted at \(r_f\). The
+strike is domestic cash and is discounted at \(r_d\).
+\end{warningbox}
+
+\section{Synthesis and practice}
+\begin{keyidea}{Checklist}
+\begin{enumerate}
+\item State payoff date and currency.
+\item Select a strictly positive traded numeraire.
+\item Use its associated measure.
+\item Price the normalized payoff and restore the current unit.
+\item Check against a forward relation or money-market pricing.
+\end{enumerate}
+\end{keyidea}
+\begin{studentexercise}{final check}
+Why is it false that a change of numeraire changes the economic price?
+\end{studentexercise}
+\begin{shortsolution}
+The claim has one no-arbitrage value. The unit, equivalent probability
+weights, and martingale ratio change; the economic price does not.
+\end{shortsolution}
+\end{document}

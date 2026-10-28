@@ -1,0 +1,54 @@
+% Weekly exercise sheet for Lecture 10; also included in the synthesis sheet.
+\ifdefined\ExercisesSynthesis
+\else
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern,microtype}
+\usepackage[margin=0.9in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{enumitem,hyperref}
+\newcommand{\E}{\mathbb E}
+\newcommand{\Qbb}{\mathbb Q}
+\newcommand{\dd}{\,\mathrm d}
+\newcommand{\F}{\mathcal F}
+\theoremstyle{definition}
+\newtheorem{exercise}{Exercise}[section]
+\newlist{exparts}{enumerate}{1}
+\setlist[exparts,1]{label=\textbf{(\alph*)},itemsep=0.3em,topsep=0.4em,leftmargin=2em}
+\newcommand{\lecturesummary}[1]{\begin{quote}\small\textbf{Focus.} #1\end{quote}}
+\title{Stochastic Calculus and Option Pricing\\Lecture 10 Exercises}
+\author{}
+\date{}
+\begin{document}
+\maketitle
+\vspace{-1.2em}
+\setcounter{section}{9}
+\fi
+
+\section{Week 10 --- American Options and Optimal Stopping}
+\lecturesummary{This question extends optimal stopping to the writer's hedge
+and requires a policy argument rather than a binomial price computation.}
+
+
+\begin{exercise}[A supermartingale gives a writer's hedge]
+Work in a discrete-time, arbitrage-free market with money-market account
+\(B_t\). Let \(G_t\) be the amount due if an American claim is exercised at
+date \(t\). Suppose a self-financing portfolio has value \(X_t\) and
+\(X_t/B_t\) is a nonnegative supermartingale under a risk-neutral measure.
+\begin{exparts}
+  \item Prove that if \(X_t\geq G_t\) at every exercise date, then the
+  initial portfolio value upper-bounds the expected discounted payment for
+  every admissible exercise rule.
+  \item Explain why checking only the terminal payoff \(G_T\) is
+  insufficient for an American claim.
+  \item What additional condition would make this superhedge cheapest among
+  all portfolios that cover every exercise date? Relate your answer to the
+  least supermartingale that dominates the discounted exercise payoff.
+\end{exparts}
+\end{exercise}
+
+\ifdefined\ExercisesSynthesis\else
+\end{document}
+\fi

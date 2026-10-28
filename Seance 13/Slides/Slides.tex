@@ -1,0 +1,566 @@
+% !TEX program = pdflatex
+\documentclass[10pt,aspectratio=169]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,bm,mathtools}
+\usepackage{booktabs,array}
+
+\usetheme[numbering=fraction,progressbar=frametitle]{metropolis}
+\setbeamertemplate{frame numbering}[fraction]
+\setbeamertemplate{navigation symbols}{}
+
+\definecolor{CourseBlue}{HTML}{1A3C68}
+\definecolor{CourseGreen}{HTML}{216E39}
+\definecolor{CourseGold}{HTML}{B8860B}
+\definecolor{CourseRed}{HTML}{9A2C2C}
+\definecolor{SoftBlue}{HTML}{F2F6FA}
+\definecolor{SoftGreen}{HTML}{F1F8F3}
+\definecolor{SoftRed}{HTML}{FFF3F3}
+
+\setbeamercolor{normal text}{fg=black,bg=white}
+\setbeamercolor{structure}{fg=CourseBlue}
+\setbeamercolor{title}{fg=CourseBlue}
+\setbeamerfont{title}{size=\Large,series=\bfseries}
+\setbeamercolor{frametitle}{bg=CourseBlue,fg=white}
+\setbeamerfont{frametitle}{series=\bfseries,size=\large}
+\setbeamertemplate{frametitle}{
+  \nointerlineskip
+  \begin{beamercolorbox}[wd=\paperwidth,ht=3.2ex,dp=1.4ex,leftskip=1em,rightskip=1em]{frametitle}
+    \usebeamerfont{frametitle}\insertframetitle
+  \end{beamercolorbox}
+}
+\setbeamercolor{block title}{bg=CourseBlue,fg=white}
+\setbeamercolor{block body}{bg=SoftBlue,fg=black}
+\setbeamercolor{block title example}{bg=CourseGreen,fg=white}
+\setbeamercolor{block body example}{bg=SoftGreen,fg=black}
+\setbeamercolor{block title alerted}{bg=CourseRed,fg=white}
+\setbeamercolor{block body alerted}{bg=SoftRed,fg=black}
+\setbeamertemplate{blocks}[rounded][shadow=false]
+
+\newenvironment{modelbox}{\begin{beamercolorbox}[rounded=true,sep=0.7em,wd=\textwidth]{block body}
+  \textbf{\color{CourseBlue}MODEL}\quad}{\end{beamercolorbox}}
+\newenvironment{marketbox}{\begin{beamercolorbox}[rounded=true,sep=0.7em,wd=\textwidth]{block body example}
+  \textbf{\color{CourseGreen}NO-ARBITRAGE}\quad}{\end{beamercolorbox}}
+\newenvironment{simplificationbox}{\begin{beamercolorbox}[rounded=true,sep=0.7em,wd=\textwidth]{block body alerted}
+  \textbf{\color{CourseRed}WATCH OUT}\quad}{\end{beamercolorbox}}
+\newenvironment{pausebox}{\begin{beamercolorbox}[rounded=true,sep=0.8em,wd=\textwidth]{block body}
+  \textbf{\color{CourseGold}YOUR TURN}\quad}{\end{beamercolorbox}}
+
+\newcommand{\E}{\mathbb E}
+\newcommand{\Q}{\mathbb Q}
+\newcommand{\F}{\mathcal F}
+\newcommand{\dd}{\,\mathrm d}
+\newcommand{\Ncdf}{\Phi}
+
+\AtBeginSection[]{
+  \begin{frame}[plain]\vfill
+    {\Large\bfseries\color{CourseBlue}\insertsectionhead\par}
+    \medskip{\color{CourseBlue}\rule{0.92\textwidth}{0.8pt}}\vfill
+  \end{frame}
+}
+
+\title{Pricing, Hedging, and Model Risk}
+\subtitle{Vanilla claims, path dependence, and stochastic discounting}
+\author{}
+\date{Lecture 13}
+
+\begin{document}
+
+\begin{frame}[plain]
+  \vfill
+  {\LARGE\bfseries\color{CourseBlue}Pricing, Hedging, and Model Risk\par}
+  \medskip{\large Vanilla claims, path dependence, and stochastic discounting\par}
+  \medskip{\color{CourseGold}\rule{0.94\textwidth}{0.8pt}}
+  \medskip{Lecture 13\par}\vfill
+\end{frame}
+
+\begin{frame}{A price is only half of a model}
+\begin{block}{The question}
+A model assigns a price, but it also prescribes a hedge. How should we judge
+the hedge when the market evolves differently from the model?
+\end{block}
+\begin{enumerate}
+  \item Start with a vanilla call and the Black--Scholes replication benchmark.
+  \item Change the model while keeping the contract fixed.
+  \item Change the contract while keeping the market model simple.
+  \item Add stochastic rates and ask which traded assets span the risks.
+\end{enumerate}
+\begin{marketbox}
+A pricing model should be assessed both by the prices it fits and by the
+hedging P\&L it generates outside the model.
+\end{marketbox}
+\end{frame}
+
+\section{A vanilla option: the hedge depends on the model}
+
+\begin{frame}{For a European call, Black--Scholes links price and replication}
+The payoff is
+\[
+(S_T-K)^+.
+\]
+Under the risk-neutral Black--Scholes model,
+\[
+\frac{\dd S_t}{S_t}=r\dd t+\sigma\dd W_t^\Q,
+\]
+the option price is
+\[
+u(t,s)=\E^\Q\!\left[e^{-r(T-t)}(S_T-K)^+\mid S_t=s\right].
+\]
+\begin{block}{The replication target}
+A self-financing portfolio of stock and cash must satisfy
+\[
+\Pi_t=u(t,S_t),\qquad \Pi_T=(S_T-K)^+.
+\]
+\end{block}
+\end{frame}
+
+\begin{frame}{Matching the Brownian exposure determines the delta}
+Let \(\Pi_t=\Delta_tS_t+\beta_tB_t\). The self-financing portfolio has
+diffusion term
+\[
+\Delta_t\sigma S_t\dd W_t.
+\]
+It\^o's formula gives the option diffusion term
+\[
+\sigma S_tu_s(t,S_t)\dd W_t.
+\]
+Matching them yields
+\[
+\boxed{\Delta_t=u_s(t,S_t).}
+\]
+For a Black--Scholes call,
+\[
+\boxed{\Delta_t^{\mathrm{BS}}=\Ncdf(d_1(t,S_t)).}
+\]
+\begin{marketbox}
+The PDE enforces the drift; delta neutralizes the random stock exposure.
+Pricing and hedging are two consequences of the same model.
+\end{marketbox}
+\end{frame}
+
+\begin{frame}{A delta hedge must be rebalanced}
+For a call, delta moves between \(0\) and \(1\):
+\[
+\Delta^{\mathrm{BS}}\approx0\quad\text{deep OTM},\qquad
+\Delta^{\mathrm{BS}}\approx1\quad\text{deep ITM}.
+\]
+\begin{pausebox}
+A call has \(S_0=100\), \(K=100\), \(r=0\), \(\sigma=20\%\), and \(T=1\).
+At inception, \(d_1=0.10\), so \(\Delta_0=\Phi(0.10)\approx0.54\).
+What position neutralizes the stock exposure of a short call?
+\end{pausebox}
+\pause
+\begin{exampleblock}{Answer}
+Hold approximately \(0.54\) shares per short call, and finance the residual
+position with cash. Rebalance after the stock, time, or model inputs change.
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{The same call has a different delta under local volatility}
+Under local volatility,
+\[
+\frac{\dd S_t}{S_t}=r\dd t+\sigma_{\mathrm{loc}}(t,S_t)\dd W_t^\Q.
+\]
+The price still solves a one-factor PDE, but with
+\[
+\tfrac12\sigma^2s^2u_{ss}
+\quad\longrightarrow\quad
+\tfrac12\sigma_{\mathrm{loc}}(t,s)^2s^2u_{ss}.
+\]
+The hedge remains formally
+\[
+\boxed{\Delta_t^{\mathrm{LV}}=u_s^{\mathrm{LV}}(t,S_t),}
+\]
+but generally
+\[
+\Delta_t^{\mathrm{LV}}\neq\Delta_t^{\mathrm{BS}}.
+\]
+\begin{simplificationbox}
+The payoff did not change. The price function changed, so the hedge changed.
+A delta is never model-free.
+\end{simplificationbox}
+\end{frame}
+
+\begin{frame}{A market quote does not eliminate the need for a model}
+A liquid vanilla call already has an observable market price. Why use a local
+volatility model for it?
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{What the market quote gives}
+Today's value of the option.
+\end{block}
+\column{0.48\textwidth}
+\begin{exampleblock}{What the model gives}
+A dynamic law, a price surface between quotes, and a hedge consistent with
+the observed smile.
+\end{exampleblock}
+\end{columns}
+\begin{marketbox}
+Local volatility calibrates the current vanilla surface; its delta reflects
+the smile information ignored by a flat-volatility Black--Scholes delta.
+\end{marketbox}
+\end{frame}
+
+\begin{frame}{Hedging P\&L is the test performed outside the model}
+Suppose an option is sold and hedged dynamically. At maturity,
+\[
+\boxed{\mathrm{P\&L}=\Pi_T-(S_T-K)^+.}
+\]
+\begin{center}
+\begin{tabular}{c|l}
+\toprule
+Source of nonzero P\&L & Why it remains\\
+\midrule
+Discrete trading & Rebalancing is not continuous\\
+Numerics and costs & Greeks are approximated; trading is not frictionless\\
+Model mismatch & The market does not follow the hedging model\\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{pausebox}
+Does a nonzero terminal P\&L prove that the delta formula was wrong?
+\end{pausebox}
+\pause
+\begin{exampleblock}{Answer}
+No. Discrete trading and model mismatch create P\&L even with a correct
+model delta.
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Model risk becomes visible under stochastic volatility}
+Imagine the market follows a Heston-type model,
+\[
+\frac{\dd S_t}{S_t}=r\dd t+\sqrt{V_t}\dd W_t^{(1)},\qquad
+\dd V_t=\kappa(\theta-V_t)\dd t+\eta\sqrt{V_t}\dd W_t^{(2)}.
+\]
+A Black--Scholes hedge ignores both smile and random variance. A
+local-volatility hedge incorporates today's smile, but still makes variance
+a deterministic function of time and spot.
+\begin{block}{What a simulation experiment compares}
+Simulate the same market paths, rebalance each hedge, then compare the
+distributions of their terminal P\&L: mean, dispersion, and tail losses.
+\end{block}
+\begin{marketbox}
+A more market-consistent model may improve hedging, but no model dominates
+for every contract, parameter set, or rebalancing frequency.
+\end{marketbox}
+\end{frame}
+
+\section{A lookback option: the path becomes a state variable}
+
+\begin{frame}{A lookback call remembers the highest stock level}
+A fixed-strike lookback call pays
+\[
+\boxed{(M_T-K)^+,\qquad M_T=\max_{0\leq u\leq T}S_u.}
+\]
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{Vanilla call}
+\[
+(S_T-K)^+.
+\]
+Only the terminal stock price matters.
+\end{block}
+\column{0.48\textwidth}
+\begin{exampleblock}{Lookback call}
+\[
+(M_T-K)^+.
+\]
+The whole price path matters through its running maximum.
+\end{exampleblock}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Same terminal stock, different path, different payoff}
+Take \(K=100\). Two paths both finish at \(S_T=100\):
+\[
+\begin{array}{c|c|c}
+\toprule
+\text{Path} & M_T & \text{Lookback payoff}\\
+\midrule
+A & 120 & (120-100)^+=20\\
+B & 105 & (105-100)^+=5\\
+\bottomrule
+\end{array}
+\]
+\begin{pausebox}
+Which piece of information is missing if we know only \(S_T=100\)?
+\end{pausebox}
+\pause
+\begin{exampleblock}{Answer}
+The running maximum. The current or terminal spot alone cannot summarize a
+path-dependent payoff.
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{State augmentation makes the path-dependent problem Markov}
+At time \(t\), define
+\[
+M_t=\max_{0\leq u\leq t}S_u.
+\]
+The correct state is
+\[
+\boxed{(t,S_t,M_t),\qquad S_t\leq M_t.}
+\]
+The pricing function becomes
+\[
+\boxed{
+u(t,s,m)=\E^\Q\!\left[
+e^{-r(T-t)}(M_T-K)^+\mid S_t=s,\ M_t=m
+\right].}
+\]
+\begin{marketbox}
+The full past is not stored. We retain only the smallest path statistic that
+matters for the future payoff.
+\end{marketbox}
+\end{frame}
+
+\begin{frame}{The running maximum changes only at a new record}
+\begin{center}
+\begin{tabular}{c|c|c}
+\toprule
+Current state & Next stock move & What happens to \(M\)?\\
+\midrule
+\(S_t<M_t\) & small move below \(M_t\) & \(M\) stays fixed\\
+\(S_t=M_t\) & stock moves down & \(M\) stays fixed\\
+\(S_t=M_t\) & stock moves up & \(M\) increases with the stock\\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{block}{Why this complicates a PDE}
+The state domain is \(s\leq m\), and the diagonal \(s=m\) carries a special
+boundary condition. The extra variable is not an independent Brownian factor;
+it is a constrained path functional.
+\end{block}
+\end{frame}
+
+\begin{frame}{Path dependence makes model choice more consequential}
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{Vanilla option}
+The payoff depends mainly on the terminal distribution of \(S_T\). Liquid
+vanillas constrain that distribution directly.
+\end{block}
+\column{0.48\textwidth}
+\begin{alertblock}{Lookback option}
+The payoff depends on hitting high levels along the way. Different models can
+fit vanillas today yet assign different probabilities to those path events.
+\end{alertblock}
+\end{columns}
+\begin{marketbox}
+For exotics, model risk is not merely a question of the current smile. It is
+a question about future path dynamics.
+\end{marketbox}
+\end{frame}
+
+\begin{frame}{Pricing a lookback option requires richer numerical state}
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{Monte Carlo}
+Simulate \(S\) path by path, update
+\[
+M_{t_{n+1}}=\max\{M_{t_n},S_{t_{n+1}}\},
+\]
+then discount the terminal payoff.
+\end{block}
+\column{0.48\textwidth}
+\begin{exampleblock}{PDE approach}
+Solve for \(u(t,s,m)\) on the constrained domain \(s\leq m\), with a
+special condition on the record boundary \(s=m\).
+\end{exampleblock}
+\end{columns}
+\begin{simplificationbox}
+A monitoring grid can miss extrema between dates. For a lookback, this
+discretization choice directly affects the payoff and hedge.
+\end{simplificationbox}
+\end{frame}
+
+\begin{frame}{The lookback delta depends on history as well as spot}
+The hedge is still a sensitivity to the tradable stock:
+\[
+\Delta_t^{\mathrm{LB}}=u_s(t,S_t,M_t).
+\]
+\begin{pausebox}
+Two contracts have the same \(t\) and \(S_t=105\). Contract A has
+\(M_t=120\), contract B has \(M_t=108\). Should their deltas generally be
+identical?
+\end{pausebox}
+\pause
+\begin{exampleblock}{Answer}
+No. The established maximum changes the remaining payoff opportunity. The
+delta must reflect both spot and the historical record \(M_t\).
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Exotics turn model error into hedging error faster}
+For a lookback hedge, terminal P\&L reflects the usual sources of error plus
+path-specific ones:
+\[
+\begin{array}{c|l}
+\toprule
+\text{Risk} & \text{Effect}\\
+\midrule
+Smile dynamics & changes probabilities of future records\\
+Volatility dynamics & changes the frequency of extreme moves\\
+Monitoring frequency & can miss a short-lived maximum\\
+Delta interpolation & is needed on the enlarged state grid\\
+\bottomrule
+\end{array}
+\]
+\begin{marketbox}
+The model used for an exotic should be stress-tested against the scenarios
+that drive its path functional, not only against vanilla prices.
+\end{marketbox}
+\end{frame}
+
+\section{Stochastic rates add a hedging factor}
+
+\begin{frame}{Random rates make discounting and the state variable random}
+Let \(r_t\) be a stochastic short rate. Even for a payoff \(g(S_T)\),
+\[
+\boxed{
+u(t,s,r)=\E^\Q\!\left[
+e^{-\int_t^T r_u\dd u}g(S_T)\mid S_t=s,\ r_t=r
+\right].}
+\]
+\begin{block}{What changed?}
+The state is now \((t,S_t,r_t)\). Rates affect the discount factor, the
+risk-neutral drift of the stock, and potentially the correlation structure.
+\end{block}
+\end{frame}
+
+\begin{frame}{Stock delta alone does not span an independent rate shock}
+Suppose the market has two Brownian sources: one stock-related and one
+rate-related.
+\begin{center}
+\begin{tabular}{c|c|c}
+\toprule
+Traded position & Stock risk & Rate risk\\
+\midrule
+Stock & yes & possibly partial\\
+Cash account & no diffusion exposure & no diffusion exposure\\
+Zero-coupon bond & rate sensitivity & yes\\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{pausebox}
+Can stock plus cash perfectly hedge an option exposed to an independent rate
+factor?
+\end{pausebox}
+\pause
+\begin{alertblock}{No}
+Cash does not add a new Brownian exposure. A rate-sensitive risky instrument,
+such as a bond or swap, is needed to hedge an independent rate factor.
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{The natural two-factor hedge is stock plus bond plus cash}
+Choose a zero-coupon bond \(P(t,T^\star)\) and form
+\[
+\Pi_t=\phi_tS_t+\psi_tP(t,T^\star)+\beta_tB_t.
+\]
+If stock and bond exposures span the two Brownian directions, choose
+\(\phi_t,\psi_t\) to solve
+\[
+\begin{pmatrix}
+\Gamma_S^{(1)} & \Gamma_P^{(1)}\\
+\Gamma_S^{(2)} & \Gamma_P^{(2)}
+\end{pmatrix}
+\begin{pmatrix}\phi_t\\ \psi_t\end{pmatrix}
+=
+\begin{pmatrix}\Gamma_u^{(1)}\\ \Gamma_u^{(2)}\end{pmatrix}.
+\]
+\begin{marketbox}
+Exact local replication is possible when this exposure matrix has full rank.
+The cash account then matches the value and drift.
+\end{marketbox}
+\end{frame}
+
+\begin{frame}{Stochastic rates do not automatically imply incompleteness}
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{exampleblock}{Complete case}
+Every relevant Brownian risk is spanned by traded assets, for example stock
+and a sufficiently sensitive bond in a two-factor setting.
+\end{exampleblock}
+\column{0.48\textwidth}
+\begin{alertblock}{Incomplete case}
+There are more risk factors than independent traded exposures, for example
+stock plus cash but an independent short-rate factor.
+\end{alertblock}
+\end{columns}
+\begin{pausebox}
+What determines completeness: whether rates are random, or whether tradable
+assets span the risk factors?
+\end{pausebox}
+\pause
+\begin{exampleblock}{Answer}
+Spanning. Random rates enlarge the hedging problem, but they do not by
+themselves prevent exact replication.
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{In an incomplete market, hedging is risk management}
+When perfect replication is unavailable, the objective becomes:
+\begin{enumerate}
+  \item hedge stock sensitivity with the stock;
+  \item hedge rate sensitivity with bonds, swaps, or futures;
+  \item monitor and limit the residual, unspanned P\&L.
+\end{enumerate}
+\begin{block}{A useful distinction}
+\[
+\text{complete market: replication determines price}
+\]
+\[
+\text{incomplete market: model and risk criterion select a hedge}
+\]
+\end{block}
+\begin{marketbox}
+The complete-market benchmark remains valuable: it identifies which missing
+instruments or risk factors create the residual error.
+\end{marketbox}
+\end{frame}
+
+\section{Takeaways}
+
+\begin{frame}{Three case studies, one common lesson}
+\begin{center}
+\begin{tabular}{p{0.24\textwidth}|p{0.30\textwidth}|p{0.29\textwidth}}
+\toprule
+Case & New source of complexity & Consequence for hedging\\
+\midrule
+Vanilla call & model choice & delta is model dependent\\
+Lookback option & path dependence & state and delta include the running maximum\\
+Stochastic rates & extra rate factor & stock hedge must be complemented by bonds\\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{marketbox}
+As contracts or models add state variables, the hedge must account for the
+new sources of risk or accept residual P\&L.
+\end{marketbox}
+\end{frame}
+
+\begin{frame}{Final check: judge the hedge where it will be used}
+\begin{pausebox}
+A desk calibrates a model perfectly to today's vanilla smile, then hedges a
+one-year lookback option daily. Which additional questions should it ask
+before trusting a small model price error?
+\end{pausebox}
+\pause
+\begin{exampleblock}{Answer}
+Does the model generate plausible future smile and path dynamics? How large
+are P\&L tails under alternative models and monitoring grids? Can the
+required Greeks be hedged with liquid instruments?
+\end{exampleblock}
+\vfill
+\begin{center}
+{\large\color{CourseBlue}\bfseries A model price is a starting point; hedging P\&L is the operational test.}
+\end{center}
+\end{frame}
+
+\end{document}

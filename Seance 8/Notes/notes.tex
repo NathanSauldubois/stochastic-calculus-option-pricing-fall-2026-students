@@ -1,0 +1,828 @@
+% !TEX program = pdflatex
+\documentclass[10pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[margin=0.72in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,array}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage[most]{tcolorbox}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{CourseBlue}{HTML}{1A3C68}
+\definecolor{CourseGreen}{HTML}{216E39}
+\definecolor{CourseGold}{HTML}{B8860B}
+\definecolor{CourseRed}{HTML}{9A2C2C}
+\definecolor{SoftBlue}{HTML}{F2F6FA}
+\definecolor{SoftGreen}{HTML}{F1F8F3}
+\definecolor{SoftGold}{HTML}{FFF8E8}
+\definecolor{SoftRed}{HTML}{FFF3F3}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.32em}
+\setlist[itemize]{leftmargin=1.5em,itemsep=0.12em,topsep=0.2em}
+\setlist[enumerate]{leftmargin=1.7em,itemsep=0.12em,topsep=0.2em}
+\allowdisplaybreaks
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Stochastic Calculus and Option Pricing}
+\rhead{Lecture 8 Notes}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+
+\newcommand{\E}{\mathbb E}
+\newcommand{\Pp}{\mathbb P}
+\newcommand{\Q}{\mathbb Q}
+\newcommand{\R}{\mathbb R}
+\newcommand{\1}{\mathbf 1}
+\newcommand{\cF}{\mathcal F}
+\newcommand{\dd}{\,\mathrm d}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{proposition}[definition]{Proposition}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{corollary}[definition]{Corollary}
+\newtheorem{remark}[definition]{Remark}
+
+\newtcolorbox{boardexample}[1]{
+  enhanced,breakable,colback=SoftBlue,colframe=CourseBlue,
+  boxrule=0.55pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.55em,after skip=0.55em,
+  title={Example --- #1},fonttitle=\bfseries}
+\newtcolorbox{studentexercise}[1]{
+  enhanced,breakable,colback=SoftGold,colframe=CourseGold,
+  boxrule=0.55pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.55em,after skip=0.35em,
+  title={Exercise --- #1},fonttitle=\bfseries}
+\newtcolorbox{shortsolution}[1][]{
+  enhanced,breakable,colback=SoftGreen,colframe=CourseGreen,
+  boxrule=0.55pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.25em,after skip=0.6em,
+  title={Short solution#1},fonttitle=\bfseries}
+\newtcolorbox{keyidea}[1]{
+  enhanced,breakable,colback=white,colframe=CourseGreen,
+  boxrule=0.7pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.5em,after skip=0.5em,
+  title={#1},fonttitle=\bfseries}
+\newtcolorbox{warningbox}[1]{
+  enhanced,breakable,colback=SoftRed,colframe=CourseRed,
+  boxrule=0.65pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.5em,after skip=0.5em,
+  title={#1},fonttitle=\bfseries}
+\newtcolorbox{assumptionbox}[1]{
+  enhanced,breakable,colback=SoftGold,colframe=CourseGold,
+  boxrule=0.65pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.5em,after skip=0.5em,
+  title={#1},fonttitle=\bfseries}
+
+\title{\textbf{No-Arbitrage Principles and the Fundamental Theorems of Asset Pricing}\\
+\large Lecture 8 Notes --- Dominance, Replication, and the Architecture Behind Martingale Pricing}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-1.4em}
+
+\begin{keyidea}{Goals and logical structure}
+Lecture 7 fixed an equivalent martingale measure \(\Q\) and used it to price and
+hedge. Lecture 8 asks where \(\Q\) comes from, and how much can be said before
+any model is chosen at all:
+\[
+\begin{aligned}
+\text{dominance (one payoff at least as large)}
+&\longrightarrow \text{law of one price (identical payoffs)}\\
+&\longrightarrow \text{replication pricing}\\
+&\longrightarrow \text{equivalent martingale measures and state prices}\\
+&\longrightarrow \text{the Fundamental Theorems (existence, uniqueness)}\\
+&\longrightarrow \text{superhedging bounds when replication fails.}
+\end{aligned}
+\]
+Every inequality or identity below is derived from an explicit trade: what is
+bought, what is sold, what is the cashflow today, and what is the payoff at
+maturity. No probability distribution is used until Section~5.
+\end{keyidea}
+
+% ============================================================
+\section{A Formal Language for No-Arbitrage}
+% ============================================================
+
+\subsection{One-period markets and trading strategies}
+
+To state the Fundamental Theorems precisely it helps to work, for a moment,
+in the simplest possible setting: one period, finitely many states.
+
+\begin{definition}[One-period market]
+Fix a finite set of states \(\Omega=\{\omega_1,\ldots,\omega_K\}\), each with
+\(\Pp(\omega_k)>0\), and traded assets \(S^0,S^1,\ldots,S^m\) with time-\(0\)
+prices \(S_0^0,\ldots,S_0^m\) and time-\(T\) payoffs
+\(S_T^0(\omega),\ldots,S_T^m(\omega)\). Asset \(S^0\) is the money-market
+account, \(S_0^0=1\), \(S_T^0(\omega)=R>0\) in every state.
+\end{definition}
+
+\begin{definition}[Trading strategy]
+A trading strategy is a vector \(\theta=(\theta^0,\theta^1,\ldots,\theta^m)\in\R^{m+1}\),
+with time-\(0\) value
+\[
+V_0(\theta)=\sum_{i=0}^m\theta^iS_0^i,
+\]
+and time-\(T\) value
+\[
+V_T(\theta,\omega)=\sum_{i=0}^m\theta^iS_T^i(\omega).
+\]
+\end{definition}
+
+This is deliberately the discrete skeleton of the self-financing strategies
+of Lectures~6--7: no rebalancing is needed in one period, so \(\theta\) is
+simply a static portfolio.
+
+\subsection{Two equivalent notions of arbitrage}
+
+\begin{definition}[Arbitrage]
+A trading strategy \(\theta\) is an arbitrage if either
+\begin{itemize}
+  \item[(i)] \(V_0(\theta)=0\), \(V_T(\theta,\omega)\geq0\) for every
+        \(\omega\in\Omega\), and \(V_T(\theta,\omega)>0\) for at least one
+        \(\omega\); or
+  \item[(ii)] \(V_0(\theta)<0\) and \(V_T(\theta,\omega)\geq0\) for every
+        \(\omega\in\Omega\).
+\end{itemize}
+A market is arbitrage-free if no such \(\theta\) exists.
+\end{definition}
+
+Type (i) is a strategy that costs nothing today and sometimes pays off
+strictly positively; type (ii) is a strategy that is \emph{paid} to enter and
+never loses money later. Economically these describe the same pathology, and
+the next proposition makes this precise.
+
+\begin{proposition}[Equivalence of the two definitions]
+If a type-(ii) arbitrage exists, then a type-(i) arbitrage also exists.
+\end{proposition}
+
+\begin{proof}
+Let \(\theta\) satisfy \(V_0(\theta)<0\) and \(V_T(\theta,\cdot)\geq0\).
+Augment the strategy with \(-V_0(\theta)>0\) units of the bond \(S^0\),
+purchased at time \(0\). The augmented strategy costs
+\[
+V_0(\theta)+\bigl(-V_0(\theta)\bigr)=0
+\]
+today, and its terminal value is \(V_T(\theta,\omega)\) plus a strictly
+positive bond payoff \(R\cdot\bigl(-V_0(\theta)\bigr)>0\) in every state, so
+it is strictly positive everywhere. This is a type-(i) arbitrage.
+\end{proof}
+
+\begin{remark}
+The converse direction is immediate: a type-(i) arbitrage already has
+\(V_0(\theta)=0\), which trivially satisfies the weak inequality
+\(V_0(\theta)\leq0\) used to motivate type (ii). In what follows we use
+whichever formulation is more convenient for a given argument.
+\end{remark}
+
+% ============================================================
+\section{The Dominance Principle}
+% ============================================================
+
+\subsection{Statement and proof}
+
+\begin{proposition}[Dominance]
+Let \(A\) and \(B\) be payoffs at the same maturity \(T\), with current
+prices \(a\) and \(b\). If
+\[
+A\geq B\quad\text{in every state of the world,}
+\]
+then no-arbitrage requires
+\[
+\boxed{a\geq b.}
+\]
+\end{proposition}
+
+\begin{proof}
+Suppose instead \(a<b\). Buy the claim paying \(A\) for \(a\) and sell the
+claim paying \(B\) for \(b\). The time-\(0\) cashflow is
+\[
+b-a>0,
+\]
+and the time-\(T\) payoff is
+\[
+A-B\geq0
+\]
+in every state. This is a type-(ii) arbitrage in the sense of
+Definition~1.3 with the roles of ``buy'' and ``sell'' reversed to make the
+initial cashflow negative; equivalently, it is exactly the trade
+constructed there. Contradiction.
+\end{proof}
+
+\begin{remark}
+Dominance holds contract by contract, state by state. No model, no
+probability distribution, and no measure enter this argument: it is the
+most elementary monotonicity statement about prices,
+\[
+\text{larger payoff}\quad\Longrightarrow\quad\text{larger price.}
+\]
+\end{remark}
+
+\subsection{Applications of dominance}
+
+\begin{boardexample}{calls are monotone decreasing in the strike}
+Fix strikes \(K_1<K_2\), same underlying, same maturity. Since
+\[
+(S_T-K_1)^+\geq(S_T-K_2)^+
+\]
+in every state, dominance gives
+\[
+\boxed{C_t(K_1)\geq C_t(K_2)\quad\text{whenever }K_1<K_2.}
+\]
+No model of the stock's distribution was used: a lower strike can never be
+the cheaper call.
+\end{boardexample}
+
+\begin{boardexample}{default risk cannot make a bond more expensive}
+A government bond pays \(\$1\) at \(T\) for certain. A corporate bond pays
+\(\$1\) at \(T\) if the issuer does not default, and a recovery amount
+\(R_{\mathrm{rec}}<1\) if it does. The corporate payoff is \(\leq1\) in every
+state, matching the government bond exactly in the no-default state, so
+dominance gives
+\[
+\boxed{\text{price(corporate bond)}\leq\text{price(government bond)}.}
+\]
+\end{boardexample}
+
+\begin{proposition}[Convexity of the call price in the strike]
+Fix \(K-h<K<K+h\) with \(h>0\). Then
+\[
+\boxed{C_t(K)\leq\tfrac12\bigl(C_t(K-h)+C_t(K+h)\bigr).}
+\]
+\end{proposition}
+
+\begin{proof}
+Consider the \emph{butterfly} portfolio: long one call at \(K-h\), long one
+call at \(K+h\), short two calls at \(K\). Its terminal payoff is
+\[
+f(S_T)=(S_T-K+h)^++(S_T-K-h)^+-2(S_T-K)^+.
+\]
+Compute \(f\) on each region:
+\begin{itemize}
+  \item \(S_T\leq K-h\): all three terms vanish, \(f(S_T)=0\);
+  \item \(K-h<S_T\leq K\): \(f(S_T)=(S_T-K+h)-0-0=S_T-K+h\in[0,h)\);
+  \item \(K<S_T\leq K+h\): \(f(S_T)=(S_T-K+h)-0-2(S_T-K)=h-(S_T-K)\in(0,h]\);
+  \item \(S_T>K+h\): \(f(S_T)=(S_T-K+h)+(S_T-K-h)-2(S_T-K)=0\).
+\end{itemize}
+In every case \(f(S_T)\geq0\), so this payoff dominates the zero payoff.
+Dominance applied against the claim that pays nothing gives
+\[
+C_t(K-h)+C_t(K+h)-2C_t(K)\geq0,
+\]
+which rearranges to the claimed inequality.
+\end{proof}
+
+\begin{warningbox}{Convexity violations are static, model-free arbitrages}
+If quoted prices violate \(C_t(K)\leq\tfrac12(C_t(K-h)+C_t(K+h))\), the
+butterfly portfolio above is bought for a strictly negative cost and its
+payoff is never negative: an explicit arbitrage, independent of any pricing
+model. Section~9 works a numerical instance of this.
+\end{warningbox}
+
+% ============================================================
+\section{The Law of One Price}
+% ============================================================
+
+\begin{corollary}[Law of one price]
+If two self-financing strategies with wealth processes \(X\) and \(Y\)
+satisfy \(X_T=Y_T\) almost surely, then
+\[
+\boxed{X_0=Y_0.}
+\]
+\end{corollary}
+
+\begin{proof}
+Apply dominance in both directions: \(X_T\geq Y_T\) gives \(X_0\geq Y_0\),
+and \(Y_T\geq X_T\) gives \(Y_0\geq X_0\). Equivalently: if \(X_0\neq Y_0\),
+buy the cheaper strategy and sell the more expensive one; the time-\(0\)
+cashflow is nonzero while the time-\(T\) payoff is identically zero, a
+type-(ii) arbitrage.
+\end{proof}
+
+\subsection{Replication pricing}
+
+\begin{remark}[The bridge to Lecture 7]
+If a payoff \(H\) is replicated by a self-financing strategy with initial
+cost \(X_0\), the law of one price forces
+\[
+\boxed{V_0(H)=X_0.}
+\]
+Everything called ``martingale pricing'' in Lecture~7 is this statement,
+combined with a convenient way of computing \(X_0\) as a conditional
+expectation under an equivalent martingale measure. That measure is
+constructed in Sections~5--7.
+\end{remark}
+
+\begin{boardexample}{put--call parity, rebuilt without a model}
+At maturity \(T\), with strike \(K\), compare:
+\[
+\text{Portfolio 1: one call}+K\text{ zero-coupon bonds},
+\qquad
+\text{Portfolio 2: one put}+\text{one share}.
+\]
+Their terminal payoffs are
+\[
+\text{Portfolio 1: }(S_T-K)^++K=\max(S_T,K),
+\qquad
+\text{Portfolio 2: }(K-S_T)^++S_T=\max(S_T,K).
+\]
+These coincide in every state, so the law of one price gives
+\[
+\boxed{C_t+Ke^{-r(T-t)}=P_t+S_t.}
+\]
+Put--call parity is not a Black--Scholes formula: it is the law of one price
+applied to a static replication, valid in any arbitrage-free model.
+\end{boardexample}
+
+\begin{studentexercise}{the box spread}
+Fix \(K_1<K_2\) and consider the box
+\[
+\text{long }C(K_1),\ \text{short }C(K_2),\ \text{long }P(K_2),\ \text{short }P(K_1).
+\]
+Compute the terminal payoff for \(S_T\leq K_1\), for \(K_1<S_T\leq K_2\), and
+for \(S_T>K_2\). What identity follows from the law of one price?
+\end{studentexercise}
+\begin{shortsolution}
+In every region,
+\[
+(S_T-K_1)^+-(S_T-K_2)^++(K_2-S_T)^+-(K_1-S_T)^+=K_2-K_1,
+\]
+a constant. The box replicates a deterministic cashflow, so the law of one
+price applied against a zero-coupon bond gives
+\[
+\boxed{
+\bigl[C_t(K_1)-C_t(K_2)\bigr]+\bigl[P_t(K_2)-P_t(K_1)\bigr]
+=(K_2-K_1)e^{-r(T-t)}.}
+\]
+This is put--call parity written at both strikes and subtracted: a
+model-free identity linking four quoted option prices.
+\end{shortsolution}
+
+% ============================================================
+\section{Application: Pricing a Forward Contract by Replication}
+% ============================================================
+
+\subsection{No dividends}
+
+A forward delivering one share at \(T\) for a fixed delivery price \(K_t\)
+pays \(S_T-K_t\) at maturity. Replicate this payoff statically: buy one share
+(cost \(S_t\)) and sell \(K_t\) zero-coupon bonds paying \(1\) at \(T\)
+(receive \(K_tP_t(T)\)):
+\[
+\text{cost}=S_t-K_tP_t(T).
+\]
+A forward is entered at zero cost in equilibrium, so the law of one price
+forces
+\[
+S_t-K_tP_t(T)=0
+\quad\Longrightarrow\quad
+\boxed{K_t=\frac{S_t}{P_t(T)}.}
+\]
+If the short rate is constant \(r\), then \(P_t(T)=e^{-r(T-t)}\) and
+\[
+\boxed{K_t=S_te^{r(T-t)}.}
+\]
+
+\begin{boardexample}{a one-year forward}
+With \(S_t=100\), \(r=5\%\), and one year to maturity,
+\[
+K_t=100\,e^{0.05\times1}\approx\boxed{105.13.}
+\]
+No probability, no volatility, no distribution of \(S_T\) entered this
+calculation: the forward price only reflects the cost of carrying the
+position to \(T\).
+\end{boardexample}
+
+\subsection{Continuous dividend yield}
+
+\begin{studentexercise}{forward price with dividends}
+Suppose the share pays a continuous dividend yield \(q\). Reinvesting
+dividends turns \(e^{-q(T-t)}\) shares held today into exactly one share at
+\(T\). Use this prepaid-forward idea, and the no-dividend formula above, to
+find the delivery price \(K_t\).
+\end{studentexercise}
+\begin{shortsolution}
+Buying \(e^{-q(T-t)}\) shares today costs \(S_te^{-q(T-t)}\) and delivers
+exactly one share at \(T\). Replacing \(S_t\) by this prepaid cost in the
+no-dividend formula gives
+\[
+\boxed{K_t=F_{t,T}=S_te^{(r-q)(T-t)}.}
+\]
+The same replication logic as the no-dividend case, applied to the correct
+prepaid asset, reproduces the formula used operationally in Lecture~7
+without appealing to risk-neutral dynamics.
+\end{shortsolution}
+
+% ============================================================
+\section{From No-Arbitrage to a Probability Measure}
+% ============================================================
+
+\begin{definition}[Equivalent martingale measure]
+A probability measure \(\Q\) is an equivalent martingale measure (EMM) for
+the money-market numeraire if
+\begin{itemize}
+  \item \(\Q\sim\Pp\), so \(\Q\) and \(\Pp\) have the same null events;
+  \item every discounted traded asset price is a \(\Q\)-(local) martingale.
+\end{itemize}
+\end{definition}
+
+This is exactly the role played by \(\Q\) in Black--Scholes: under \(\Q\),
+the discounted stock price \(D_tS_t\) is a martingale, and Girsanov is the
+tool that manufactures \(\Q\) from \(\Pp\) by changing the drift.
+
+\begin{remark}[Why equivalence, and not just any probability measure]
+Suppose a state \(\omega\) is genuinely possible under \(\Pp\)
+(\(\Pp(\omega)>0\)), but a candidate measure assigns \(Q(\omega)=0\). A claim
+paying \(1\) only in state \(\omega\) would be priced at \(0\) under \(Q\),
+even though it can genuinely cost the seller money. Equivalence is what
+makes ``\(\Q\)-almost surely'' and ``\(\Pp\)-almost surely'' the same
+statement, so a \(\Q\)-martingale price is a meaningful economic price and
+not an artifact of ignoring a real state of the world.
+\end{remark}
+
+% ============================================================
+\section{The First Fundamental Theorem of Asset Pricing}
+% ============================================================
+
+\begin{theorem}[FTAP I --- informal]
+A financial market is arbitrage-free if and only if there exists an
+equivalent martingale measure \(\Q\), under which every discounted traded
+asset price is a \(\Q\)-(local) martingale:
+\[
+\boxed{
+\text{no arbitrage}
+\quad\Longleftrightarrow\quad
+\text{an EMM exists}.}
+\]
+\end{theorem}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.18}
+\begin{tabular}{@{}ll@{}}
+\toprule
+Economic statement & Probabilistic statement\\
+\midrule
+No free lunch from trading & An equivalent martingale measure exists\\
+Prices are internally consistent & Discounted traded gains have no drift under \(\Q\)\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The theorem lets us replace a combinatorial search for arbitrage strategies
+by an algebraic search for a consistent set of probabilities.
+
+\subsection{A binomial illustration}
+
+\begin{boardexample}{is this one-period market arbitrage-free?}
+One period, one stock, one bond: \(S_0=100\), up factor \(u=1.2\), down
+factor \(d=0.8\), gross risk-free return \(R=1.1\). The martingale condition
+\(pu+(1-p)d=R\) gives
+\[
+p=\frac{R-d}{u-d}=\frac{1.1-0.8}{1.2-0.8}=\boxed{0.75.}
+\]
+Since \(0<p<1\), a genuine probability exists: the market is arbitrage-free.
+In general, a valid \(p\in(0,1)\) exists if and only if \(d<R<u\): the
+risk-free return must sit strictly between the worst and best stock returns.
+\end{boardexample}
+
+\begin{boardexample}{when the bond dominates the stock outright}
+Keep \(S_0=100\), \(u=1.2\), \(d=0.8\), but now \(R=1.25>u\), so
+\(d<u<R\) and no valid \(p\in(0,1)\) exists. Short one share (receive
+\(100\)), invest the proceeds at \(R=1.25\):
+\[
+\text{bond payoff}=125.
+\]
+Buy back the share at \(S_T\in\{120,80\}\):
+\[
+\text{profit}=125-S_T\in\{5,45\}.
+\]
+Strictly positive profit in every state, from a zero-cost trade: exactly the
+arbitrage that FTAP I predicts must exist whenever no EMM can be found.
+\end{boardexample}
+
+\subsection{State prices: an equivalent algebraic viewpoint}
+
+\begin{definition}[State prices]
+In a one-period market with states \(\omega_1,\ldots,\omega_K\), a vector
+\(\psi=(\psi_1,\ldots,\psi_K)\) of \emph{state prices} satisfies
+\[
+S_0^i=\sum_{k=1}^K\psi_kS_T^i(\omega_k)
+\qquad\text{for every traded asset }i.
+\]
+\end{definition}
+
+\begin{proposition}[State prices and no-arbitrage]
+A one-period market with given prices is arbitrage-free if and only if there
+exists a state-price vector \(\psi\) with \(\psi_k>0\) for every \(k\).
+\end{proposition}
+
+This is the same statement as Theorem~6.1, in different units: setting
+\(p_k=\psi_kR\) turns a positive state-price vector into a genuine
+risk-neutral probability vector, and conversely.
+
+\begin{boardexample}{state prices from a bond and a stock}
+Bond paying \(1\) in both states, priced at \(B_0=1/1.1\approx0.9091\); stock
+with \(S_0=100\), payoffs \(120\) (up) and \(90\) (down). Solve
+\[
+\psi_1+\psi_2=0.9091,
+\qquad
+120\psi_1+90\psi_2=100
+\]
+to get
+\[
+\boxed{\psi_1\approx0.6061,\ \ \psi_2\approx0.3030.}
+\]
+Both are positive, so this price system is arbitrage-free. Rescaling by the
+bond return recovers the familiar risk-neutral probability:
+\[
+p=\psi_1R=0.6061\times1.1\approx\tfrac23,
+\qquad
+\tfrac23(120)+\tfrac13(90)=110=100\times1.1.
+\]
+\end{boardexample}
+
+\begin{boardexample}{a negative state price signals an arbitrage}
+Keep the same bond and stock payoffs, but now suppose the stock is quoted at
+\(S_0=115\). Solving
+\[
+\psi_1+\psi_2=0.9091,
+\qquad
+120\psi_1+90\psi_2=115
+\]
+gives
+\[
+\psi_1\approx1.106,
+\qquad
+\psi_2\approx-0.197.
+\]
+No positive solution exists: \(S_0=115\) is too high relative to the payoffs
+and the bond.
+\end{boardexample}
+
+\begin{warningbox}{reading a negative state price}
+FTAP I in one line: existence of an arbitrage-free price system is exactly
+existence of a strictly positive solution to the pricing equations. A
+negative ``price'' is the algebraic signature of an arbitrage, and it
+translates directly into a trade: sell the overpriced stock, and hold the
+bond and cash instead.
+\end{warningbox}
+
+% ============================================================
+\section{The Second Fundamental Theorem of Asset Pricing}
+% ============================================================
+
+\begin{theorem}[FTAP II --- informal]
+In an arbitrage-free market, the market is complete (every claim is
+replicable) if and only if the equivalent martingale measure is unique:
+\[
+\boxed{
+\text{market complete}
+\quad\Longleftrightarrow\quad
+\text{EMM unique}.}
+\]
+\end{theorem}
+
+\begin{itemize}
+  \item Unique EMM \(\Longrightarrow\) every replicable claim has one
+        unambiguous price.
+  \item Several EMMs \(\Longrightarrow\) no-arbitrage alone leaves a range of
+        admissible prices for unreplicable claims.
+\end{itemize}
+
+\begin{boardexample}{one bond and one stock cannot pin down three states}
+One period, one bond (\(R=1.1\)), one stock with \(S_0=100\) and three
+possible terminal values \(S_T\in\{130,100,70\}\) (states \(u,m,d\)). A
+risk-neutral probability must satisfy
+\[
+p_u+p_m+p_d=1,
+\qquad
+1.3p_u+1.0p_m+0.7p_d=1.1,
+\]
+two equations for three unknowns. Writing \(p_m=t\),
+\[
+p_u=\tfrac23-\tfrac12t,
+\qquad
+p_d=\tfrac13-\tfrac12t,
+\qquad
+t\in\bigl(0,\tfrac23\bigr)
+\]
+gives infinitely many valid probability vectors. Two traded assets cannot
+span three states: exactly the FTAP II statement that this market is
+incomplete, so the EMM is not unique.
+\end{boardexample}
+
+\begin{boardexample}{different EMMs price an unreplicable claim differently}
+Take \(t=0.2\) and \(t=0.4\) in the family above:
+\[
+t=0.2:\ (p_u,p_m,p_d)=(0.5667,\,0.2,\,0.2333),
+\qquad
+t=0.4:\ (0.4667,\,0.4,\,0.1333).
+\]
+Consider a claim paying \(1\) only in the middle state \(m\). Its price is
+\(p_m/R\) under each measure:
+\[
+\frac{0.2}{1.1}\approx0.182,
+\qquad
+\frac{0.4}{1.1}\approx0.364.
+\]
+Two legitimate EMMs, two different prices: no-arbitrage alone cannot select
+one.
+\end{boardexample}
+
+\begin{boardexample}{a third traded asset restores completeness}
+Suppose the market also quotes a call struck at \(100\) on the same stock,
+with payoffs \((30,0,0)\) in states \((u,m,d)\) and observed price
+\(C_0\approx13.64\). Its pricing equation depends only on \(p_u\):
+\[
+\frac{30\,p_u}{1.1}=13.64
+\quad\Longrightarrow\quad
+p_u=0.5.
+\]
+Substituting into \(p_u=\tfrac23-\tfrac12t=0.5\) gives \(t=\tfrac13\), hence
+\[
+\boxed{(p_u,p_m,p_d)=\bigl(\tfrac12,\ \tfrac13,\ \tfrac16\bigr),}
+\]
+a single, uniquely determined EMM. The payoff vectors of the bond
+\((1,1,1)\), the stock \((1.3,1.0,0.7)\), and the call \((30,0,0)\) are
+linearly independent: three genuinely different exposures for three states.
+\end{boardexample}
+
+\begin{remark}
+Completeness is about spanning payoffs, not about counting traded assets.
+This is literally why traders add options to a hedging book: a derivative
+with a payoff the existing assets cannot replicate expands the span of
+attainable claims, exactly as FTAP II predicts.
+\end{remark}
+
+% ============================================================
+\section{Superhedging and Price Bounds}
+% ============================================================
+
+\begin{definition}[Superhedge and subhedge]
+A self-financing strategy with wealth \(X\) \emph{superhedges} a claim \(H\)
+if \(X_T\geq H\) almost surely. A strategy with wealth \(Y\)
+\emph{subhedges} \(H\) if \(Y_T\leq H\) almost surely.
+\end{definition}
+
+By dominance,
+\[
+\boxed{Y_0\leq V_0(H)\leq X_0}
+\]
+for every subhedge \(Y\) and superhedge \(X\). When \(X_T=H\) exactly, the
+upper and lower bounds coincide and \(V_0(H)=X_0\): exact replication is the
+special case in which superhedging and subhedging meet.
+
+\begin{boardexample}{call bounds from parity and positivity}
+From Section~3, \(C_t-P_t=S_t-Ke^{-r(T-t)}\). Combine this with \(P_t\geq0\)
+and \((S_T-K)^+\leq S_T\) to get, with no distributional assumption at all,
+\[
+\boxed{
+\bigl(S_t-Ke^{-r(T-t)}\bigr)^+\leq C_t\leq S_t.}
+\]
+\end{boardexample}
+
+\begin{studentexercise}{bounding a best-of-two-stocks claim}
+Let \(H=\max(S_T^1,S_T^2)\). Find a subhedging portfolio using a single
+stock, and a superhedging portfolio using both stocks. What price bounds
+follow?
+\end{studentexercise}
+\begin{shortsolution}
+Since \(\max(a,b)\geq a\) and \(\max(a,b)\geq b\), holding stock \(i\) alone
+subhedges:
+\[
+S_t^i\leq V_t(H)\quad\text{for }i=1,2
+\quad\Longrightarrow\quad
+\max(S_t^1,S_t^2)\leq V_t(H).
+\]
+Since \(\max(a,b)\leq a+b\) for \(a,b\geq0\), holding both stocks
+superhedges: \(V_t(H)\leq S_t^1+S_t^2\). Hence
+\[
+\boxed{
+\max(S_t^1,S_t^2)\leq V_t(H)\leq S_t^1+S_t^2.}
+\]
+Two static portfolios, zero modeling assumptions, a genuine price corridor.
+\end{shortsolution}
+
+\subsection{Bounding a digital option with call spreads}
+
+A digital pays \(H=\1_{\{S_T>K\}}\). Only the market's call prices
+\(C_t(\cdot)\) are used, no closed form.
+
+For small \(h>0\), consider the scaled bull spread
+\[
+\text{spread}(S_T)=\frac{(S_T-K)^+-(S_T-(K+h))^+}{h}
+=\begin{cases}
+0,&S_T\leq K,\\[2pt]
+(S_T-K)/h,&K<S_T<K+h,\\[2pt]
+1,&S_T\geq K+h.
+\end{cases}
+\]
+On \((K,K+h)\) the spread is strictly below \(1\) while the digital already
+equals \(1\); elsewhere the two agree. So the spread never exceeds the
+digital, and dominance gives the lower bound
+\[
+\boxed{
+\frac{C_t(K)-C_t(K+h)}{h}\leq\text{price}\bigl(\1_{\{S_T>K\}}\bigr).}
+\]
+
+\begin{studentexercise}{the matching superhedge}
+Repeat the argument with the bull spread struck at \(K-h\) and \(K\)
+instead of \(K\) and \(K+h\). What inequality do you get?
+\end{studentexercise}
+\begin{shortsolution}
+The spread
+\(\bigl[(S_T-(K-h))^+-(S_T-K)^+\bigr]/h\) dominates the digital everywhere
+by the symmetric argument, giving the upper bound. Combining both,
+\[
+\boxed{
+\frac{C_t(K)-C_t(K+h)}{h}
+\leq
+\text{price}\bigl(\1_{\{S_T>K\}}\bigr)
+\leq
+\frac{C_t(K-h)-C_t(K)}{h}.}
+\]
+As \(h\to0\), both bounds converge to \(-\partial_KC_t(t,K)\), the classical
+model-free relationship between digital prices and the slope of the call
+price curve in the strike.
+\end{shortsolution}
+
+% ============================================================
+\section{Guided Practice and Final Synthesis}
+% ============================================================
+
+\begin{studentexercise}{diagnose an arbitrage from raw quotes}
+Same maturity, same stock, three quoted calls:
+\[
+C_t(90)=14,\qquad C_t(100)=12,\qquad C_t(110)=7.
+\]
+Check monotonicity in the strike, then check convexity in the strike. If a
+principle from this lecture is violated, construct the explicit trade and
+its guaranteed profit.
+\end{studentexercise}
+\begin{shortsolution}
+Monotonicity: \(14>12>7\), consistent with dominance. Convexity: the
+butterfly bound requires
+\[
+C_t(100)\leq\tfrac12\bigl(C_t(90)+C_t(110)\bigr)=\tfrac12(14+7)=10.5,
+\]
+but the quote is \(12>10.5\): the middle strike is overpriced relative to
+the wings. Buy \(C_t(90)\) and \(C_t(110)\), sell two units of \(C_t(100)\):
+\[
+\text{cost}=14+7-2(12)=-3,
+\]
+a receipt of \(\$3\) today, with terminal payoff the butterfly tent, which is
+\(\geq0\) in every state. Cash today, no possible loss at maturity: exactly
+the type-(ii) arbitrage from Definition~1.3.
+\end{shortsolution}
+
+\begin{keyidea}{Four ideas, stacked in order}
+\begin{enumerate}
+  \item \textbf{No-arbitrage principles} (dominance, law of one price) rule
+        out inconsistent prices, with no model.
+  \item \textbf{Replication} gives an exact price whenever a payoff can be
+        synthesized from traded assets.
+  \item \textbf{Equivalent martingale measures} turn no-arbitrage into a
+        pricing rule.
+  \item \textbf{Completeness} determines whether that computation returns one
+        price or only a range.
+\end{enumerate}
+\end{keyidea}
+
+\begin{keyidea}{Five checks before trusting a claimed no-arbitrage price}
+\begin{enumerate}
+  \item Is the comparison payoff actually dominating, in \emph{every} state?
+  \item Is the replicating strategy genuinely self-financing?
+  \item Is the candidate pricing measure equivalent to \(\Pp\), not merely a
+        probability measure?
+  \item Is the EMM unique for this market, or only for the traded assets?
+  \item If replication fails, have you produced \emph{both} a superhedge and
+        a subhedge, not just one?
+\end{enumerate}
+\end{keyidea}
+
+\begin{keyidea}{Final synthesis}
+\[
+\boxed{
+\text{no-arbitrage}
+\quad\Longleftrightarrow\quad
+\text{martingale pricing under a suitable measure.}}
+\]
+Lecture~7 \emph{used} an EMM to price and hedge; Lecture~8 explains its
+existence (FTAP I), its uniqueness (FTAP II), and the bounds available without
+replication. Dominance, replication, and the FTAP are the same idea at four
+levels of abstraction.
+\end{keyidea}
+
+\end{document}

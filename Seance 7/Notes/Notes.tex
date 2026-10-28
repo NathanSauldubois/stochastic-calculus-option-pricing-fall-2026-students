@@ -1,0 +1,1349 @@
+% !TEX program = pdflatex
+\documentclass[10pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[margin=0.72in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,array}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage[most]{tcolorbox}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{CourseBlue}{HTML}{1A3C68}
+\definecolor{CourseGreen}{HTML}{216E39}
+\definecolor{CourseGold}{HTML}{B8860B}
+\definecolor{CourseRed}{HTML}{9A2C2C}
+\definecolor{SoftBlue}{HTML}{F2F6FA}
+\definecolor{SoftGreen}{HTML}{F1F8F3}
+\definecolor{SoftGold}{HTML}{FFF8E8}
+\definecolor{SoftRed}{HTML}{FFF3F3}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.32em}
+\setlist[itemize]{leftmargin=1.5em,itemsep=0.12em,topsep=0.2em}
+\setlist[enumerate]{leftmargin=1.7em,itemsep=0.12em,topsep=0.2em}
+\allowdisplaybreaks
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Stochastic Calculus and Option Pricing}
+\rhead{Lecture 7 Notes}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+
+\newcommand{\E}{\mathbb E}
+\newcommand{\Pp}{\mathbb P}
+\newcommand{\Q}{\mathbb Q}
+\newcommand{\R}{\mathbb R}
+\newcommand{\1}{\mathbf 1}
+\newcommand{\cF}{\mathcal F}
+\newcommand{\dd}{\,\mathrm d}
+\newcommand{\Nlaw}{\mathcal N}
+\newcommand{\esssup}{\operatorname*{ess\,sup}}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\rank}{rank}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{proposition}[definition]{Proposition}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{corollary}[definition]{Corollary}
+\newtheorem{remark}[definition]{Remark}
+
+\newtcolorbox{boardexample}[1]{
+  enhanced,breakable,colback=SoftBlue,colframe=CourseBlue,
+  boxrule=0.55pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.55em,after skip=0.55em,
+  title={Example --- #1},fonttitle=\bfseries}
+\newtcolorbox{studentexercise}[1]{
+  enhanced,breakable,colback=SoftGold,colframe=CourseGold,
+  boxrule=0.55pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.55em,after skip=0.35em,
+  title={Exercise --- #1},fonttitle=\bfseries}
+\newtcolorbox{shortsolution}[1][]{
+  enhanced,breakable,colback=SoftGreen,colframe=CourseGreen,
+  boxrule=0.55pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.25em,after skip=0.6em,
+  title={Short solution#1},fonttitle=\bfseries}
+\newtcolorbox{keyidea}[1]{
+  enhanced,breakable,colback=white,colframe=CourseGreen,
+  boxrule=0.7pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.5em,after skip=0.5em,
+  title={#1},fonttitle=\bfseries}
+\newtcolorbox{warningbox}[1]{
+  enhanced,breakable,colback=SoftRed,colframe=CourseRed,
+  boxrule=0.65pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.5em,after skip=0.5em,
+  title={#1},fonttitle=\bfseries}
+\newtcolorbox{assumptionbox}[1]{
+  enhanced,breakable,colback=SoftGold,colframe=CourseGold,
+  boxrule=0.65pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
+  before skip=0.5em,after skip=0.5em,
+  title={#1},fonttitle=\bfseries}
+
+\title{\textbf{Martingale Pricing, Hedging, and No-Arbitrage}\\
+\large Lecture 7 Notes --- From Martingale Prices to Replication and Market Completeness}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-1.4em}
+
+\begin{keyidea}{Goals and logical structure}
+Lecture 6 constructed the pricing measure. Lecture 7 follows one chain:
+\[
+\begin{aligned}
+\text{risk-neutral stock dynamics}
+&\longrightarrow \text{discounted self-financing gains and }\Q\text{-prices}\\
+&\longrightarrow \text{dividend-paying call replication under }\Pp\\
+&\longrightarrow \text{dividend-adjusted pricing and a new numeraire}\\
+&\longrightarrow \text{martingale hedges and two-risk spanning}\\
+&\longrightarrow \text{completeness and path dependence}\\
+&\longrightarrow \text{It\^o, Girsanov, reflection, and stopping-time revision}.
+\end{aligned}
+\]
+The recurring discipline is to separate four questions: which numeraire is
+used, under which measure the discounted gains are martingales, whether the
+claim is replicable, and whether the relevant local martingales are true
+martingales.
+\end{keyidea}
+
+% ============================================================
+\section{The Risk-Neutral Starting Point}
+% ============================================================
+
+\subsection{The five-line bridge from Lecture 6}
+
+For the constant-coefficient stock model under \(\Pp\), let
+\(\lambda=(\mu-r)/\sigma\). The preceding lecture ended with the chain
+\[
+Z_t=e^{-\lambda W_t^{\Pp}-\lambda^2t/2},\qquad
+\frac{\dd\Q}{\dd\Pp}\bigg|_{\cF_T}=Z_T,\qquad
+W_t^{\Q}=W_t^{\Pp}+\lambda t,
+\]
+\[
+\frac{\dd S_t}{S_t}=r\dd t+\sigma\dd W_t^{\Q},\qquad
+\dd(e^{-rt}S_t)=\sigma e^{-rt}S_t\dd W_t^{\Q}.
+\]
+The density changes probabilities; the last expression identifies a
+stochastic integral. Its true-martingale status needs a separate
+integrability argument.
+
+For now, use the money-market account \(B^{(0)}\) as the numeraire. Under
+its equivalent martingale measure, discounted traded prices or total
+gains are \(\Q\)-local martingales; under the conditions used for
+valuation, they are true martingales. We change numeraire after treating
+dividends.
+
+\subsection{Why the discounted stock is a local martingale}
+
+For a non-dividend-paying stock under the risk-neutral measure, suppose
+\[
+\dd S_t=r_tS_t\dd t+\sigma_tS_t\dd W_t^\Q,
+\qquad
+D_t=\exp\left(-\int_0^t r_u\dd u\right).
+\]
+The product rule removes the drift:
+\[
+\boxed{
+D_tS_t=S_0+\int_0^tD_u\sigma_uS_u\dd W_u^\Q.}
+\]
+A well-defined stochastic integral with respect to Brownian motion is a
+local martingale. This statement by itself does not assert that the
+discounted price is a true martingale; that requires an additional
+integrability argument.
+
+The stock is now a local martingale after discounting. We next show how
+self-financing gains lead to a conditional-expectation price whenever a
+portfolio replicates a payoff.
+
+% ============================================================
+\section{Self-Financing Leads to Martingale Prices}
+% ============================================================
+
+We first derive the martingale valuation identity for any replicating
+self-financing strategy. We will then construct such a strategy explicitly
+for a call on a dividend-paying stock.
+
+\subsection{Discounted self-financing gains}
+
+Let the money-market account be
+\[
+B_t^{(0)}=\exp\left(\int_0^t r_u\dd u\right),
+\qquad
+D_t=\frac{1}{B_t^{(0)}}.
+\]
+For this derivation, suppose the risky assets pay no dividends. Consider
+\(S^1,\ldots,S^m\) and a predictable strategy
+\(\phi=(\phi^0,\phi^1,\ldots,\phi^m)\) with wealth
+\[
+X_t=\phi_t^0B_t^{(0)}+\sum_{i=1}^m\phi_t^iS_t^i.
+\]
+The strategy is self-financing when
+\[
+\dd X_t=\phi_t^0\dd B_t^{(0)}
+        +\sum_{i=1}^m\phi_t^i\dd S_t^i.
+\]
+Define discounted prices
+\[
+\bar X_t=D_tX_t,
+\qquad
+\bar S_t^i=D_tS_t^i.
+\]
+
+\begin{proposition}[Discounted gain identity]
+For a self-financing strategy,
+\[
+\boxed{\dd\bar X_t=\sum_{i=1}^m\phi_t^i\dd\bar S_t^i.}
+\]
+Equivalently,
+\[
+\bar X_t=\bar X_0+\sum_{i=1}^m
+\int_0^t\phi_u^i\dd\bar S_u^i.
+\]
+\end{proposition}
+
+\begin{proof}
+Since \(D\) has finite variation,
+\[
+\dd(D_tX_t)=D_t\dd X_t+X_t\dd D_t,
+\qquad
+\dd D_t=-r_tD_t\dd t.
+\]
+Use \(\dd B_t^{(0)}=r_tB_t^{(0)}\dd t\) and
+\(\phi_t^0B_t^{(0)}=X_t-\sum_i\phi_t^iS_t^i\). The financing terms cancel,
+leaving precisely the discounted risky-asset gains.
+\end{proof}
+
+\begin{studentexercise}{recover the cancellation in one dimension}
+For \(X_t=\Delta_tS_t+\beta_tB_t^{(0)}\), start from
+\(\dd X_t=\Delta_t\dd S_t+\beta_t\dd B_t^{(0)}\) and derive
+\(\dd(D_tX_t)=\Delta_t\dd(D_tS_t)\).
+\end{studentexercise}
+\begin{shortsolution}
+\[
+\begin{aligned}
+\dd(DX)
+&=D\Delta\dd S+D\beta rB^{(0)}\dd t-rDX\dd t\\
+&=\Delta(D\dd S-rDS\dd t)
+=\Delta\dd(DS).
+\end{aligned}
+\]
+The equality uses \(X=\Delta S+\beta B^{(0)}\). Discounting removes the
+cash account from the gain equation, not from the portfolio value.
+\end{shortsolution}
+
+\subsection{The martingale valuation identity}
+
+Fix an equivalent martingale measure \(\Q\) associated with the money-market
+numeraire. By definition, discounted traded gains are \(\Q\)-local
+martingales. Under the required admissibility and integrability assumptions,
+the discounted wealth of a self-financing strategy is a true martingale.
+
+\begin{theorem}[Pricing a replicable claim]
+Let \(H\) be \(\cF_T\)-measurable and suppose a self-financing strategy
+replicates it:
+\[
+X_T=H.
+\]
+If \(\bar X=DX\) is a true \(\Q\)-martingale, then its value is
+\[
+\boxed{
+V_t=X_t
+=B_t^{(0)}\E^\Q\left[\frac{H}{B_T^{(0)}}\middle|\cF_t\right]
+=\frac{1}{D_t}\E^\Q[D_TH\mid\cF_t].}
+\]
+When rates are deterministic,
+\[
+\boxed{
+V_t=\E^\Q\left[
+\exp\left(-\int_t^T r_u\dd u\right)H
+\middle|\cF_t\right].}
+\]
+\end{theorem}
+
+\begin{proof}
+The discounted gain identity makes \(D_tX_t\) a stochastic integral with
+respect to discounted traded martingales. Once it is a true martingale,
+\[
+D_tX_t=\E^\Q[D_TX_T\mid\cF_t]
+=\E^\Q[D_TH\mid\cF_t].
+\]
+Multiply by \(D_t^{-1}=B_t^{(0)}\).
+\end{proof}
+
+\begin{warningbox}{Local martingale is not enough}
+No drift is an algebraic statement; pricing by conditional expectation is an
+integrability statement. A discounted self-financing wealth process is first
+a local martingale. Admissibility, square integrability, nonnegativity, or a
+problem-specific argument is needed before asserting
+\(\bar X_t=\E^\Q[\bar X_T\mid\cF_t]\).
+\end{warningbox}
+
+\begin{boardexample}{a unit payoff and a terminal share}
+Assume constant \(r\) and no dividends. For \(H=1\),
+\[
+V_t=e^{-r(T-t)}.
+\]
+For \(H=S_T\),
+\[
+V_t=B_t^{(0)}
+\E^\Q\left[\frac{S_T}{B_T^{(0)}}\middle|\cF_t\right]
+=S_t,
+\]
+because \(S/B^{(0)}\) is a \(\Q\)-martingale. A payoff of one bank-account
+unit at \(T\) would instead cost \(B_t^{(0)}\). These values can also be
+read directly from their replicating portfolios.
+\end{boardexample}
+
+
+
+\subsection{The lognormal law, digitals, and stock-weighted tails}
+
+For a replicable integrable payoff \(H\), when discounted wealth is a
+true martingale, constant rates give
+\[
+\boxed{V_t=e^{-r(T-t)}\E^\Q[H\mid\cF_t].}
+\]
+Under \(\Q\), conditional on \(\cF_t\), the Brownian increment
+\(W_T^\Q-W_t^\Q\) is normal with mean zero and variance
+\(\tau=T-t\). Hence
+\[
+S_T=S_t\exp\!\left((r-\tfrac12\sigma^2)\tau
++\sigma(W_T^\Q-W_t^\Q)\right).
+\]
+Define
+\[
+d_2=\frac{\log(S_t/K)+(r-\sigma^2/2)\tau}{\sigma\sqrt\tau},
+\qquad d_1=d_2+\sigma\sqrt\tau.
+\]
+A cash-or-nothing digital paying
+\(\1_{\{S_T>K\}}\) has value
+\[
+\boxed{D_t=e^{-r\tau}\Q(S_T>K\mid\cF_t)
+=e^{-r\tau}\Phi(d_2).}
+\]
+A stock-or-nothing claim paying \(S_T\1_{\{S_T>K\}}\) has value
+\[
+\boxed{A_t=e^{-r\tau}\E^\Q[S_T\1_{\{S_T>K\}}\mid\cF_t]
+=S_t\Phi(d_1).}
+\]
+The second tail weights each outcome by its stock price. Completing the
+square in the normal density shifts the standardized cutoff by
+\(\sigma\sqrt\tau\), which is why it uses \(d_1\) instead of \(d_2\).
+Combining the two claims gives \(C_t=A_t-KD_t\). The dividend-paying
+replication argument below will give the corresponding result for \(q>0\).
+
+\subsection{Forwards and call decomposition}
+
+\begin{boardexample}{a forward payoff}
+For \(H=S_T-K\) and a non-dividend-paying stock,
+\[
+\begin{aligned}
+V_t
+&=e^{-r(T-t)}\E^\Q[S_T-K\mid\cF_t]\\
+&=S_t-Ke^{-r(T-t)}.
+\end{aligned}
+\]
+The delivery price that makes the contract worth zero is therefore
+\[
+\boxed{K_t=S_te^{r(T-t)}.}
+\]
+This is both a martingale calculation and the law-of-one-price value of
+\emph{one share minus a zero-coupon payment}.
+\end{boardexample}
+
+For a call,
+\[
+(S_T-K)^+=S_T\1_{\{S_T>K\}}-K\1_{\{S_T>K\}},
+\]
+so
+\[
+C_t=e^{-r(T-t)}
+\left(
+\E^\Q[S_T\1_{\{S_T>K\}}\mid\cF_t]
+-K\Q(S_T>K\mid\cF_t)
+\right).
+\]
+The first term is stock weighted; the second is a discounted cash tail. This
+explains structurally why the Black--Scholes formula contains two different
+normal terms.
+
+\begin{studentexercise}{value before formula}
+Let \(H=aS_T+bB_T^{(0)}\), where \(a,b\) are constants. Price the claim without
+computing any distribution.
+\end{studentexercise}
+\begin{shortsolution}
+The claim is already replicated by \(a\) shares and \(b\) bank-account units:
+\[
+\boxed{V_t=aS_t+bB_t^{(0)}.}
+\]
+The martingale identity gives the same result by linearity.
+\end{shortsolution}
+
+% ============================================================
+\section{Dividend Yield and Risk-Neutral Pricing}
+% ============================================================
+
+\subsection{Continuous dividends and total gains}
+
+If the stock pays a continuous dividend yield \(q_t\), one share earns the
+total gain
+\[
+\boxed{\dd G_t=\dd S_t+q_tS_t\dd t.}
+\]
+The ex-dividend price \(S_t\) excludes cash distributions. A holder of
+\(\Delta_t\) shares therefore earns \(\Delta_t\dd G_t\), not merely
+\(\Delta_t\dd S_t\). This distinction matters both for replication and for
+the martingale condition.
+
+\subsection{Replicate a dividend-paying call under the historical measure}
+
+Assume constant \(r,q,\sigma\), with \(\sigma>0\), and let \(\mu\) be the
+historical \emph{ex-dividend} price drift:
+\[
+\dd S_t=\mu S_t\dd t+\sigma S_t\dd W_t^{\Pp},
+\qquad \dd B_t=rB_t\dd t.
+\]
+Seek a smooth call value \(V_t=v(t,S_t)\) with
+\(v(T,s)=(s-K)^+\). It\^o's formula yields
+\[
+\dd v=\left(v_t+\mu S_tv_s+\tfrac12\sigma^2S_t^2v_{ss}\right)\dd t
+       +\sigma S_tv_s\dd W_t^{\Pp}.
+\]
+A self-financing portfolio holds \(\Delta_t\) shares and invests
+\(v(t,S_t)-\Delta_tS_t\) in the bank account. Its gain includes the
+stock's dividend cash flow:
+\[
+\boxed{
+\dd V_t=\Delta_t(\dd S_t+qS_t\dd t)
++r(V_t-\Delta_tS_t)\dd t.}
+\]
+Rebalancing the holdings is financed within the portfolio; no external
+cash is injected. Matching Brownian coefficients gives
+\(\Delta_t=v_s(t,S_t)\). Matching the drifts then gives
+\[
+ v_t+\mu s v_s+\tfrac12\sigma^2s^2v_{ss}
+ =\mu s v_s+qs v_s+r(v-sv_s).
+\]
+The historical drift cancels. The dividend-adjusted Black--Scholes
+replication PDE is
+\[
+\boxed{
+ v_t+\tfrac12\sigma^2s^2v_{ss}+(r-q)sv_s-rv=0,
+ \qquad v(T,s)=(s-K)^+.}
+\]
+A sufficiently regular solution with an admissible self-financing hedge
+replicates the call. No-arbitrage therefore identifies its price with
+\(v(t,S_t)\).
+
+\subsection{Prepaid shares, the pricing measure, and the call formula}
+
+For constant \(q\), a prepaid forward delivering one share at \(T\)
+without interim dividends is worth \(S_te^{-q(T-t)}\). Buy
+\(e^{-q(T-t)}\) shares now and reinvest the dividends: the holding reaches
+one share at \(T\). Consequently,
+\[
+\boxed{
+F_{t,T}=S_te^{(r-q)(T-t)},\qquad
+C_t-P_t=S_te^{-q(T-t)}-Ke^{-r(T-t)}.}
+\]
+
+The measure associated with the money-market numeraire has Brownian shift
+\[
+\lambda=\frac{\mu+q-r}{\sigma},\qquad
+Z_t=\exp(-\lambda W_t^{\Pp}-\tfrac12\lambda^2t),\qquad
+\frac{\dd\Q}{\dd\Pp}\bigg|_{\cF_T}=Z_T.
+\]
+Then \(W_t^{\Q}=W_t^{\Pp}+\lambda t\) is Brownian under \(\Q\), and
+\[
+\boxed{\frac{\dd S_t}{S_t}=(r-q)\dd t+\sigma\dd W_t^{\Q}.}
+\]
+In particular,
+\[
+\dd(D_tS_t)+D_tqS_t\dd t=D_t\sigma S_t\dd W_t^{\Q},
+\qquad D_t=e^{-rt}.
+\]
+Thus discounted \emph{total gains} are driftless, while the discounted
+ex-dividend price alone need not be a martingale.
+
+The Feynman--Kac representation of the replication PDE is
+\[
+ v(t,s)=e^{-r\tau}\E^{\Q}[(S_T-K)^+\mid S_t=s],
+ \qquad \tau=T-t.
+\]
+Conditional on \(S_t=s\), write
+\[
+S_T=s\exp\!\left((r-q-\tfrac12\sigma^2)\tau
+             +\sigma\sqrt\tau Z\right),
+\qquad Z\sim\Nlaw(0,1).
+\]
+Define
+\[
+d_2^q=\frac{\log(s/K)+(r-q-\sigma^2/2)\tau}{\sigma\sqrt\tau},
+\qquad d_1^q=d_2^q+\sigma\sqrt\tau.
+\]
+The Gaussian cash and stock tails are
+\[
+\Q(S_T>K\mid S_t=s)=\Phi(d_2^q),
+\qquad
+ e^{-r\tau}\E^\Q[S_T\1_{\{S_T>K\}}\mid S_t=s]
+ =se^{-q\tau}\Phi(d_1^q).
+\]
+Using \((S_T-K)^+=S_T\1_{\{S_T>K\}}-K\1_{\{S_T>K\}}\) yields the
+replicating value
+\[
+\boxed{C_t=S_te^{-q\tau}\Phi(d_1^q)-Ke^{-r\tau}\Phi(d_2^q).}
+\]
+The stock holding is the derivative of this solution:
+\[
+\boxed{\Delta_t=v_s(t,S_t)=e^{-q\tau}\Phi(d_1^q),}
+\qquad
+C_t-\Delta_tS_t=-Ke^{-r\tau}\Phi(d_2^q).
+\]
+When differentiating, the terms involving the normal density cancel because
+\(s e^{-q\tau}\varphi(d_1^q)=K e^{-r\tau}\varphi(d_2^q)\).
+This price solves the PDE with the call terminal payoff, and the displayed
+holdings implement the replication.
+
+\begin{studentexercise}{spot the wrong martingale}
+Under \(\Q\), suppose
+\(\dd S_t/S_t=(r-q)\dd t+\sigma\dd W_t^\Q\) with \(q>0\).
+Is \(e^{-rt}S_t\) a martingale? Identify the correct martingale object.
+\end{studentexercise}
+\begin{shortsolution}
+\[
+\frac{\dd(e^{-rt}S_t)}{e^{-rt}S_t}
+=-q\dd t+\sigma\dd W_t^\Q,
+\]
+so the discounted ex-dividend price is not a martingale. The discounted
+cum-dividend gain is driftless. With constant \(q\), the reinvested process
+\(e^{qt}S_t\), after discounting, is a local martingale.
+\end{shortsolution}
+
+% ============================================================
+\section{Changing the Numeraire}
+% ============================================================
+
+\subsection{A general numeraire}
+
+Let \(N\) be a strictly positive traded numeraire. Under its associated
+measure \(\Q^N\), prices expressed in units of \(N\) are martingales. A
+replicable payoff therefore satisfies
+\[
+\boxed{
+V_t=N_t\E^{\Q^N}\left[\frac{H}{N_T}\middle|\cF_t\right].}
+\]
+Changing numeraire changes both units and measure. It does not change the
+economic value \(V_t\).
+
+\begin{boardexample}{choose the numeraire that is already in the payoff}
+For \(H=cN_T\),
+\[
+V_t=N_t\E^{\Q^N}[c\mid\cF_t]=cN_t.
+\]
+The best numeraire can turn a random payoff into a constant ratio.
+\end{boardexample}
+
+\begin{warningbox}{Three formulas that should not be mixed}
+\[
+\begin{array}{ll}
+\text{money-market numeraire:}
+&V_t=B_t^{(0)}\E^\Q[H/B_T^{(0)}\mid\cF_t],\\[0.25em]
+\text{constant rate:}
+&V_t=e^{-r(T-t)}\E^\Q[H\mid\cF_t],\\[0.25em]
+\text{general numeraire:}
+&V_t=N_t\E^{\Q^N}[H/N_T\mid\cF_t].
+\end{array}
+\]
+The numeraire, measure, and discount factor are one matched package.
+\end{warningbox}
+
+% ============================================================
+\section{From Prices to Hedges: Martingale Representation}
+% ============================================================
+
+\subsection{The representation theorem}
+
+The conditional expectation gives a price process, but it does not yet state
+which assets to hold. Brownian martingale representation provides the missing
+link.
+
+\begin{theorem}[Martingale Representation Theorem]
+Let \((\cF_t)\) be the augmented filtration generated by a
+\(d\)-dimensional \(\Q\)-Brownian motion \(W^\Q\). If
+\(M\) is a square-integrable \(\Q\)-martingale, then there is a predictable
+process \(\psi_t\in\R^d\) such that
+\[
+\boxed{
+M_t=M_0+\int_0^t\psi_u^\top\dd W_u^\Q,
+\qquad
+\E^\Q\int_0^T\|\psi_u\|^2\dd u<\infty.}
+\]
+The integrand is unique up to
+\(\dd t\otimes\dd\Q\)-null sets.
+\end{theorem}
+
+For a claim \(H\), take
+\[
+M_t=\E^\Q[D_TH\mid\cF_t]=D_tV_t.
+\]
+The coefficient \(\psi_t\) records the exposure of the discounted claim to
+each Brownian shock.
+
+\begin{boardexample}{linear and quadratic terminal shocks}
+For \(H=W_T^\Q\),
+\[
+\E^\Q[H\mid\cF_t]=W_t^\Q
+=\int_0^t1\dd W_u^\Q.
+\]
+For \(H=(W_T^\Q)^2\),
+\[
+\E^\Q[H\mid\cF_t]=(W_t^\Q)^2+(T-t),
+\]
+and It\^o's formula gives
+\[
+\dd\bigl((W_t^\Q)^2+T-t\bigr)=2W_t^\Q\dd W_t^\Q.
+\]
+Thus the representation coefficient is \(1\) in the first example and
+\(2W_t^\Q\) in the second.
+\end{boardexample}
+
+\begin{studentexercise}{represent a cubic terminal shock}
+Find \(M_t=\E^\Q[(W_T^\Q)^3\mid\cF_t]\) and its representation coefficient.
+\end{studentexercise}
+\begin{shortsolution}
+Write \(W_T^\Q=W_t^\Q+Z\), where
+\(Z\sim\Nlaw(0,T-t)\) is independent of \(\cF_t\). Then
+\[
+M_t=(W_t^\Q)^3+3(T-t)W_t^\Q.
+\]
+Applying It\^o's formula,
+\[
+\boxed{
+\dd M_t=3\bigl((W_t^\Q)^2+T-t\bigr)\dd W_t^\Q.}
+\]
+The coefficient contains both the risk already observed and the variance
+still to come.
+\end{shortsolution}
+
+\subsection{One traded asset}
+
+Suppose the discounted stock satisfies
+\[
+\dd\bar S_t=\gamma_t\dd W_t^\Q,
+\qquad \gamma_t\neq0,
+\]
+and the discounted claim martingale satisfies
+\[
+\dd\bar V_t=\psi_t\dd W_t^\Q.
+\]
+A self-financing hedge holding \(\Delta_t\) shares obeys
+\[
+\dd\bar V_t=\Delta_t\dd\bar S_t
+=\Delta_t\gamma_t\dd W_t^\Q.
+\]
+Matching Brownian coefficients gives
+\[
+\boxed{\Delta_t=\frac{\psi_t}{\gamma_t}.}
+\]
+In the Black--Scholes model,
+\(\gamma_t=\sigma_t\bar S_t\), so
+\[
+\boxed{\Delta_t=\frac{\psi_t}{\sigma_t\bar S_t}.}
+\]
+
+If \(V_t=v(t,S_t)\) is smooth and Markov, It\^o's formula yields
+\[
+\psi_t=D_t\sigma_tS_tv_s(t,S_t),
+\]
+and therefore
+\[
+\boxed{\Delta_t=v_s(t,S_t).}
+\]
+The PDE delta and the martingale-representation hedge are the same object
+written in state coordinates and Brownian coordinates, respectively.
+
+% ============================================================
+\section{Two Brownian Risks and Market Completeness}
+% ============================================================
+
+\subsection{A call with an untraded sector state}
+
+Under the historical measure, interpret \(W^1\) as an AI-sector shock and
+\(W^2\) as a broad market shock. For classroom calculations suppose they
+are independent. This is a simplifying modeling assumption: empirical
+sector and market shocks may be correlated. Ask whether independence is
+plausible and how correlation would affect the two risk directions.
+
+Let the traded AI stock \(S\) and an untraded sector state \(Y\) satisfy
+\[
+\frac{\dd S_t}{S_t}
+=\mu(Y_t)\dd t+\sigma_1(Y_t)\dd W_t^1+\sigma_2\dd W_t^2,
+\qquad
+\dd Y_t=a(Y_t)\dd t+b(Y_t)\dd W_t^1,
+\]
+with \(\sigma_2\neq0\). The sector state changes the stock's volatility.
+For a vanilla call \(H=(S_T-K)^+\), its value is generally
+\(v(t,S_t,Y_t)\). It\^o's formula gives Brownian exposure
+\[
+\bigl(S\sigma_1v_s+bv_y,\;S\sigma_2v_s\bigr).
+\]
+Holding \(\Delta\) shares of \(S\) produces only
+\(\bigl(\Delta S\sigma_1,\Delta S\sigma_2\bigr)\).
+The common-market component forces \(\Delta=v_s\), leaving
+\(bv_y\) of sector exposure uncovered whenever it is nonzero.
+
+\begin{warningbox}{Why a second state is needed}
+If the stock coefficients were constant and the call value depended only
+on \(S_t\), then \(v_y=0\). Delta hedging that call would still work even
+though the stock had two Brownian terms. The example exposes
+incompleteness through the untraded sector state, not simply by counting
+two noises in the stock equation.
+\end{warningbox}
+
+\subsection{A second traded product and the rank condition}
+
+Suppose a second traded asset \(R\) has dynamics under \(\Pp\)
+\[
+\frac{\dd R_t}{R_t}
+=\nu(Y_t)\dd t+\eta_1(Y_t)\dd W_t^1+\eta_2(Y_t)\dd W_t^2.
+\]
+The holdings \((\Delta^S,\Delta^R)\) match the call's two shocks when
+\[
+\begin{pmatrix}S\sigma_1&R\eta_1\\S\sigma_2&R\eta_2\end{pmatrix}
+\begin{pmatrix}\Delta^S\\\Delta^R\end{pmatrix}
+=\begin{pmatrix}S\sigma_1v_s+bv_y\\S\sigma_2v_s\end{pmatrix}.
+\]
+If \(\sigma_1\eta_2-\sigma_2\eta_1\neq0\), the exposure matrix has full
+rank and this system has a unique solution. Under the usual
+integrability and admissibility conditions, full rank throughout the
+modeled Brownian filtration is the spanning mechanism behind market
+completeness: every suitable terminal claim can be replicated.
+
+\subsection{The matching martingale measure}
+
+The market-price-of-risk vector is determined by both traded assets:
+\[
+\begin{pmatrix}\sigma_1&\sigma_2\\\eta_1&\eta_2\end{pmatrix}
+\begin{pmatrix}\lambda_1\\\lambda_2\end{pmatrix}
+=\begin{pmatrix}\mu-r\\\nu-r\end{pmatrix}.
+\]
+Write \(W^\Pp=(W^{1,\Pp},W^{2,\Pp})^\top\) and
+\(\lambda=(\lambda_1,\lambda_2)^\top\). The density process and the
+terminal change of measure are
+\[
+\boxed{Z_t=\exp\!\left(-\int_0^t\lambda_u^\top\dd W_u^\Pp
+-\frac12\int_0^t\|\lambda_u\|^2\dd u\right),\qquad
+\frac{\dd\Q}{\dd\Pp}\bigg|_{\cF_T}=Z_T.}
+\]
+When \(Z\) is a true martingale, Girsanov gives
+\(\dd W_t^{i,\Q}=\dd W_t^{i,\Pp}+\lambda_i(t)\dd t\).
+Both discounted traded asset prices are then \(\Q\)-local martingales.
+For the call, subject to the valuation martingale conditions,
+\[
+V_t=e^{-r(T-t)}\E^\Q[(S_T-K)^+\mid\cF_t].
+\]
+The martingale representation of the discounted claim gives two Brownian
+coefficients. Matching them with the two traded exposures recovers the
+same hedge as replication under \(\Pp\).
+
+\subsection{Several assets: hedging is a linear system}
+
+Suppose \(m\) discounted risky assets are driven by \(d\) Brownian factors:
+\[
+\dd\bar S_t=\Gamma_t\dd W_t^\Q,
+\qquad
+\Gamma_t\in\R^{m\times d}.
+\]
+If the claim has representation
+\[
+\dd\bar V_t=\psi_t^\top\dd W_t^\Q,
+\qquad \psi_t\in\R^d,
+\]
+then holdings \(\phi_t\in\R^m\) replicate its Brownian exposure precisely
+when
+\[
+\boxed{\Gamma_t^\top\phi_t=\psi_t.}
+\]
+
+\begin{studentexercise}{solve a two-factor hedge}
+Let
+\[
+\Gamma=
+\begin{pmatrix}
+2&0\\
+1&3
+\end{pmatrix},
+\qquad
+\psi=
+\begin{pmatrix}
+4\\6
+\end{pmatrix}.
+\]
+Find the asset holdings \(\phi=(\phi_1,\phi_2)^\top\).
+\end{studentexercise}
+\begin{shortsolution}
+The hedge equation is
+\[
+\begin{pmatrix}2&1\\0&3\end{pmatrix}
+\begin{pmatrix}\phi_1\\\phi_2\end{pmatrix}
+=
+\begin{pmatrix}4\\6\end{pmatrix}.
+\]
+Hence \(\phi_2=2\) and \(\phi_1=1\). Both Brownian shocks are spanned.
+\end{shortsolution}
+
+\begin{keyidea}{Representation versus implementation}
+The MRT says every square-integrable Brownian martingale has a Brownian
+exposure \(\psi\). Market completeness asks whether traded assets can
+implement that exposure by solving \(\Gamma^\top\phi=\psi\). These are
+different statements.
+\end{keyidea}
+
+% ============================================================
+\subsection{Completeness is a spanning condition}
+
+\begin{definition}[Complete market]
+A market is complete on \([0,T]\) if every claim in the chosen admissible
+class can be replicated by a self-financing trading strategy.
+\end{definition}
+
+In a Brownian diffusion market, completeness is essentially a spanning
+condition. If the filtration has \(d\) independent Brownian risks and
+\[
+\rank(\Gamma_t)=d
+\quad
+\dd t\otimes\dd\Q\text{-almost everywhere},
+\]
+then every Brownian exposure \(\psi_t\in\R^d\) can be matched. Full column
+rank requires at least \(d\) sufficiently independent risky assets.
+
+The two-asset example above has full rank. Removing a spanning asset
+leaves a Brownian risk that traded prices do not constrain.
+
+\subsection{Incomplete markets and several martingale measures}
+
+Consider under \(\Pp\)
+\[
+\frac{\dd S_t}{S_t}
+=\mu\dd t+\sigma\dd W_t^1,
+\]
+while the filtration is generated by independent Brownian motions
+\((W^1,W^2)\). To make the discounted stock driftless, the first Brownian
+shift is fixed:
+\[
+\lambda_1=\frac{\mu-r}{\sigma}.
+\]
+The shift of \(W^2\) is not constrained by any traded asset. Different
+choices therefore produce different equivalent martingale measures.
+For a constant free shift \(\eta\), one such density is
+\[
+Z_T^\eta=\exp\!\left(-\lambda_1W_T^1-\eta W_T^2
+-\tfrac12(\lambda_1^2+\eta^2)T\right),\qquad
+\frac{\dd\Q^\eta}{\dd\Pp}\bigg|_{\cF_T}=Z_T^\eta.
+\]
+
+\begin{boardexample}{a nontraded claim reveals price ambiguity}
+Let \(H=(W_T^2)^2\). Under a pricing measure indexed by a constant
+\(\eta\), write
+\[
+W_t^{2,\Q^\eta}=W_t^2+\eta t.
+\]
+Then \(W_T^2=W_T^{2,\Q^\eta}-\eta T\), and
+\[
+\E^{\Q^\eta}[H]
+=T+\eta^2T^2.
+\]
+The stock does not constrain \(\eta\), so martingale measures disagree on
+the expectation of this nonreplicable claim. No-arbitrage alone does not
+select one price.
+\end{boardexample}
+
+\begin{warningbox}{Several distinctions matter}
+\begin{itemize}
+  \item Multiple EMMs signal incompleteness; they are not themselves an
+        arbitrage.
+  \item A particular claim can have the same expectation under every EMM
+        even when the market is incomplete.
+  \item Redundant assets can make portfolio holdings nonunique even when
+        attainable payoffs have unique prices.
+  \item Completeness is about spanning payoffs, not about counting portfolio
+        labels.
+\end{itemize}
+\end{warningbox}
+
+\subsection{Test the rank criterion}
+
+\begin{studentexercise}{rank, hedge, and ambiguity}
+Classify each case for two Brownian factors:
+\[
+\Gamma_1=
+\begin{pmatrix}1&0\\0&2\end{pmatrix},
+\qquad
+\Gamma_2=
+\begin{pmatrix}1&1\\2&2\end{pmatrix}.
+\]
+Which matrix spans every exposure? For \(\psi=(1,-1)^\top\), does a hedge
+exist in each case?
+\end{studentexercise}
+\begin{shortsolution}
+\(\Gamma_1\) has rank two, so every exposure is spanned; the hedge solves
+\(\Gamma_1^\top\phi=\psi\), giving
+\(\phi=(1,-1/2)^\top\). The matrix \(\Gamma_2\) has rank one. The range of
+\(\Gamma_2^\top\) is generated by \((1,1)^\top\), while
+\((1,-1)^\top\) is not in that space. Equivalently,
+\(\Gamma_2^\top\phi=(\phi_1+2\phi_2,\phi_1+2\phi_2)^\top\), so the second
+market cannot hedge this exposure.
+\end{shortsolution}
+
+% ============================================================
+\section{Asian Options and State Augmentation}
+% ============================================================
+
+We now return to the complete one-factor Black--Scholes model. Completeness
+settles price uniqueness; path dependence raises a different question about
+which state variables are needed to evaluate that price.
+
+\subsection{Markov structure is optional}
+
+If \(H=g(S_T)\) and \(S\) is Markov under \(\Q\), the conditional expectation
+can often be written as \(V_t=v(t,S_t)\). This makes PDE methods available.
+The pricing identity itself is more general:
+\[
+V_t=B_t^{(0)}
+\E^\Q\left[\frac{H}{B_T^{(0)}}\middle|\cF_t\right]
+\]
+still makes sense when \(H\) depends on the entire path or when the state is
+high-dimensional. Markov structure simplifies the representation of the
+conditional expectation; it is not the source of the pricing principle.
+
+\subsection{Path dependence changes the state, not the pricing principle}
+
+A fixed-strike arithmetic-average call has payoff
+\[
+H=\left(\frac1T\int_0^TS_u\dd u-K\right)^+.
+\]
+Two stock paths can have the same endpoint and different averages, so
+\(S_t\) alone does not contain enough information to value the claim.
+Nevertheless,
+\[
+\boxed{
+V_t=B_t^{(0)}
+\E^\Q\left[\frac{H}{B_T^{(0)}}\middle|\cF_t\right]}
+\]
+remains valid. Path dependence complicates the state and computation, not
+the martingale valuation identity.
+
+\begin{studentexercise}{same endpoint, different claim value}
+On \([0,1]\), compare the deterministic paths
+\[
+S_u^{(1)}=100,
+\qquad
+S_u^{(2)}=
+\begin{cases}
+140,&u<3/4,\\
+60,&3/4\leq u<1,\\
+100,&u=1.
+\end{cases}
+\]
+They have the same endpoint. Compare their arithmetic averages and explain
+why a terminal-state function \(v(t,S_t)\) cannot distinguish them.
+\end{studentexercise}
+\begin{shortsolution}
+The first average is \(100\). Ignoring the single endpoint, which has zero
+Lebesgue measure, the second average is
+\[
+\frac34(140)+\frac14(60)=120.
+\]
+For a strike between \(100\) and \(120\), the two paths generate different
+Asian payoffs despite having the same terminal stock value. Endpoint
+information alone cannot determine the running integral.
+\end{shortsolution}
+
+\subsection{The running integral restores Markov structure}
+
+Introduce
+\[
+\boxed{A_t=\int_0^tS_u\dd u,\qquad \dd A_t=S_t\dd t.}
+\]
+Then
+\[
+H=\left(\frac{A_T}{T}-K\right)^+,
+\]
+and the enlarged state is \((S_t,A_t)\). Under constant \(r,q,\sigma\),
+\[
+\frac{\dd S_t}{S_t}=(r-q)\dd t+\sigma\dd W_t^\Q,
+\qquad
+\dd A_t=S_t\dd t.
+\]
+The price may therefore be written
+\[
+v(t,s,a)
+=e^{-r(T-t)}
+\E^\Q\left[
+\left(\frac{A_T}{T}-K\right)^+
+\middle|S_t=s,\ A_t=a
+\right].
+\]
+
+\begin{proposition}[Two-state Asian PDE]
+Under the preceding assumptions, a sufficiently smooth value function solves
+\[
+\boxed{
+v_t+(r-q)sv_s+sv_a
++\frac12\sigma^2s^2v_{ss}-rv=0,}
+\]
+with terminal condition
+\[
+\boxed{v(T,s,a)=\left(\frac aT-K\right)^+.}
+\]
+\end{proposition}
+
+\begin{proof}
+Apply the two-dimensional It\^o formula:
+\[
+\dd v
+=\left(v_t+(r-q)sv_s+sv_a
++\frac12\sigma^2s^2v_{ss}\right)\dd t
++\sigma sv_s\dd W_t^\Q.
+\]
+Discounting and setting the drift to zero gives the PDE. There is no
+\(v_{aa}\) term because \(A\) has finite variation and no direct Brownian
+shock.
+\end{proof}
+
+\begin{warningbox}{Do not invent diffusion terms}
+The state has two coordinates but only one Brownian driver. Since
+\(\dd A_t=S_t\dd t\),
+\[
+\dd[A]_t=0,\qquad \dd[S,A]_t=0.
+\]
+State dimension and noise dimension are not the same thing.
+\end{warningbox}
+
+\subsection{Arithmetic, geometric, and discrete monitoring}
+
+For a geometric-average option,
+\[
+G_T=\exp\left(\frac1T\int_0^T\log S_u\dd u\right).
+\]
+In Black--Scholes, \(\log G_T\) is Gaussian because it is a linear functional
+of Brownian motion. This often yields a closed form. The arithmetic average
+is an integral of a lognormal process and generally has no elementary
+distribution.
+
+For monitoring dates \(t_1<\cdots<t_n\), define
+\[
+A_k=\sum_{j=1}^kS_{t_j}.
+\]
+Then
+\[
+A_{k+1}=A_k+S_{t_{k+1}},
+\qquad
+H=\left(\frac{A_n}{n}-K\right)^+.
+\]
+Between fixing dates, \(A_k\) is constant; at a fixing date, it jumps by the
+new observation. Dynamic programming therefore uses the state
+\((S_{t_k},A_k,k)\).
+
+\begin{boardexample}{Monte Carlo workflow for an arithmetic Asian call}
+For \(M\) simulated paths:
+\begin{enumerate}
+  \item simulate the stock under \(\Q\);
+  \item update the running sum or time integral along each path;
+  \item compute \(H^{(m)}\) at maturity;
+  \item estimate
+  \[
+  \widehat V_0=e^{-rT}\frac1M\sum_{m=1}^MH^{(m)};
+  \]
+  \item report a standard error
+  \[
+  e^{-rT}\frac{\widehat{\operatorname{sd}}(H)}{\sqrt M}.
+  \]
+\end{enumerate}
+Path dependence is computationally natural for simulation because the full
+path is generated anyway.
+\end{boardexample}
+
+\begin{studentexercise}{select the minimal state}
+For each payoff, propose a Markov state augmentation:
+\[
+\max_{0\leq u\leq T}S_u-K,\qquad
+\1_{\{\min_{0\leq u\leq T}S_u>L\}}(S_T-K)^+,\qquad
+\left(\frac1T\int_0^TS_u\dd u-K\right)^+.
+\]
+\end{studentexercise}
+\begin{shortsolution}
+Track respectively the running maximum
+\(M_t=\max_{u\leq t}S_u\), the running minimum
+\(m_t=\min_{u\leq t}S_u\) or a barrier-survival indicator, and the running
+integral \(A_t=\int_0^tS_u\dd u\). The state should summarize precisely the
+past information that the remaining payoff needs.
+\end{shortsolution}
+
+% ============================================================
+\section{Synthesis: Choosing the Right Route}
+% ============================================================
+
+\subsection{Choose the right concept before calculating}
+
+\begin{studentexercise}{diagnose six situations}
+Match each situation with the main concept it tests:
+\begin{enumerate}
+  \item discounted traded prices retain a nonzero drift under a candidate
+        measure;
+  \item two portfolios have identical terminal cashflows but different costs;
+  \item a claim's Brownian exposure is outside the span of \(\Gamma_t^\top\);
+  \item exercise is allowed before maturity;
+  \item a payoff depends on \(\int_0^TS_u\dd u\);
+  \item several equivalent martingale measures price a nontraded risk
+        differently.
+\end{enumerate}
+\end{studentexercise}
+\begin{shortsolution}
+\begin{enumerate}
+  \item the measure is not an EMM for the chosen numeraire;
+  \item law of one price and an arbitrage opportunity;
+  \item nonreplicability and market incompleteness;
+  \item optimal stopping and the Snell envelope;
+  \item path dependence and state augmentation;
+  \item incomplete-market price ambiguity.
+\end{enumerate}
+\end{shortsolution}
+
+\subsection{A complete martingale-pricing drill}
+
+\begin{studentexercise}{from payoff to hedge}
+Suppose \(r\) is constant and
+\[
+\dd\bar S_t=\sigma\bar S_t\dd W_t^\Q,\qquad \sigma>0.
+\]
+Let \(H\in L^2(\Q)\) be replicable and define
+\[
+M_t=\E^\Q[e^{-rT}H\mid\cF_t].
+\]
+Assume the MRT representation is
+\[
+\dd M_t=\psi_t\dd W_t^\Q.
+\]
+\begin{enumerate}
+  \item Write the claim price \(V_t\).
+  \item Find the number of stock shares in the hedge.
+  \item State the extra property that makes the hedge implementation valid.
+\end{enumerate}
+\end{studentexercise}
+\begin{shortsolution}
+\[
+\boxed{
+V_t=e^{rt}M_t
+=e^{-r(T-t)}\E^\Q[H\mid\cF_t].}
+\]
+Since \(M_t=e^{-rt}V_t=\bar V_t\),
+\[
+\dd\bar V_t=\psi_t\dd W_t^\Q
+=\Delta_t\sigma\bar S_t\dd W_t^\Q,
+\]
+so
+\[
+\boxed{\Delta_t=\frac{\psi_t}{\sigma\bar S_t}.}
+\]
+The Brownian exposure must be spanned by traded assets, and the strategy must
+be predictable, self-financing, admissible, and sufficiently integrable.
+\end{shortsolution}
+
+\subsection{Pricing checklist}
+
+\begin{keyidea}{Eight checks for every martingale-pricing problem}
+\begin{enumerate}
+  \item What is the numeraire and therefore the discount factor?
+  \item Under which measure are discounted traded gains martingales?
+  \item Is the relevant local martingale a true martingale?
+  \item Is the payoff replicable, or is some risk unspanned?
+  \item Which Brownian exposures appear in the MRT coefficient?
+  \item Do the traded assets span those exposures?
+  \item Which state variables summarize the remaining payoff?
+  \item Does exercise introduce an optimization over stopping times?
+\end{enumerate}
+\end{keyidea}
+
+\begin{keyidea}{Final synthesis}
+\begin{itemize}
+  \item Discounted self-financing wealth is a stochastic integral in
+        discounted traded gains.
+  \item Conditional expectation computes the value of a replicable claim
+        once a numeraire and its martingale measure are fixed.
+  \item The MRT reveals Brownian hedge exposures; the asset volatility matrix
+        determines whether those exposures can be traded.
+  \item Completeness is a spanning property. Unspanned risks may leave
+        several martingale measures and ambiguous values for nontraded claims.
+  \item American options replace one terminal expectation by optimal stopping
+        and a Snell envelope.
+  \item Asian options keep the same pricing identity but require an enlarged
+        state or path simulation.
+\end{itemize}
+\end{keyidea}
+
+% ============================================================
+\section{Revision Exercises: Lectures 2--6}
+
+Four exercises revisit tools needed throughout the course. Each question
+appears on a single slide with its short answer; the calculations below
+give the intermediate steps.
+
+\subsection{It\^o's formula for a nonlinear function}
+
+\begin{studentexercise}{the sine of an It\^o process}
+Let \(X_0=0\) and
+\[
+\dd X_t=(1+X_t)\dd t+(1+t)\dd W_t.
+\]
+Find the stochastic differential of \(Y_t=\sin(X_t)\), identifying the
+quadratic-variation correction.
+\end{studentexercise}
+\begin{shortsolution}
+For \(f(x)=\sin x\), we have \(f'(x)=\cos x\) and
+\(f''(x)=-\sin x\). The finite-variation drift contributes no quadratic
+variation, while
+\[
+\dd[X]_t=(1+t)^2\dd t.
+\]
+It\^o's formula therefore gives
+\[
+\begin{aligned}
+\dd\sin(X_t)
+&=f'(X_t)\dd X_t+\tfrac12f''(X_t)\dd[X]_t\\
+&=\boxed{\left[(1+X_t)\cos X_t
+ -\tfrac12(1+t)^2\sin X_t\right]\dd t
+ +(1+t)\cos X_t\dd W_t.}
+\end{aligned}
+\]
+The negative sine term is created by curvature and quadratic variation; it
+would be absent under the ordinary chain rule.
+\end{shortsolution}
+
+\subsection{Girsanov for a deterministic time-varying drift}
+
+\begin{studentexercise}{make the drifted process Brownian}
+Under \(\Pp\), let \(Y_0=0\) and
+\[
+\dd Y_t=(\alpha+\beta t)\dd t+\dd W_t,
+\qquad 0\leq t\leq T.
+\]
+Construct a density defining an equivalent measure \(\Q\) under which
+\(Y\) is Brownian. Explain why the density is a true martingale.
+\end{studentexercise}
+\begin{shortsolution}
+Set \(\theta_t=\alpha+\beta t\) and define
+\[
+Z_t=\exp\!\left(-\int_0^t\theta_s\dd W_s
+ -\tfrac12\int_0^t\theta_s^2\dd s\right),
+\qquad
+\frac{\dd\Q}{\dd\Pp}\bigg|_{\cF_T}=Z_T.
+\]
+The deterministic drift is square-integrable on every finite horizon:
+\[
+\int_0^T\theta_s^2\dd s
+=\alpha^2T+\alpha\beta T^2+\frac{\beta^2T^3}{3}<\infty.
+\]
+Thus Novikov's condition holds and \(Z\) is a true martingale. By
+Girsanov,
+\[
+W_t^\Q=W_t+\int_0^t\theta_s\dd s
+=W_t+\alpha t+\tfrac12\beta t^2
+\]
+is Brownian under \(\Q\). Since \(Y_0=0\), integration of the original
+SDE gives \(Y_t=W_t^\Q\), equivalently \(\dd Y_t=\dd W_t^\Q\).
+\end{shortsolution}
+
+\subsection{The maximum of Brownian motion with drift}
+
+\begin{studentexercise}{Girsanov plus reflection}
+Let
+\[
+M_T^\mu=\max_{0\leq s\leq T}(W_s+\mu s),
+\qquad T>0,\quad a>0.
+\]
+Use a change of measure and the reflection principle to compute
+\(\Pp(M_T^\mu\geq a)\). Check the result when \(\mu=0\).
+\end{studentexercise}
+\begin{shortsolution}
+Set \(X_t=W_t+\mu t\) and
+\[
+Z_T=\exp(-\mu W_T-\tfrac12\mu^2T),
+\qquad
+\frac{\dd\Q}{\dd\Pp}\bigg|_{\cF_T}=Z_T.
+\]
+Under \(\Q\), \(X\) is a standard Brownian motion. Rewriting the inverse
+density in terms of \(X_T\) gives
+\[
+\frac{\dd\Pp}{\dd\Q}\bigg|_{\cF_T}
+=\exp(\mu X_T-\tfrac12\mu^2T).
+\]
+Let \(\varphi_T(x)=(2\pi T)^{-1/2}e^{-x^2/(2T)}\) and
+\(M_T=\max_{s\leq T}X_s\) under \(\Q\). For \(x<a\), reflection at the first
+hit of \(a\) gives
+\[
+\Q(M_T\geq a,\ X_T\in\dd x)=\varphi_T(2a-x)\dd x.
+\]
+For \(x\geq a\), the event \(X_T\geq a\) already implies a hit. Therefore
+\[
+\begin{aligned}
+\Pp(M_T^\mu\geq a)
+=e^{-\mu^2T/2}\bigg[
+&\int_a^\infty e^{\mu x}\varphi_T(x)\dd x\\
++&\int_{-\infty}^a e^{\mu x}\varphi_T(2a-x)\dd x
+\bigg].
+\end{aligned}
+\]
+Completing the square in the first integral and substituting \(y=2a-x\)
+in the second gives
+\[
+\boxed{
+\Pp(M_T^\mu\geq a)
+=\Phi\!\left(\frac{\mu T-a}{\sqrt T}\right)
++e^{2\mu a}\Phi\!\left(\frac{-\mu T-a}{\sqrt T}\right).}
+\]
+Here \(\Phi\) is the standard normal CDF. When \(\mu=0\), the formula
+reduces to \(2[1-\Phi(a/\sqrt T)]\), as required by ordinary reflection.
+\end{shortsolution}
+
+\subsection{Stopping times versus times that use future information}
+
+\begin{studentexercise}{classify five random times}
+Use the Brownian filtration \((\cF_t)\). Fix \(T>0\) and \(a>0\). Decide
+which of the following are stopping times:
+\[
+\begin{array}{ll}
+\tau_a=\inf\{t\geq0:W_t\geq a\}, & T/2,\\[0.3em]
+\eta=\inf\{t\geq T/2:W_t=0\}, &
+\rho_T=\sup\{t\leq T:W_t=0\},\\[0.3em]
+\gamma_T=\operatorname*{arg\,max}_{0\leq s\leq T}W_s.&
+\end{array}
+\]
+\end{studentexercise}
+\begin{shortsolution}
+The first three are stopping times:
+\begin{itemize}
+  \item \(\{\tau_a\leq t\}
+  =\{\max_{0\leq s\leq t}W_s\geq a\}\in\cF_t\);
+  \item \(T/2\) is deterministic;
+  \item for \(t\geq T/2\), \(\{\eta\leq t\}\) says that the observed path
+        has a zero on \([T/2,t]\); for \(t<T/2\), the event is empty.
+\end{itemize}
+The last zero \(\rho_T\) and the time of the maximum \(\gamma_T\) are not
+stopping times: at a candidate time \(t<T\), one must inspect the remaining
+path to rule out a later zero or a higher value. The criterion throughout is
+\(\{\tau\leq t\}\in\cF_t\) for every \(t\).
+\end{shortsolution}
+
+\end{document}
