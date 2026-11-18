@@ -1,18 +1,17 @@
 % !TEX program = pdflatex
-\documentclass[10pt,aspectratio=169]{beamer}
-
+% Revised November 17, 2026: Girsanov recall and stochastic-rate replication.
+% Self-contained source: introduce cash flows and notation before valuation formulas.
+% Direct numerical pricing applications removed; retain definitions and derivations.
+\documentclass[handout,10pt,t,aspectratio=169]{beamer}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[english]{babel}
-\usepackage{lmodern}
-\usepackage{microtype}
-\usepackage{amsmath,amssymb,bm,mathtools}
-\usepackage{booktabs,array}
-
+\usepackage{lmodern,microtype,amsmath,amssymb,mathtools,booktabs,array}
+\usepackage{tikz,pgfplots}
+\usetikzlibrary{arrows.meta,positioning,calc}
+\pgfplotsset{compat=1.18}
 \usetheme[numbering=fraction,progressbar=frametitle]{metropolis}
-\setbeamertemplate{frame numbering}[fraction]
 \setbeamertemplate{navigation symbols}{}
-
 \definecolor{CourseBlue}{HTML}{1A3C68}
 \definecolor{CourseGreen}{HTML}{216E39}
 \definecolor{CourseGold}{HTML}{B8860B}
@@ -20,19 +19,15 @@
 \definecolor{SoftBlue}{HTML}{F2F6FA}
 \definecolor{SoftGreen}{HTML}{F1F8F3}
 \definecolor{SoftRed}{HTML}{FFF3F3}
-
 \setbeamercolor{normal text}{fg=black,bg=white}
 \setbeamercolor{structure}{fg=CourseBlue}
 \setbeamercolor{title}{fg=CourseBlue}
 \setbeamerfont{title}{size=\Large,series=\bfseries}
 \setbeamercolor{frametitle}{bg=CourseBlue,fg=white}
 \setbeamerfont{frametitle}{series=\bfseries,size=\large}
-\setbeamertemplate{frametitle}{
-  \nointerlineskip
-  \begin{beamercolorbox}[wd=\paperwidth,ht=3.2ex,dp=1.4ex,leftskip=1em,rightskip=1em]{frametitle}
-    \usebeamerfont{frametitle}\insertframetitle
-  \end{beamercolorbox}
-}
+\setbeamertemplate{frametitle}{\nointerlineskip
+ \begin{beamercolorbox}[wd=\paperwidth,ht=3.2ex,dp=1.4ex,leftskip=1em,rightskip=1em]{frametitle}
+ \usebeamerfont{frametitle}\insertframetitle\end{beamercolorbox}}
 \setbeamercolor{block title}{bg=CourseBlue,fg=white}
 \setbeamercolor{block body}{bg=SoftBlue,fg=black}
 \setbeamercolor{block title example}{bg=CourseGreen,fg=white}
@@ -40,604 +35,1293 @@
 \setbeamercolor{block title alerted}{bg=CourseRed,fg=white}
 \setbeamercolor{block body alerted}{bg=SoftRed,fg=black}
 \setbeamertemplate{blocks}[rounded][shadow=false]
-
-\newenvironment{modelbox}{\begin{beamercolorbox}[rounded=true,sep=0.7em,wd=\textwidth]{block body}
-  \textbf{\color{CourseBlue}MODEL}\quad}{\end{beamercolorbox}}
-\newenvironment{marketbox}{\begin{beamercolorbox}[rounded=true,sep=0.7em,wd=\textwidth]{block body example}
-  \textbf{\color{CourseGreen}NO-ARBITRAGE}\quad}{\end{beamercolorbox}}
-\newenvironment{simplificationbox}{\begin{beamercolorbox}[rounded=true,sep=0.7em,wd=\textwidth]{block body alerted}
-  \textbf{\color{CourseRed}WATCH OUT}\quad}{\end{beamercolorbox}}
-\newenvironment{pausebox}{\begin{beamercolorbox}[rounded=true,sep=0.8em,wd=\textwidth]{block body}
-  \textbf{\color{CourseGold}YOUR TURN}\quad}{\end{beamercolorbox}}
-
+\newenvironment{pausebox}{\begin{block}{Your turn}}{\end{block}}
+\newenvironment{answerbox}{\begin{exampleblock}{Answer}}{\end{exampleblock}}
+\newenvironment{keybox}{\begin{exampleblock}{Takeaway}}{\end{exampleblock}}
+\newenvironment{watchbox}{\begin{alertblock}{Check the assumption}}{\end{alertblock}}
 \newcommand{\E}{\mathbb E}
 \newcommand{\Q}{\mathbb Q}
+\newcommand{\Pp}{\mathbb P}
 \newcommand{\F}{\mathcal F}
 \newcommand{\dd}{\,\mathrm d}
-\newcommand{\Ncdf}{\Phi}
+\newcommand{\ind}{\mathbf 1}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcommand{\source}[1]{\vfill{\scriptsize\color{gray}#1\par}}
+\pgfplotsset{courseaxis/.style={width=.92\textwidth,height=4.3cm,
+ axis lines=left,tick label style={font=\scriptsize},label style={font=\small},
+ legend style={font=\scriptsize,draw=none,fill=white},grid=major,
+ grid style={gray!15},every axis plot/.append style={thick}}}
+\AtBeginSection[]{\begin{frame}[plain]\vfill
+ {\Large\bfseries\color{CourseBlue}\parbox{.95\textwidth}{\raggedright\insertsectionhead}\par}
+ \medskip{\color{CourseGold}\rule{.92\textwidth}{.8pt}}\vfill\end{frame}}
 
-\AtBeginSection[]{
-  \begin{frame}[plain]\vfill
-    {\Large\bfseries\color{CourseBlue}\insertsectionhead\par}
-    \medskip{\color{CourseBlue}\rule{0.92\textwidth}{0.8pt}}\vfill
-  \end{frame}
-}
 
-\title{Beyond Black--Scholes}
-\subtitle{Local volatility, stochastic volatility, and stochastic rates}
-\author{}
-\date{Lecture 12}
 
+\title{Change of Numeraire and Fixed-Income Basics}
+\subtitle{Understand the cash flows, introduce the objects, then price them}
+\author{}\date{Lecture 12}
 \begin{document}
 
-\begin{frame}[plain]
-  \vfill
-  {\LARGE\bfseries\color{CourseBlue}Beyond Black--Scholes\par}
-  \medskip{\large Local volatility, stochastic volatility, and stochastic rates\par}
-  \medskip{\color{CourseGold}\rule{0.94\textwidth}{0.8pt}}
-  \medskip{Lecture 12\par}\vfill
+\begin{frame}[plain]\vfill
+{\LARGE\bfseries\color{CourseBlue}Change of Numeraire and Fixed-Income Basics\par}
+\medskip{\large From familiar pricing to bonds, future loans, and rate options\par}
+\medskip{\color{CourseGold}\rule{.94\textwidth}{.8pt}}
+\medskip Lecture 12 --- Stochastic Calculus and Option Pricing\vfill
 \end{frame}
 
-\begin{frame}{The model must explain the prices we observe}
-\begin{block}{The question}
-Black--Scholes is a powerful benchmark. Which of its assumptions fail in the
-market, and what model extension addresses each failure?
-\end{block}
+\begin{frame}{The questions that organize the lecture}
 \begin{enumerate}
-  \item Read the implied-volatility surface as evidence against constant
-  volatility.
-  \item Build local volatility to fit today's vanilla-option surface.
-  \item Make volatility random to describe its future dynamics.
-  \item Make discounting random when the yield curve is a source of risk.
+\item What changes when the interest rate becomes random?
+\item Can a different unit of value simplify an expectation?
+\item How do dated payments determine a bond price and a discount curve?
+\item How do we lock a future loan rate or exchange interest payments?
+\item How do we price an option on a future interest payment?
+\item What changes when the discounting rate and the contract's rate differ?
 \end{enumerate}
-\begin{marketbox}
-The central trade-off is always the same: fit, realism, hedging, and
-tractability cannot all be maximized at once.
-\end{marketbox}
+\begin{keybox}First use default-free instruments and frictionless trading.
+We then introduce a collateral agreement and a separate contractual rate index,
+before replicating a stock claim with stochastic rates.\end{keybox}
 \end{frame}
 
-\section{Why Black--Scholes is not enough}
+\section{1. Start with the pricing language we already know}
 
-\begin{frame}{One constant volatility cannot fit a whole option market}
-Black--Scholes assumes, under \(\Q\),
+\begin{frame}{One dated payment, one familiar pricing formula}
+A contract pays a cash amount \(H\) at date \(T\), with no earlier payments.
+Its value at \(t\leq T\) is \(V_t\); \(\F_t\) is the information available at \(t\).
 \[
-\frac{\dd S_t}{S_t}=r\dd t+\sigma\dd W_t,
-\qquad \sigma\text{ constant}.
+ B_t=e^{rt},\qquad
+ V_t=e^{-r(T-t)}\E^\Q[H\mid\F_t]
+     =B_t\E^\Q[H/B_T\mid\F_t].
 \]
-If the model were exact, Black--Scholes implied volatility would be the same
-for every strike \(K\) and maturity \(T\).
+\begin{block}{What is already familiar}
+\(B_t\) is the bank-account value, with \(B_0=1\).
+\(\Q\) is a selected pricing measure. Discounted claim values are
+martingales when the required integrability holds.
+\end{block}
+\begin{keybox}We will change the interest-rate setting and the pricing unit.
+The payoff remains a cash payment in the same currency.\end{keybox}
+\end{frame}
+
+\begin{frame}{Introduce the short rate before making it stochastic}
+The \textbf{short rate} \(r_t\) is the instantaneous, annualized,
+continuously compounded rate earned by the bank account at time \(t\).
+\[
+ \dd B_t=r_tB_t\dd t,\qquad
+ B_t=\exp\!\left(\int_0^t r_u\dd u\right),\quad B_0=1.
+\]
+\begin{itemize}
+\item A constant \(r\) gives the account used in Black--Scholes.
+\item With stochastic rates, \(r_t\) is known now, while its future path is uncertain.
+\end{itemize}
+\begin{pausebox}Does a stochastic \(r_t\) put a Brownian term in \(\dd B_t\)?\end{pausebox}
+\begin{answerbox}No. The account has locally known finite-variation gains.
+Its future accumulated value \(B_T\) can still be random.\end{answerbox}
+\end{frame}
+
+\begin{frame}{Future discounting depends on the whole rate path}
 \begin{columns}[T,onlytextwidth]
-\column{0.48\textwidth}
-\begin{block}{What markets show}
-Implied volatility varies by strike: smiles and, in equities, a strong
-downside skew.
-\end{block}
-\column{0.48\textwidth}
-\begin{exampleblock}{What markets also show}
-Implied volatility varies by maturity; uncertainty has its own term
-structure.
-\end{exampleblock}
+\column{.50\textwidth}
+\begin{tikzpicture}\begin{axis}[courseaxis,width=\linewidth,height=4.0cm,
+ xlabel={Years from now},ylabel={Short rate (\%)},xmin=0,xmax=2,
+ ymin=1.5,ymax=5.5,xtick={0,1,2},ytick={2,3,4,5},legend pos=north west]
+\addplot[CourseBlue,mark=*] coordinates {(0,3)(.5,2.4)(1,2.6)(1.5,2.2)(2,2.5)};
+\addlegendentry{Path A}
+\addplot[CourseGreen,mark=square*] coordinates {(0,3)(.5,3.8)(1,4.4)(1.5,4)(2,5)};
+\addlegendentry{Path B}
+\end{axis}\end{tikzpicture}
+\column{.47\textwidth}
+Define the accumulated rate and the future discount factor:
+\[
+ \begin{aligned}
+ J_{t,T}&=\int_t^T r_u\dd u,\\
+ D(t,T)&=e^{-J_{t,T}}=B_t/B_T.
+ \end{aligned}
+\]
+Both paths have the same current rate but different accumulated rates.
+\[
+ \boxed{V_t=\E^\Q[D(t,T)H\mid\F_t].}
+\]
+Keep the random discount factor inside the expectation.
 \end{columns}
-\begin{simplificationbox}
-A single number \(\sigma\) cannot reproduce a two-dimensional surface
-\((K,T)\mapsto\sigma_{\mathrm{imp}}(K,T)\).
-\end{simplificationbox}
+\source{Illustrative path sketches. Background: R. Kohn, Continuous Time Finance, Section 4.}
 \end{frame}
 
-\begin{frame}{The equity skew has an economic interpretation}
-For a fixed maturity, a typical equity surface has
+
+
+\section{2. Change the unit of value}
+
+\begin{frame}{First understand what a change of unit means}
+Let \(V_t\) be a claim's currency value, \(S_t\) the price of one stock share,
+and \(B_t\) the value of one bank-account unit.
+Quote the same claim in either traded unit:
 \[
-\sigma_{\mathrm{imp}}(K_{\mathrm{low}})
->
-\sigma_{\mathrm{imp}}(K_{\mathrm{ATM}})
->
-\sigma_{\mathrm{imp}}(K_{\mathrm{high}}).
+ \frac{V_t}{S_t}\ \text{stock units},\qquad
+ \frac{V_t}{B_t}\ \text{bank-account units}.
 \]
-\begin{block}{Why low-strike puts are expensive}
-They protect against severe equity declines. Strong demand for this insurance
-raises their market prices and therefore their implied volatilities.
+\begin{block}{A numeraire is the unit in which we quote a value}
+If the chosen unit has currency value \(\mathcal N_t\), the claim's value
+in that unit is \(V_t/\mathcal N_t\).
 \end{block}
-\begin{pausebox}
-Does a high implied volatility at a low strike mean that the historical
-volatility parameter literally changed for that option?
+\begin{keybox}The question is now mathematical: which probability measure
+makes values in the new unit into martingales?\end{keybox}
+\end{frame}
+
+\begin{frame}{Specify which traded portfolios can serve as the unit}
+Choose a strictly positive traded portfolio value \(\mathcal N_t\).
+\begin{itemize}
+\item The portfolio is self-financing and makes no payouts over \([0,T]\).
+\item Its discounted value \(\mathcal N_t/B_t\) is a true \(\Q\)-martingale.
+\item Familiar examples are the bank account and a non-dividend-paying stock.
+\end{itemize}
+\begin{block}{Why these conditions matter}
+Positivity allows division. Trading and self-financing connect the unit
+to no-arbitrage prices. The true-martingale property gives a probability density of mean one.
+\end{block}
+\begin{watchbox}A model's variance process is not itself a traded portfolio.
+A dividend-paying asset needs a reinvested total-return portfolio.\end{watchbox}
+\end{frame}
+
+\begin{frame}{The new unit defines new probability weights}
+Call the new measure \(\Q^{\mathcal N}\). Its density process \(Z_t\),
+relative to the original pricing measure \(\Q\), is
+\[
+ \boxed{Z_t=\left.\frac{\dd\Q^{\mathcal N}}{\dd\Q}\right|_{\F_t}
+ =\frac{\mathcal N_t/B_t}{\mathcal N_0/B_0}
+ =\frac{\mathcal N_t}{B_t\mathcal N_0}.}
+\]
+\begin{itemize}
+\item \(B_0=1\), so \(Z_0=1\).
+\item The preceding assumptions give \(Z_t>0\) and \(\E^\Q[Z_t]=1\).
+\item States where the unit performs well receive more weight.
+\end{itemize}
+\begin{keybox}We change the units and the probability weights together.
+The currency value of the contract is preserved.\end{keybox}
+\end{frame}
+
+\begin{frame}{Recall Girsanov: a density changes Brownian drifts}
+\small
+Let \(W^\Q\) have independent Brownian components, and let \(\vartheta_t\)
+be an adapted vector. Define the stochastic exponential
+\[
+ Z_t=\exp\!\left(\int_0^t\vartheta_u\cdot\dd W_u^\Q
+               -\frac12\int_0^t\|\vartheta_u\|^2\dd u\right).
+\]
+Assume it is a true martingale, for example by Novikov's condition
+\(\E^\Q[e^{\frac12\int_0^T\|\vartheta_u\|^2\dd u}]<\infty\).
+With \(\dd\widetilde\Q/\dd\Q|_{\F_t}=Z_t\), Girsanov gives
+\[
+ \boxed{\dd W_t^{\widetilde\Q}=\dd W_t^\Q-\vartheta_t\dd t.}
+\]
+\begin{keybox}For \(\dd X_t=a_t\dd t+\gamma_t\cdot\dd W_t^\Q\), the new drift is
+\(a_t+\gamma_t\cdot\vartheta_t\). Quadratic variations are unchanged.
+\end{keybox}
+\end{frame}
+
+\begin{frame}{Apply Girsanov to the numeraire's discounted return}
+\small
+Write the chosen no-payout unit's dynamics under \(\Q\) as
+\[
+ \frac{\dd\mathcal N_t}{\mathcal N_t}
+ =r_t\dd t+\sigma_{\mathcal N,t}\cdot\dd W_t^\Q.
+\]
+Since \(Z_t=\mathcal N_t/(B_t\mathcal N_0)\), It\^o gives
+\[
+ \frac{\dd Z_t}{Z_t}=\sigma_{\mathcal N,t}\cdot\dd W_t^\Q,
+ \qquad
+ \boxed{\dd W_t^{\mathcal N}=\dd W_t^\Q-\sigma_{\mathcal N,t}\dd t.}
+\]
+\begin{pausebox}For a non-dividend-paying BS stock as unit, what is the shift?
 \end{pausebox}
-\pause
-\begin{exampleblock}{Answer}
-No. It is the Black--Scholes parameter that matches a market price.
-\end{exampleblock}
+\begin{answerbox}\(W_t^S=W_t^\Q-\sigma t\).
+Thus \(\dd S_t/S_t=(r+\sigma^2)\dd t+\sigma\dd W_t^S\).
+The stock's currency drift changes; values in stock units are the martingales.
+\end{answerbox}
 \end{frame}
 
-\begin{frame}{Three extensions answer three different questions}
-\begin{center}
-\begin{tabular}{p{0.27\textwidth}|p{0.29\textwidth}|p{0.29\textwidth}}
-\toprule
-Observed issue & Model extension & Main objective\\
-\midrule
-Static smile across \(K,T\) & Local volatility & Fit vanilla prices today\\
-Volatility moves through time & Stochastic volatility & Model smile dynamics and volatility risk\\
-Discounting and curve move & Stochastic rates & Model bonds and the term structure\\
-\bottomrule
-\end{tabular}
-\end{center}
-\begin{marketbox}
-These models do not replace no-arbitrage pricing. They replace restrictive
-assumptions about what is deterministic or constant.
-\end{marketbox}
-\end{frame}
-
-\section{Local volatility fits today's surface}
-
-\begin{frame}{Local volatility makes the diffusion coefficient state dependent}
-Under the risk-neutral measure,
+\begin{frame}{Recover the price using conditional Bayes}
+\small
+For \(X\) integrable under \(\Q^{\mathcal N}\), conditional Bayes gives
 \[
-\boxed{
-\frac{\dd S_t}{S_t}=r\dd t+
-\sigma_{\mathrm{loc}}(t,S_t)\dd W_t.}
+ \E^{\Q^{\mathcal N}}[X\mid\F_t]
+ =\frac{\E^\Q[Z_TX\mid\F_t]}{Z_t}.
 \]
-\begin{columns}[T,onlytextwidth]
-\column{0.48\textwidth}
-\begin{block}{What remains}
-The model is one-factor and Markovian. Given \(t\) and \(S_t\), the future
-law is determined.
+Use the payoff in terminal units, \(X=H/\mathcal N_T\). Since
+\(Z_T/\mathcal N_T=1/(B_T\mathcal N_0)\),
+\[
+ \mathcal N_t\E^{\Q^{\mathcal N}}[H/\mathcal N_T\mid\F_t]
+ =B_t\E^\Q[H/B_T\mid\F_t]=V_t.
+\]
+\begin{keybox}\(\displaystyle\boxed{V_t=\mathcal N_t
+ \E^{\Q^{\mathcal N}}[H/\mathcal N_T\mid\F_t].}\)
+Express the terminal payoff in units; take the expectation in the matching measure;
+convert back using today's unit.\end{keybox}
+\end{frame}
+
+\begin{frame}{Apply the stock unit to the two pieces of a call}
+For a call with strike \(K\), define its exercise event \(A=\{S_T>K\}\).
+Then
+\[
+ (S_T-K)^+=S_T\ind_A-K\ind_A.
+\]
+With constant \(r\) and a non-dividend-paying stock,
+\[
+ \left.\frac{\dd\Q^S}{\dd\Q}\right|_{\F_T}=\frac{e^{-rT}S_T}{S_0},
+ \qquad
+ \boxed{C_0=S_0\Q^S(A)-Ke^{-rT}\Q(A).}
+\]
+\begin{pausebox}Can the stock-payment term be priced as
+\(e^{-rT}\E^\Q[S_T]\Q(A)\)?\end{pausebox}
+\begin{answerbox}The event selects high stock values, so the product
+cannot be replaced by a product of means. The stock measure incorporates this weighting.\end{answerbox}
+\end{frame}
+
+\begin{frame}{The familiar BS probabilities now have an interpretation}
+\small
+Under BS, \(\xi=W_T^\Q/\sqrt T\sim N(0,1)\). Write \(\Phi\) for its CDF
+and \(\phi\) for its density. The exercise event is \(A=\{\xi>-d_2\}\), with
+\[
+ d_2=\frac{\log(S_0/K)+(r-\sigma^2/2)T}{\sigma\sqrt T}.
+\]
+Weighting the Gaussian by the stock density shifts its mean:
+\[
+ e^{\sigma\sqrt T z-\sigma^2T/2}\phi(z)=\phi(z-\sigma\sqrt T).
+\]
+Thus \(\Q(A)=\Phi(d_2)\), \(\Q^S(A)=\Phi(d_1)\), where \(d_1=d_2+\sigma\sqrt T\).
+\begin{keybox}\(C_0=S_0\Phi(d_1)-Ke^{-rT}\Phi(d_2)\).
+The two probabilities use different measures.\end{keybox}
+\end{frame}
+
+\section{3. Bonds: identify and value every dated payment}
+
+\begin{frame}{Introduce the zero-coupon bond through its cash flow}
+A \textbf{zero-coupon bond} pays one unit of currency at its maturity \(T\)
+and nothing earlier. Denote its time-\(t\) price by \(P(t,T)\).
+A principal, or face amount, \(N\) scales the final payment to \(N\)
+and the price to \(NP(t,T)\).
+\[
+ \underbrace{-P(t,T)}_{\text{cash paid at }t}
+ \qquad\longrightarrow\qquad
+ \underbrace{+1}_{\text{cash received at }T}.
+\]
+Apply the bank-account formula to \(H=1\):
+\[
+ \boxed{P(t,T)=\E^\Q[D(t,T)\mid\F_t],\qquad P(T,T)=1.}
+\]
+\begin{keybox}\(P(t,T)\) is a price observed today.
+\(D(t,T)=B_t/B_T\) is a future random discount factor when rates are stochastic.\end{keybox}
+
+\end{frame}
+
+\begin{frame}{Recover the familiar bond price when the rate is constant}
+\begin{pausebox}A unit zero-coupon bond pays one at \(T\).
+If the short rate is the constant \(r\), what is its price at \(t\)?\end{pausebox}
+\begin{answerbox}The discount factor is deterministic, so
+\[
+ P(t,T)=\E^\Q[e^{-r(T-t)}\mid\F_t]=\boxed{e^{-r(T-t)}}.
+\]
+For principal \(N\), multiply both the payoff and the price by \(N\).
+\end{answerbox}
+\begin{keybox}Making rates stochastic replaces a known exponential by the
+expectation of a random exponential. The unit terminal payment is unchanged.\end{keybox}
+
+\end{frame}
+
+\begin{frame}{A coupon bond adds interest payments to the principal}
+An annual coupon rate is quoted as a fraction of the principal per year.
+For principal 100 and annual coupon rate 5\%, with annual payments:
+\begin{center}\begin{tabular}{lrr}
+\toprule Date & Year 1 & Year 2\\\midrule
+Coupon payment & 5 & 5\\
+Principal repayment & 0 & 100\\
+\textbf{Total cash received} & \textbf{5} & \textbf{105}\\\bottomrule
+\end{tabular}\end{center}
+\begin{keybox}The coupon rate specifies cash amounts. It is a different
+input from the market rate used to discount those amounts.
+The principal is repaid once, at maturity.\end{keybox}
+\end{frame}
+
+\begin{frame}{Deterministic and random discounting differ}
+If the future rate path \(r(u)\) is deterministic, its integral is already known:
+\[
+ P(t,T)=\exp\!\left(-\int_t^T r(u)\dd u\right).
+\]
+With stochastic rates, write \(J_{t,T}=\int_t^T r_u\dd u\).
+Conditional Jensen's inequality gives, when the expectations exist,
+\[
+ \boxed{P(t,T)=\E^\Q[e^{-J_{t,T}}\mid\F_t]
+ \geq e^{-\E^\Q[J_{t,T}\mid\F_t]}.}
+\]
+\begin{keybox}The distribution of the accumulated rate matters, even when
+its mean is known. Replacing the random rate integral by its mean generally changes the price.\end{keybox}
+\end{frame}
+
+\begin{frame}{A discount curve is a list of prices for dated unit payments}
+At a fixed valuation date, the map \(T\mapsto P(t,T)\) is the \textbf{discount curve}.
+At payment dates \(T_1<\cdots<T_n\), its entries are
+\begin{center}\begin{tabular}{lcccc}
+\toprule Payment date & \(T_1\) & \(T_2\) & \(\cdots\) & \(T_n\)\\\midrule
+Price at \(t\) of 1 at that date & \(P(t,T_1)\) & \(P(t,T_2)\) & \(\cdots\) & \(P(t,T_n)\)\\\bottomrule
+\end{tabular}\end{center}
+A known cash amount \(C_i\) paid at \(T_i\) has value \(C_iP(t,T_i)\).
+\begin{keybox}The table provides today's unit-payment prices.
+It does not specify how future rates or future bond prices will evolve.\end{keybox}
+\end{frame}
+
+\begin{frame}{Convert an annual coupon rate into the actual payments}
+Take principal 100, maturity two years, and annual coupon rate 3\%,
+paid \textbf{semiannually}: every half year.
+\[
+ \text{Each coupon}=100\times0.03\times0.5=1.5.
+\]
+\begin{center}\begin{tabular}{lrrrr}
+\toprule Date, in years & 0.5 & 1 & 1.5 & 2\\\midrule
+Coupon & 1.5 & 1.5 & 1.5 & 1.5\\
+Principal & 0 & 0 & 0 & 100\\
+\textbf{Total payment} & \textbf{1.5} & \textbf{1.5} & \textbf{1.5} & \textbf{101.5}\\\bottomrule
+\end{tabular}\end{center}
+\begin{pausebox}Which discount factor goes with each payment?\end{pausebox}
+\end{frame}
+
+\begin{frame}{Match each payment with a bond, then add the prices}
+\small
+For known payments \(C_i\) at dates \(T_i\), hold \(C_i\) unit zero-coupon bonds
+maturing at each \(T_i\). This reproduces the payments exactly:
+\begin{center}\begin{tabular}{cccc}
+\toprule Payment date & Cash amount & Unit-bond price & Cost of the position\\\midrule
+\(T_1\) & \(C_1\) & \(P(t,T_1)\) & \(C_1P(t,T_1)\)\\
+\(\vdots\) & \(\vdots\) & \(\vdots\) & \(\vdots\)\\
+\(T_n\) & \(C_n\) & \(P(t,T_n)\) & \(C_nP(t,T_n)\)\\\bottomrule
+\end{tabular}\end{center}
+\begin{keybox}Add the prices of the replicated payments:
+\(\displaystyle\boxed{V_t=\sum_i C_iP(t,T_i).}\)
+\end{keybox}
+\textbf{Par} means a bond price equal to its principal amount.
+\end{frame}
+
+\begin{frame}{A zero rate is another way to quote one bond price}
+For \(\tau=T-t>0\), ask which constant continuously compounded rate
+would give the observed price \(P(t,T)\). Denote it by \(R(t,T)\):
+\[
+ P(t,T)=e^{-R(t,T)\tau}
+ \quad\Longleftrightarrow\quad
+ \boxed{R(t,T)=-\frac{\log P(t,T)}{\tau}.}
+\]
+The quoted zero rate summarizes the price of one dated payment,
+without specifying a future short-rate path.
+\begin{keybox}The zero-rate curve \(T\mapsto R(t,T)\) contains the same
+information as the discount curve. The short rate \(r_t\) describes only the instantaneous bank-account rate.\end{keybox}
+\end{frame}
+
+\begin{frame}{With deterministic rates, the zero rate is a time average}
+For a deterministic short-rate path,
+\[
+ P(t,T)=e^{-\int_t^T r(u)\dd u}=e^{-R(t,T)(T-t)},
+\]
+so
+\[
+ \boxed{R(t,T)=\frac1{T-t}\int_t^T r(u)\dd u.}
+\]
+It is the time average of short rates over the remaining life; constant \(r\) gives \(R(t,T)=r\).
+\begin{keybox}The short rate describes an instant; the zero rate describes the discount
+price over an interval. With stochastic rates, the zero rate is inferred from
+the bond price rather than from a known future rate path.\end{keybox}
+
+\end{frame}
+
+\begin{frame}{Bootstrapping begins with an inverse pricing question}
+So far, we used discount factors to price a coupon bond.
+Now suppose \textbf{the market price is given} and one discount factor is missing.
+\begin{itemize}
+\item The bond's observed price is \(V_t^{\rm mkt}\).
+\item Its known payments are \(C_1,\ldots,C_n\) at \(T_1<\cdots<T_n\),
+with \(C_n>0\).
+\item Shorter-maturity instruments have already supplied
+\(P(t,T_1),\ldots,P(t,T_{n-1})\).
+\end{itemize}
+The unknown is the price \(P(t,T_n)\) of the final unit payment.
+\begin{pausebox}Which part of the observed bond price must finance the
+final payment, once the earlier payments have been replicated?\end{pausebox}
+\end{frame}
+
+\begin{frame}{Solve for the missing unit price: this is bootstrapping}
+\small
+Subtract the value of the payments already priced, then divide by
+the final cash amount \(C_n\):
+\[
+ \boxed{P(t,T_n)=
+ \frac{V_t^{\rm mkt}-\sum_{i=1}^{n-1}C_iP(t,T_i)}{C_n}.}
+\]
+\begin{block}{Bootstrapping a curve}
+Work from shorter maturities toward longer ones. Each new traded instrument
+lets us infer the next unknown discount factor after subtracting payments already valued.
 \end{block}
-\column{0.48\textwidth}
-\begin{exampleblock}{What changes}
-Instantaneous variance is no longer constant:
-\[
-\operatorname{Var}\!\left(\frac{\dd S_t}{S_t}\middle|\F_t\right)
-=\sigma_{\mathrm{loc}}(t,S_t)^2\dd t.
-\]
-\end{exampleblock}
-\end{columns}
-\begin{marketbox}
-Black--Scholes is the special case
-\(\sigma_{\mathrm{loc}}(t,s)\equiv\sigma\).
-\end{marketbox}
+\begin{keybox}The inputs here are quoted prices and payment conventions.
+A model for future curve movements is a further choice.\end{keybox}
 \end{frame}
 
-\begin{frame}{The pricing PDE changes in one precise place}
-For a European payoff \(g(S_T)\), the price \(u(t,s)\) solves
+\begin{frame}{Before duration: ask how much the price moves}
+Suppose every continuously compounded zero rate increases by the same amount \(\varepsilon\).
+Then \(P(t,T)\) is multiplied by \(e^{-\varepsilon(T-t)}\).
+\begin{exampleblock}{Start with a single payment date}
+For a unit zero-coupon bond maturing at \(T\), set \(\tau=T-t\).
+Write \(V(\varepsilon)\) for its price after the shift. Then
 \[
-u_t+rs\,u_s+\tfrac12\sigma_{\mathrm{loc}}(t,s)^2s^2u_{ss}-ru=0,
-\qquad u(T,s)=g(s).
+ \frac{V(\varepsilon)}{V(0)}=e^{-\varepsilon\tau},
+ \qquad \frac{\Delta V}{V(0)}\approx-\tau\varepsilon.
 \]
-\begin{block}{Compare with Black--Scholes}
-The pricing logic, risk-neutral drift, and terminal condition are unchanged.
-Only the constant variance \(\sigma^2\) becomes the local quantity
-\(\sigma_{\mathrm{loc}}(t,s)^2\).
+The remaining payment time is the coefficient of the small rate shift.
+\end{exampleblock}
+One basis point is \(10^{-4}\) in annual rate units.
+\begin{keybox}We want a relative sensitivity that converts a small rate shift
+into an approximate price change. This sensitivity is called duration.\end{keybox}
+\end{frame}
+
+\begin{frame}{Define duration for the rate shift we have specified}
+\small
+Let \(\tau_i=T_i-t\). Under this parallel zero-rate shift,
+\[
+ V(\varepsilon)=\sum_i C_iP(t,T_i)e^{-\varepsilon\tau_i}.
+\]
+Define \(\mathrm{Dur}\) using a derivative with respect to the \emph{rate shift}:
+\[
+ \boxed{\mathrm{Dur}:=-\frac{V'(0)}{V(0)}
+ =\frac{\sum_i\tau_i C_iP(t,T_i)}{V(0)},\qquad
+ \Delta V\approx-\mathrm{Dur}\,V(0)\varepsilon.}
+\]
+For positive payments, weights \(w_i=C_iP(t,T_i)/V(0)\) sum to one:
+\(\mathrm{Dur}=\sum_iw_i\tau_i\).
+\begin{keybox}Duration is a present-value-weighted average payment time,
+measured in years, for this particular curve-shift convention.\end{keybox}
+\end{frame}
+
+\section{4. Future loans and exchanges of interest payments}
+
+\begin{frame}{Introduce the simple rate on a loan over one period}
+Let \(U<V\), and let \(\delta=V-U\) be the length of the period in years.
+At date \(U\), lending one unit at an annualized \textbf{simple rate}
+\(L(U,V)\) means receiving
+\[
+ 1+\delta L(U,V)\qquad\text{at date }V.
+\]
+One unit invested in \(V\)-maturity bonds instead delivers \(1/P(U,V)\), so
+\[
+ \boxed{L(U,V)=\frac{P(U,V)^{-1}-1}{\delta}.}
+\]
+\begin{keybox}This rate is fixed at \(U\). At an earlier date \(t<U\),
+the future price \(P(U,V)\), and therefore the future fixing \(L(U,V)\), are uncertain.\end{keybox}
+\end{frame}
+
+\begin{frame}{A forward loan fixes that future lending rate today}
+At \(t\leq U<V\), agree a simple rate \(F(t;U,V)\) for the future period \([U,V]\).
+The agreement has zero value when entered at that rate.
+\begin{center}\begin{tikzpicture}[x=3.8cm,y=1cm,>=Stealth]
+\draw[->,CourseBlue,thick] (0,0)--(2.4,0);
+\foreach \x/\label in {0/t,1/U,2/V}{\draw (\x,.08)--(\x,-.08);\node[above] at (\x,.1) {\(\label\)};}
+\node[below,align=center,text width=3.4cm] at (0,-.15) {Agree \(F(t;U,V)\)\\no initial payment};
+\node[below,align=center,text width=3.4cm] at (1,-.15) {Lend 1};
+\node[below,align=center,text width=3.4cm] at (2,-.15) {Receive \(1+\delta F(t;U,V)\)};
+\end{tikzpicture}\end{center}
+\begin{keybox}\(F(t;U,V)\) is locked in at \(t\).
+\(L(U,V)\) will be the actual fixing at \(U\). They have the same units but different information dates.\end{keybox}
+\end{frame}
+
+\begin{frame}{Construct the forward loan with two bonds}
+At time \(t\), take the following fixed positions:
+\begin{center}\begin{tabular}{lrr}
+\toprule Position & Cost at \(t\) & Payment at maturity\\\midrule
+Short one \(U\)-bond & \(-P(t,U)\) & \(-1\) at \(U\)\\
+Buy \(P(t,U)/P(t,V)\) \(V\)-bonds & \(+P(t,U)\) & \(+P(t,U)/P(t,V)\) at \(V\)\\\bottomrule
+\end{tabular}\end{center}
+The initial cost is zero. Matching the future loan repayment gives
+\[
+ 1+\delta F(t;U,V)=\frac{P(t,U)}{P(t,V)},\qquad
+ \boxed{F(t;U,V)=\frac{P(t,U)/P(t,V)-1}{\delta}.}
+\]
+\begin{keybox}The forward follows from tradable cash flows and current bond prices.
+It is not a historical forecast.\end{keybox}
+\end{frame}
+
+\begin{frame}{Define the forward rate agreement through its payment}
+A \textbf{forward rate agreement (FRA)} exchanges two interest amounts
+for one future loan period \([U,V]\).
+\begin{itemize}
+\item \(N\): notional, the reference amount on which interest is computed.
+\item \(K\): fixed annualized simple rate in the agreement.
+\item At \(U\), the floating rate \(L(U,V)\) becomes known.
+\item At \(V\), receiving floating and paying fixed gives
+\end{itemize}
+\[
+ \boxed{N\delta\big(L(U,V)-K\big).}
+\]
+\begin{keybox}The notional itself is not exchanged. A borrower paying
+\(N\delta L\) on a loan can use this receipt to leave a net interest cost \(N\delta K\).\end{keybox}
+\end{frame}
+
+\begin{frame}{Build a bond portfolio for the end-paid FRA}
+At \(t\leq U\), buy \(N\) \(U\)-bonds and sell \(N(1+\delta K)\) \(V\)-bonds.
+The cost of this candidate hedge is
+\[
+ N\big[P(t,U)-(1+\delta K)P(t,V)\big].
+\]
+At \(U\), the short bond position is still outstanding and the \(U\)-bonds pay \(N\).
+\begin{block}{Reinvest the receipt to respect the FRA's payment date}
+Use that entire \(N\) to buy \(N/P(U,V)\) units of the \(V\)-bond.
+No cash is paid out of the portfolio at \(U\).
 \end{block}
-\begin{pausebox}
-Does local volatility introduce a new random state variable in addition to
-the stock price?
-\end{pausebox}
-\pause
-\begin{exampleblock}{Answer}
-No. It is a deterministic function of \(t,S_t\), so the model remains
-one-dimensional.
-\end{exampleblock}
+\begin{keybox}The reinvestment is funded by the maturing bonds.
+Now check the net payment at \(V\).\end{keybox}
 \end{frame}
 
-\begin{frame}{Dupire extracts local volatility from call prices}
-Let \(C(T,K)\) be the market price of a call by maturity and strike. With
-constant rates and no dividends,
+\begin{frame}{Check the FRA payment, then identify its price}
+At \(V\), the long and short bond positions pay
 \[
-\boxed{
-\sigma_{\mathrm{loc}}(T,K)^2
-=
-\frac{C_T(T,K)+rK\,C_K(T,K)}
-{\tfrac12K^2C_{KK}(T,K)}.}
+ \begin{aligned}
+ \frac{N}{P(U,V)}-N(1+\delta K)
+ &=N\left[\frac1{P(U,V)}-1-\delta K\right]\\
+ &=N\delta\big(L(U,V)-K\big).
+ \end{aligned}
 \]
-\begin{columns}[T,onlytextwidth]
-\column{0.48\textwidth}
-\begin{block}{Denominator}
+This is exactly the agreed FRA payment. Therefore
 \[
-C_{KK}(T,K)
+ \boxed{\mathrm{FRA}_t
+ =N[P(t,U)-(1+\delta K)P(t,V)]
+ =N\delta P(t,V)(F(t;U,V)-K).}
 \]
-is the curvature in strike; it is linked to the risk-neutral density.
-\end{block}
-\column{0.48\textwidth}
-\begin{exampleblock}{Numerator}
-\[
-C_T+rKC_K
-\]
-captures how the call surface changes with maturity and strike.
-\end{exampleblock}
-\end{columns}
+The \textbf{par fixed rate} is \(K=F(t;U,V)\): it makes the current value zero.
+\begin{keybox}This formula uses payment at \(V\).
+An agreement settled at \(U\) has a different payment convention.\end{keybox}
 \end{frame}
 
-\begin{frame}{Call convexity is a no-arbitrage input to Dupire}
-For an arbitrage-free call-price surface,
+\begin{frame}{A swap repeats the same interest exchange over several periods}
+A \textbf{payer interest-rate swap} receives floating and pays a fixed rate \(K\)
+on notional \(N\), over dates \(T_0<T_1<\cdots<T_n\).
+For period \(i\), define
 \[
-C_{KK}(T,K)\geq0.
+ \delta_i=T_i-T_{i-1},\qquad L_i=L(T_{i-1},T_i).
 \]
-Formally,
-\[
-C_{KK}(T,K)=e^{-rT}p_{S_T}^{\Q}(K),
-\]
-where \(p_{S_T}^{\Q}\) is the risk-neutral density.
-\begin{pausebox}
-Why is applying Dupire's formula directly to a sparse table of noisy market
-quotes dangerous?
-\end{pausebox}
-\pause
-\begin{alertblock}{Answer}
-The formula differentiates the surface, especially twice in strike.
-Interpolation noise is amplified and can produce negative or unstable local
-variances unless the input surface is smoothed and arbitrage controlled.
-\end{alertblock}
+\begin{center}\begin{tabular}{lcc}
+\toprule & First period & Second period\\\midrule
+Rate fixed at & \(T_0\) & \(T_1\)\\
+Payment date & \(T_1\) & \(T_2\)\\
+Net payment & \(N\delta_1(L_1-K)\) & \(N\delta_2(L_2-K)\)\\\bottomrule
+\end{tabular}\end{center}
+\begin{keybox}The swap is a sequence of end-paid FRAs. Its notional is a
+reference amount; only the net interest payments are exchanged.\end{keybox}
 \end{frame}
 
-\begin{frame}{Local volatility calibrates exactly, but only statically}
-A practical calibration pipeline is:
+\begin{frame}{Price the fixed payments and introduce the annuity}
+Before the first fixing, \(t\leq T_0\), the fixed payments are
+\(NK\delta_i\) at dates \(T_i\). Their value is
 \[
-\text{quotes}\longrightarrow
-\text{arbitrage-free call or implied-vol surface}
-\longrightarrow
-\text{smooth derivatives}
-\longrightarrow
-\sigma_{\mathrm{loc}}(T,K).
+ \mathrm{FixedLeg}_t=NK\sum_{i=1}^n\delta_iP(t,T_i).
 \]
-\begin{columns}[T,onlytextwidth]
-\column{0.48\textwidth}
-\begin{exampleblock}{Strength}
-With a clean surface, local volatility can reproduce today’s European
-vanilla prices across the quoted grid.
-\end{exampleblock}
-\column{0.48\textwidth}
-\begin{alertblock}{Limitation}
-It prescribes future smile motion through a deterministic function of spot
-and time; those dynamics are often not realistic.
-\end{alertblock}
-\end{columns}
-\end{frame}
-
-\section{Stochastic volatility models volatility itself}
-
-\begin{frame}{A random variance factor creates new dynamics}
-A generic stochastic-volatility model has
+Define the \textbf{swap annuity}
 \[
-\frac{\dd S_t}{S_t}=r\dd t+\sqrt{V_t}\dd W_t^{(1)},
+ \boxed{A(t):=\sum_{i=1}^n\delta_iP(t,T_i),
+ \qquad \mathrm{FixedLeg}_t=NKA(t).}
 \]
-\[
-\dd V_t=b(t,V_t)\dd t+a(t,V_t)\dd W_t^{(2)},
-\qquad
-\dd\langle W^{(1)},W^{(2)}\rangle_t=\rho\dd t.
-\]
-\begin{block}{The state is now \((S_t,V_t)\)}
-Even if two paths have the same spot \(S_t\), their option values can differ
-when their current variance levels \(V_t\) differ.
-\end{block}
-\begin{marketbox}
-The pair \((S,V)\) is Markovian, but the stock alone is generally not.
-\end{marketbox}
-\end{frame}
-
-\begin{frame}{Heston adds mean reversion, vol-of-vol, and correlation}
-A standard Heston specification is
-\[
-\frac{\dd S_t}{S_t}=r\dd t+\sqrt{V_t}\dd W_t^{(1)},
-\qquad
-\dd V_t=\kappa(\theta-V_t)\dd t+\eta\sqrt{V_t}\dd W_t^{(2)}.
-\]
-\begin{center}
-\begin{tabular}{c|l}
-\toprule
-Parameter & Economic role\\
-\midrule
-\(\theta\) & long-run variance level\\
-\(\kappa\) & speed of mean reversion toward \(\theta\)\\
-\(\eta\) & volatility of volatility\\
-\(\rho\) & correlation between spot and variance shocks\\
-\bottomrule
-\end{tabular}
-\end{center}
-\end{frame}
-
-\begin{frame}{Negative spot-volatility correlation generates an equity skew}
-\begin{pausebox}
-In an equity market, a negative return shock often arrives with a higher
-volatility level. What sign of \(\rho\) captures this leverage effect?
-\end{pausebox}
-\pause
-\begin{exampleblock}{Answer}
-\[
-\boxed{\rho<0.}
-\]
-A negative stock shock tends to be accompanied by a positive variance shock.
-Low-strike puts become relatively valuable, generating a downward implied-
-volatility skew.
-\end{exampleblock}
-\begin{marketbox}
-Random variance creates smile curvature; correlation controls much of its
-asymmetry.
-\end{marketbox}
-\end{frame}
-
-\begin{frame}{Mean reversion gives a useful variance forecast}
-From
-\[
-\dd V_t=\kappa(\theta-V_t)\dd t+\eta\sqrt{V_t}\dd W_t,
-\]
-the conditional mean is
-\[
-\boxed{
-\E[V_T\mid V_t=v]=\theta+(v-\theta)e^{-\kappa(T-t)}.}
-\]
-\begin{pausebox}
-Suppose \(v>\theta\). Is the expected future variance above or below today’s
-variance, and why?
-\end{pausebox}
-\pause
-\begin{exampleblock}{Answer}
-Below \(v\), because the drift \(\kappa(\theta-v)\) is negative. The larger
-\(\kappa\), the faster the expected pull toward the long-run level.
-\end{exampleblock}
-\end{frame}
-
-\begin{frame}{More realism makes hedging and pricing harder}
-\begin{columns}[T,onlytextwidth]
-\column{0.48\textwidth}
-\begin{block}{Pricing}
-The option value is \(u(t,s,v)\), so the PDE has two state variables.
-Characteristic-function methods, PDEs, and Monte Carlo are commonly used.
-\end{block}
-\column{0.48\textwidth}
-\begin{alertblock}{Hedging}
-There are two sources of risk but often only the stock and cash are traded.
-The model is generally incomplete; variance risk cannot be perfectly hedged
-with the stock alone.
-\end{alertblock}
-\end{columns}
-\begin{marketbox}
-In practice, liquid vanilla options are often used alongside the stock to
-manage volatility exposure.
-\end{marketbox}
-\end{frame}
-
-\begin{frame}{Local and stochastic volatility solve different problems}
-\begin{center}
-\begin{tabular}{p{0.30\textwidth}|p{0.29\textwidth}|p{0.27\textwidth}}
-\toprule
- & Local volatility & Stochastic volatility\\
-\midrule
-Volatility & deterministic \(\sigma_{\mathrm{loc}}(t,S)\) & random factor \(V_t\)\\
-Main strength & exact static vanilla fit & realistic smile dynamics\\
-Dimension & one factor & at least two factors\\
-Hedging & closer to complete diffusion hedging & generally incomplete\\
-\bottomrule
-\end{tabular}
-\end{center}
-\begin{pausebox}
-Which model is more naturally suited to a product sensitive to future
-realized volatility rather than only today’s vanilla prices?
-\end{pausebox}
-\pause
-\begin{exampleblock}{Answer}
-Stochastic volatility: it retains a separate random variance state and is
-designed to describe its future evolution.
-\end{exampleblock}
-\end{frame}
-
-\section{Stochastic rates make discounting risky}
-
-\begin{frame}{With stochastic rates, the discount factor is random}
-If the short rate is \(r_t\), the pathwise discount factor is
-\[
-D(t,T)=\exp\left(-\int_t^T r_s\dd s\right).
-\]
-The zero-coupon bond is its risk-neutral value:
-\[
-\boxed{
-P(t,T)=\E^\Q\!\left[D(t,T)\mid\F_t\right].}
-\]
-\begin{block}{Key distinction}
-With constant rates, \(P(t,T)=e^{-r(T-t)}\) is deterministic. With
-stochastic rates, discounting itself is a source of uncertainty.
-\end{block}
-\end{frame}
-
-\begin{frame}{Bond prices, zero rates, and forwards encode the same curve}
-For maturity \(T>t\),
-\[
-P(t,T)=e^{-R(t,T)(T-t)},
-\qquad
-R(t,T)=-\frac{\log P(t,T)}{T-t},
-\]
-and the instantaneous forward rate is
-\[
-f(t,T)=-\partial_T\log P(t,T).
-\]
-\begin{marketbox}
-The bond-price curve \(T\mapsto P(t,T)\), zero-rate curve \(R(t,T)\), and
-forward curve \(f(t,T)\) are three parameterizations of the same term
-structure.
-\end{marketbox}
-\end{frame}
-
-\begin{frame}{Worked curve example: extract a zero rate and a forward rate}
-Suppose
-\[
-P(0,1)=0.96,\qquad P(0,2)=0.90.
-\]
-The two-year continuously compounded zero rate is
-\[
-R(0,2)=-\frac12\log(0.90)=5.27\%.
-\]
-The simply compounded one-year forward rate for \([1,2]\) is
-\[
-L(0;1,2)=\frac{P(0,1)/P(0,2)-1}{2-1}
-=\frac{0.96}{0.90}-1=6.67\%.
-\]
-\begin{block}{Reading the numbers}
-The forward rate exceeds the two-year average zero rate: the curve embeds
-higher implied rates over the second year than over the first.
-\end{block}
-\end{frame}
-
-\begin{frame}{Coupon bonds are portfolios of zero-coupon bonds}
-A bond paying coupons \(c_i\) at dates \(T_i\), and principal \(F\) at
-\(T_n\), is worth
-\[
-\boxed{
-B_t=\sum_{i=1}^n c_iP(t,T_i)+F P(t,T_n).}
-\]
-\begin{pausebox}
-A two-year bond pays \(4\) at year 1 and \(104\) at year 2. If
-\(P(0,1)=0.96\) and \(P(0,2)=0.90\), what is its price?
-\end{pausebox}
-\pause
-\begin{exampleblock}{Answer}
-\[
-B_0=4(0.96)+104(0.90)=97.44.
-\]
-The entire pricing problem reduces to discount factors at the cash-flow
-dates.
-\end{exampleblock}
-\end{frame}
-
-\begin{frame}{Short-rate models compress the curve into a few factors}
-A short-rate model starts from a process \(r_t\), then derives bond prices:
-\[
-P(t,T)=\E^\Q\!\left[
-\exp\left(-\int_t^T r_s\dd s\right)\middle|\F_t\right].
-\]
-\begin{columns}[T,onlytextwidth]
-\column{0.48\textwidth}
-\begin{block}{Vasicek}
-\[
-\dd r_t=a(b-r_t)\dd t+\sigma\dd W_t.
-\]
-Gaussian and mean reverting, but rates can become negative.
-\end{block}
-\column{0.48\textwidth}
-\begin{exampleblock}{CIR}
-\[
-\dd r_t=a(b-r_t)\dd t+\sigma\sqrt{r_t}\dd W_t.
-\]
-Mean reverting with a square-root diffusion that supports positivity.
-\end{exampleblock}
-\end{columns}
-\end{frame}
-
-\begin{frame}{HJM models the forward curve directly}
-Instead of modeling only \(r_t\), Heath--Jarrow--Morton specifies
-\[
-\dd f(t,T)=\alpha(t,T)\dd t+\sigma(t,T)\dd W_t.
-\]
-\begin{block}{The no-arbitrage restriction}
-Under the risk-neutral measure, the drift \(\alpha(t,T)\) is not freely
-chosen. Once forward-rate volatility is specified, no-arbitrage determines
-the drift.
-\end{block}
-\begin{columns}[T,onlytextwidth]
-\column{0.48\textwidth}
-\begin{exampleblock}{Strength}
-It starts from the object the market quotes: the whole forward curve.
-\end{exampleblock}
-\column{0.48\textwidth}
-\begin{alertblock}{Cost}
-Without additional structure, the model is infinite-dimensional.
-\end{alertblock}
-\end{columns}
-\end{frame}
-
-\begin{frame}{When must rates be modelled stochastically?}
-\begin{center}
-\begin{tabular}{p{0.39\textwidth}|p{0.40\textwidth}}
-\toprule
-Often a reasonable approximation & Stochastic-rate model matters\\
-\midrule
-Short-dated vanilla equity option & Bond or bond option\\
-Small rate sensitivity & Caplet, floorlet, or swaption\\
-Short horizon & Long-dated equity or hybrid payoff\\
-Deterministic discounting acceptable & Discounting is itself a key risk\\
-\bottomrule
-\end{tabular}
-\end{center}
-\begin{pausebox}
-Which column fits a five-year callable bond: left or right?
-\end{pausebox}
-\pause
-\begin{exampleblock}{Answer}
-Right. Its cash flows and exercise decision are directly exposed to the
-evolution of the yield curve.
-\end{exampleblock}
-\end{frame}
-
-\section{Calibration and model choice}
-
-\begin{frame}{Calibration targets depend on the model class}
-\begin{center}
-\begin{tabular}{p{0.27\textwidth}|p{0.29\textwidth}|p{0.29\textwidth}}
-\toprule
-Model class & What is fitted & Typical challenge\\
-\midrule
-Local volatility & vanilla implied-vol surface & smooth, arbitrage-free derivatives\\
-Stochastic volatility & surface through \(\kappa,\theta,\eta,\rho,V_0\) & non-linear optimization and stability\\
-Stochastic rates & initial curve plus caps, swaptions, bond options & fit curve and dynamics together\\
-\bottomrule
-\end{tabular}
-\end{center}
-\begin{marketbox}
-Calibration is not merely parameter estimation. It aligns a model with
-tradable market prices before the model is used for valuation or risk.
-\end{marketbox}
-\end{frame}
-
-\begin{frame}{Model choice is a product decision, not a beauty contest}
-\begin{pausebox}
-You must value a long-dated equity-linked note whose payoff depends on both
-the stock and future discount factors. Is local volatility alone enough?
-\end{pausebox}
-\pause
-\begin{exampleblock}{Answer}
-Usually not. The product is exposed both to volatility dynamics and to rate
-risk. A hybrid framework, or at least explicit stochastic-rate modelling,
-may be necessary.
-\end{exampleblock}
-\begin{block}{Practical rule}
-Use the least complex model that captures the material risk factors and can
-be calibrated reliably to liquid hedging instruments.
+\begin{block}{What this new quantity represents}
+\(A(t)\) is the price of a fixed bond basket paying \(\delta_i\) at each \(T_i\).
+It converts an annual fixed rate into a present value per unit notional.
 \end{block}
 \end{frame}
 
-\begin{frame}{The three extensions form one modeling hierarchy}
+\begin{frame}{The floating payments have a useful cancellation}
+\small
+Abbreviate \(F_i(t)=F(t;T_{i-1},T_i)\). The FRA formula prices the
+floating payment for period \(i\) at \(N\delta_iP(t,T_i)F_i(t)\).
+For two periods,
 \[
-\boxed{
-\text{market prices}
-\longrightarrow
-\text{model assumptions}
-\longrightarrow
-\text{calibration}
-\longrightarrow
-\text{pricing and hedging}.}
+ \begin{aligned}
+ \delta_1P(t,T_1)F_1(t)&=P(t,T_0)-P(t,T_1),\\
+ \delta_2P(t,T_2)F_2(t)&=P(t,T_1)-P(t,T_2).
+ \end{aligned}
 \]
+The middle bond prices cancel. For \(n\) periods,
+\[
+ \boxed{\mathrm{FloatingLeg}_t
+ =N\sum_{i=1}^n\delta_iP(t,T_i)F_i(t)
+ =N[P(t,T_0)-P(t,T_n)].}
+\]
+\begin{keybox}This \textbf{telescoping} sum uses the same bond curve for
+discounting and the simple loan rates: our single-curve setup.\end{keybox}
+\end{frame}
+
+\begin{frame}{Subtract the legs and solve for the par swap rate}
+Receiving floating and paying fixed gives
+\[
+ \mathrm{Swap}_t=N[P(t,T_0)-P(t,T_n)-KA(t)].
+\]
+The \textbf{par swap rate}, denoted \(K_{\rm par}(t)\), makes this value zero:
+\[
+ \boxed{K_{\rm par}(t)=\frac{P(t,T_0)-P(t,T_n)}{A(t)},
+ \qquad \mathrm{Swap}_t=NA(t)(K_{\rm par}(t)-K).}
+\]
+\begin{keybox}An existing swap has a fixed contractual \(K\).
+Its current value changes when the market's par rate changes.\end{keybox}
+\end{frame}
+
+\section{5. Use a payment-date unit to price a rate option}
+
+\begin{frame}{Choose a unit that pays exactly one on the payment date}
+Suppose a contract pays \(H\) at date \(V\). The bond \(P(t,V)\) pays one at \(V\),
+so choose \(\mathcal N_t=P(t,V)\). Then \(\mathcal N_V=1\).
+\begin{block}{Name the matching measure}
+\(\Q^V\) is the \textbf{\(V\)-forward measure}: the measure associated
+with the \(V\)-maturity bond as pricing unit.
+\end{block}
+\[
+ \boxed{V_t=P(t,V)\E^{\Q^V}[H\mid\F_t],\qquad
+ \left.\frac{\dd\Q^V}{\dd\Q}\right|_{\F_t}
+ =\frac{P(t,V)}{B_tP(0,V)}.}
+\]
+\begin{keybox}The bond price comes outside the expectation because we have
+also changed the measure to match that bond.\end{keybox}
+\end{frame}
+
+\begin{frame}{Under this measure, the forward rate is a conditional mean}
+For the period \([U,V]\), the fixed bond portfolio
+\[
+ G_t=\frac{P(t,U)-P(t,V)}{\delta}
+\]
+has no payouts before \(U\). In units of the \(V\)-bond,
+\[
+ \frac{G_t}{P(t,V)}=F(t;U,V),\qquad F(U;U,V)=L(U,V).
+\]
+Hence, with the pricing integrability assumptions,
+\[
+ \boxed{F(t;U,V)=\E^{\Q^V}[L(U,V)\mid\F_t],\qquad t\leq U.}
+\]
+\begin{keybox}The payment date \(V\) selects the measure.
+We know the future rate's conditional mean; an option still needs its distribution.\end{keybox}
+\end{frame}
+
+\begin{frame}{A caplet protects against a high floating-interest payment}
+A borrower will pay \(N\delta L(U,V)\) at \(V\).
+A \textbf{caplet} with strike \(K\) pays the excess above the fixed threshold:
+\[
+ \boxed{N\delta(L(U,V)-K)^+\quad\text{at }V.}
+\]
+\begin{center}\begin{tikzpicture}[x=3.8cm,y=1cm,>=Stealth]
+\draw[->,CourseBlue,thick] (0,0)--(2.4,0);
+\foreach \x/\label in {0/t,1/U,2/V}{\draw (\x,.08)--(\x,-.08);\node[above] at (\x,.1) {\(\label\)};}
+\node[below,align=center,text width=3.6cm] at (1,-.15) {Reset: fix \(L(U,V)\)\\cash amount known};
+\node[below,align=center,text width=3.6cm] at (2,-.15) {Pay the option cash amount};
+\end{tikzpicture}\end{center}
+\begin{keybox}A \textbf{cap} is a series of caplets over successive loan periods.
+The borrower pays for the protection through the option premium.\end{keybox}
+\end{frame}
+
+\begin{frame}{Write the caplet price before choosing its model}
+For this fixed period \([U,V]\), abbreviate \(F_s=F(s;U,V)\).
+At reset, \(F_U=L(U,V)\). Apply the payment-date pricing formula:
+\[
+ \boxed{\mathrm{Caplet}_t=N\delta P(t,V)
+ \E^{\Q^V}[(F_U-K)^+\mid\F_t].}
+\]
+\begin{itemize}
+\item \(N\delta\) converts an annualized rate difference into cash.
+\item \(P(t,V)\) discounts to the actual payment date \(V\).
+\item The random fixing is determined at \(U\).
+\end{itemize}
+\begin{keybox}Rate-fixing uncertainty runs to reset \(U\).
+Discounting runs to payment \(V\).\end{keybox}
+\end{frame}
+
+\begin{frame}{Black's model supplies the missing rate distribution}
+Let \(W^V\) be Brownian motion under \(\Q^V\). Assume a constant
+\textbf{relative forward-rate volatility} \(\sigma_F>0\):
+\[
+ \dd F_s=\sigma_F F_s\dd W_s^V,\qquad t\leq s\leq U.
+\]
+This gives the familiar lognormal solution
+\[
+ F_U=F_t\exp\!\left[-\tfrac12\sigma_F^2(U-t)
+              +\sigma_F\sqrt{U-t}\,\xi\right],\qquad \xi\sim N(0,1).
+\]
+\begin{itemize}
+\item Zero drift is the forward-measure property.
+\item Lognormality and constant \(\sigma_F\) are additional model assumptions.
+\end{itemize}
+\begin{watchbox}This model requires a positive starting forward.
+The formula on the next slide also uses a positive strike.\end{watchbox}
+\end{frame}
+
+\begin{frame}{Reuse the lognormal call expectation}
+For \(\tau=U-t\), the same Gaussian calculation as in BS gives
+\[
+ \boxed{\mathrm{Caplet}_t=N\delta P(t,V)
+ [F_t\Phi(d_1)-K\Phi(d_2)],}
+\]
+\[
+ d_1=\frac{\log(F_t/K)+\tfrac12\sigma_F^2\tau}{\sigma_F\sqrt\tau},
+ \qquad d_2=d_1-\sigma_F\sqrt\tau.
+\]
+\begin{block}{Keep the inputs in their roles}
+\(F_t\): the annualized simple forward rate.\\
+\(\sigma_F\): its relative volatility under \(\Q^V\).\\
+\(\tau\): time to reset; \quad \(P(t,V)\): discount to payment.
+\end{block}
+\end{frame}
+
+\begin{frame}{Introduce the floorlet, then use payoff parity}
+\small
+A \textbf{floorlet} pays \(N\delta(K-L(U,V))^+\) at \(V\):
+it protects against a rate below \(K\). A series of floorlets is a \textbf{floor}.
+At the common payment date,
+\[
+ N\delta[(L-K)^+-(K-L)^+]=N\delta(L-K).
+\]
+The right-hand side is the FRA payment, so
+\[
+ \boxed{\mathrm{Caplet}_t-\mathrm{Floorlet}_t=\mathrm{FRA}_t.}
+\]
+Adding matching periods gives cap minus floor equal to the payer swap.
+\begin{keybox}This relation follows from the payments themselves, before any distribution is chosen.\end{keybox}
+\end{frame}
+
+\section{6. Introduce collateral before separating the curves}
+
+\begin{frame}{What does cash collateral mean in this setting?}
+When a derivative has positive value for one party, the other party can post
+cash as security against the amount owed. This cash is \textbf{collateral}.
+\begin{itemize}
+\item Its amount is updated as the derivative's value changes.
+\item The posted cash earns a contractual interest rate, denoted \(c_t\).
+\item Here \(c_t\) is an overnight rate: interest accrues one day at a time.
+\end{itemize}
+\begin{block}{The idealization used in this collateral block}
+Full, continuous cash collateral in the payment currency; ignore default and margin delays.
+Under these assumptions, the collateral remuneration rate determines discounting.
+\end{block}
+\source{Bianchetti and Carlicchi, \href{https://arxiv.org/abs/1103.2567}{Interest Rates After the Credit Crunch}, Sections 2.4 and 3.}
+\end{frame}
+
+\begin{frame}{Name the curve that discounts collateralized payments}
+Write \(P^c(t,T)\) for the value at \(t\) of one unit paid at \(T\)
+under these collateral conventions. The superscript \(c\) records which rate remunerates collateral.
+\begin{exampleblock}{When the future collateral rate is deterministic}
+\(\displaystyle P^c(t,T)=\exp\!\left(-\int_t^T c(u)\dd u\right)\).
+With stochastic rates, the same expectation principle as before is used
+within the collateral pricing model.
+\end{exampleblock}
+\begin{block}{Introduce the relevant quoted instrument}
+An \textbf{overnight indexed swap (OIS)} exchanges a fixed rate against
+overnight interest compounded over each period. Matching OIS quotes help infer
+the collateral discount curve.
+\end{block}
+\begin{keybox}This curve answers: what is a dated cash payment worth today?\end{keybox}
+\end{frame}
+
+\begin{frame}{The contract can reference a different rate index}
+Suppose the floating payment references an index labelled \(x\),
+for example a three-month term rate fixed at the start of the period.
+\[
+ \text{The contract fixes }L^x(U,V)\text{ at }U,
+ \qquad\text{and pays }N\delta(L^x(U,V)-K)\text{ at }V.
+\]
+Write \(F^x(t;U,V)\) for the fixed rate that makes this end-paid FRA worth zero today,
+using the stated collateral convention.
+\begin{block}{What is called the projection curve?}
+The collection of market-implied forwards \(F^x\) for that index.
+These inputs come from contracts referencing \(x\).
+\end{block}
+\begin{keybox}\(P^c\) values a dated payment.
+\(F^x\) supplies the contractual rate input for that payment.\end{keybox}
+\end{frame}
+
+\begin{frame}{Reuse the payment-date measure with the collateral curve}
+\small
+Choose \(P^c(t,V)\) as the unit. Denote its associated payment-date measure
+by \(\Q^{c,V}\): this is the same numeraire construction, now in the collateralized model.
+\[
+ \mathrm{FRA}^{x,c}_t=N\delta P^c(t,V)
+ \left(\E^{\Q^{c,V}}[L^x(U,V)\mid\F_t]-K\right).
+\]
+The zero-value fixed rate therefore satisfies
+\[
+ \boxed{F^x(t;U,V)=\E^{\Q^{c,V}}[L^x(U,V)\mid\F_t],
+ \quad \mathrm{FRA}^{x,c}_t=N\delta P^c(t,V)(F^x(t;U,V)-K).}
+\]
+In general, the index forward differs from the discount-bond rate:
+\[
+ F^x(t;U,V)\ne\frac{P^c(t,U)/P^c(t,V)-1}{\delta}.
+\]
+\source{End-paid convention. Bianchetti and Carlicchi, Section 3; the expectation uses the discounting payment-date measure.}
+\end{frame}
+
+\begin{frame}{Price the swap by keeping the two inputs in their roles}
+\small
+For the same schedule, define \(F_i^x(t)=F^x(t;T_{i-1},T_i)\).
+Each period's end-paid FRA gives
+\[
+ \mathrm{Swap}^{x,c}_t=N\sum_{i=1}^n\delta_iP^c(t,T_i)(F_i^x(t)-K).
+\]
+The fixed-leg annuity is now \(A^c(t)=\sum_{i=1}^n\delta_iP^c(t,T_i)\).
+The zero-value fixed rate is
+\[
+ \boxed{K_{\rm par}^{x,c}(t)=
+ \frac{\sum_{i=1}^n\delta_iP^c(t,T_i)F_i^x(t)}{A^c(t)}.}
+\]
+\begin{keybox}The weighted floating sum generally does not telescope.
+The earlier cancellation returns when each forward is generated by that same discount-bond curve.\end{keybox}
+\end{frame}
+
+
+\section{7. Replicate a stock claim when the short rate is stochastic}
+
+\begin{frame}{Start with a stock, a bank account and two historical shocks}
+\small
+We want to price a payment \(h(S_T)\). Return to the default-free,
+frictionless bank-account model, with no dividends or collateral adjustments.
+Under the historical measure \(\Pp\), take independent Brownian motions
+\(W^{1,\Pp},W^{2,\Pp}\) and
+\[
+ \begin{aligned}
+ \frac{\dd S_t}{S_t}&=\mu(t,S_t,r_t)\dd t+\sigma\dd W_t^{1,\Pp},\\
+ \dd r_t&=b_\Pp(r_t)\dd t+
+ \nu\bigl(\rho\dd W_t^{1,\Pp}+\sqrt{1-\rho^2}\dd W_t^{2,\Pp}\bigr),\\
+ \dd B_t&=r_tB_t\dd t,\qquad b_\Pp(r)=\kappa_\Pp(\theta_\Pp-r).
+ \end{aligned}
+\]
+Here \(\sigma,\nu,\kappa_\Pp>0\), \(|\rho|<1\).
+The rate is a Vasicek process: \(\theta_\Pp\) is its historical reversion level.
+\begin{keybox}The rate has a shock independent of the stock shock.
+The account has finite variation and cannot span this second risk.
+\end{keybox}
+\end{frame}
+
+\begin{frame}{Write the possible pricing measures before choosing one}
+\small
+For adapted risk premia \(\lambda_1,\lambda_2\), assume the exponential
+\[
+ Z_t=\exp\!\left(-\sum_{i=1}^2\int_0^t\lambda_{i,u}\dd W_u^{i,\Pp}
+ -\frac12\int_0^t(\lambda_{1,u}^2+\lambda_{2,u}^2)\dd u\right)
+\]
+is a true density martingale. Under the corresponding measure \(\Q^\lambda\),
+\(\dd W^{i,\Q^\lambda}=\dd W^{i,\Pp}+\lambda_i\dd t\).
+The discounted stock must have zero drift, so
+\[
+ \lambda_1=\frac{\mu-r}{\sigma},\qquad
+ \frac{\dd S_t}{S_t}=r_t\dd t+\sigma\dd W_t^{1,\Q^\lambda}.
+\]
+Its requirement does not determine \(\lambda_2\). The rate drift becomes
+\[
+ \boxed{b_{\Q^\lambda}=b_\Pp-
+ \nu\bigl(\rho\lambda_1+\sqrt{1-\rho^2}\lambda_2\bigr).}
+\]
+\end{frame}
+
+\begin{frame}{The stock-and-cash market leaves a pricing choice}
+\small
+Given an admissible selected pricing measure, the model value is
+\[
+ \boxed{u^\lambda(t,s,r)=\E^{\Q^\lambda}\!\left[
+ e^{-\int_t^T r_u\dd u}h(S_T)\mid S_t=s,r_t=r\right].}
+\]
+For a smooth value function, its equation is
+\[
+ \begin{aligned}
+ 0={}&u_t+rsu_s+b_{\Q^\lambda}u_r+\tfrac12\sigma^2s^2u_{ss}\\
+ &+\rho\sigma\nu s u_{sr}+\tfrac12\nu^2u_{rr}-ru,
+ \qquad u(T,s,r)=h(s).
+ \end{aligned}
+\]
+\begin{watchbox}Stock and cash leave \(\lambda_2\) unspecified:
+the market is incomplete. Different admissible rate-risk premia can give
+different prices for a rate-sensitive claim. Not every claim must have a different price.
+\end{watchbox}
+\begin{pausebox}Which traded instrument has direct exposure to the missing rate shock?\end{pausebox}
+\end{frame}
+
+\begin{frame}{Add a zero-coupon bond that stays alive through the hedge}
+\small
+Trade a zero-coupon bond of maturity \(U>T\). Write
+\[
+ Z_t^U=P(t,U)=p(t,r_t;U),\qquad p(U,r;U)=1.
+\]
+Assume its observed price is a smooth function of \((t,r_t)\).
+It\^o under \(\Pp\) gives its currency-price dynamics:
+\[
+ \begin{aligned}
+ \dd Z_t^U&=a_p\dd t+\nu p_r
+ \bigl(\rho\dd W_t^{1,\Pp}+\sqrt{1-\rho^2}\dd W_t^{2,\Pp}\bigr),\\
+ a_p&:=p_t+b_\Pp p_r+\tfrac12\nu^2p_{rr}.
+ \end{aligned}
+\]
+The derivatives are at \((t,r_t;U)\). Its return drift and volatility are
+\(\mu_Z=a_p/p\), \(\sigma_Z=\nu p_r/p\).
+\begin{keybox}The bond matures after the claim, so it remains tradable
+through \(T\). We require \(p_r\ne0\) throughout the hedging interval.
+\end{keybox}
+\end{frame}
+
+\begin{frame}{Why this bond can complete the two-factor market}
+\small
+The stock and bond have diffusion exposure matrix
+\[
+ \begin{pmatrix}
+ \sigma s&0\\
+ \rho\nu p_r&\sqrt{1-\rho^2}\nu p_r
+ \end{pmatrix},\qquad
+ \det=\sigma s\nu p_r\sqrt{1-\rho^2}\ne0.
+\]
+A concrete choice is a selected Vasicek pricing drift
+\(b_\Q(r)=\kappa_\Q(\theta_\Q-r)\). Then the bond is exponential-affine:
+\[
+ p(t,r;U)=\exp\{A(U-t)-\mathcal B_U(t)r\},\qquad
+ \mathcal B_U(t)=\frac{1-e^{-\kappa_\Q(U-t)}}{\kappa_\Q}.
+\]
+Thus \(p_r=-\mathcal B_U(t)p\ne0\) for all \(t\leq T<U\).
+The appendix derives the full Gaussian bond price.
+\begin{keybox}The bond has an independent rate-risk exposure.
+A bond maturing at \(T\) would instead have \(p_r\to0\) as \(t\uparrow T\).
+\end{keybox}
+\end{frame}
+
+\begin{frame}{Apply It\^o to the claim under the historical measure}
+\small
+For \(u(t,S_t,r_t)\), define its historical drift operator
+\[
+ \mathcal D^\Pp u=
+ u_t+\mu s u_s+b_\Pp u_r+\tfrac12\sigma^2s^2u_{ss}
+ +\rho\sigma\nu s u_{sr}+\tfrac12\nu^2u_{rr}.
+\]
+Then
+\[
+ \begin{aligned}
+ \dd u={}&\mathcal D^\Pp u\dd t
+ +(\sigma s u_s+\rho\nu u_r)\dd W^{1,\Pp}\\
+ &+\sqrt{1-\rho^2}\nu u_r\dd W^{2,\Pp}.
+ \end{aligned}
+\]
+\begin{pausebox}Can the stock holding alone match both Brownian coefficients
+when \(u_r\ne0\)?\end{pausebox}
+\begin{answerbox}No. Stock gains have no \(W^{2,\Pp}\) component.
+The bond provides exactly this missing exposure.\end{answerbox}
+\end{frame}
+
+\begin{frame}{Match the two shocks with stock, bond and cash}
+\small
+Hold \(\Delta_t\) stock shares, \(\alpha_t\) units of the \(U\)-bond,
+and \(\beta_t\) bank-account units. Require
+\[
+ X=\Delta S+\alpha p+\beta B=u,\qquad
+ \dd X=\Delta\dd S+\alpha\dd Z^U+\beta\dd B.
+\]
+Matching \(W^{2,\Pp}\) gives \(\alpha p_r=u_r\).
+Matching \(W^{1,\Pp}\) then cancels the shared rate component:
+\[
+ \sigma s\Delta+\rho\nu\alpha p_r=\sigma s u_s+\rho\nu u_r.
+\]
+Hence
+\[
+ \boxed{\alpha=\frac{u_r}{p_r},\qquad\Delta=u_s,\qquad
+ \beta B=u-su_s-\frac{u_r}{p_r}p.}
+\]
+\begin{keybox}The rate sensitivity is hedged by a traded bond.
+The short rate itself is a state variable, not an asset we buy.
+\end{keybox}
+\end{frame}
+
+\begin{frame}{Self-financing identifies the rate drift used for pricing}
+\small
+Match historical drifts with the holdings just obtained:
+\[
+ \mathcal D^\Pp u
+ =\mu s u_s+\frac{u_r}{p_r}a_p
+   +r\left(u-su_s-\frac{u_r}{p_r}p\right).
+\]
+The stock's historical drift cancels. Rearranging yields
+\[
+ \boxed{\begin{aligned}
+ 0={}&u_t+rsu_s+b_\Q u_r+\tfrac12\sigma^2s^2u_{ss}\\
+ &+\rho\sigma\nu s u_{sr}+\tfrac12\nu^2u_{rr}-ru,\\
+ b_\Q&=b_\Pp-\frac{a_p-rp}{p_r},\qquad u(T,s,r)=h(s).
+ \end{aligned}}
+\]
+\begin{keybox}The traded bond fixes the adjustment from historical to pricing
+rate drift. A preselected rate model must be consistent with this bond market.
+\end{keybox}
+\end{frame}
+
+\begin{frame}{Recover the pricing measure from the two traded drifts}
+\small
+Set \(\lambda_r=(a_p-rp)/(\nu p_r)=(\mu_Z-r)/\sigma_Z\).
+The two discounted traded prices require
+\[
+ \boxed{\lambda_1=\frac{\mu-r}{\sigma},\qquad
+ \lambda_2=\frac{\lambda_r-\rho\lambda_1}{\sqrt{1-\rho^2}}.}
+\]
+Assuming the associated density is a true martingale, under \(\Q\),
+\[
+ \begin{aligned}
+ \dd S_t/S_t&=r_t\dd t+\sigma\dd W_t^{1,\Q},\\
+ \dd r_t&=b_\Q\dd t+
+ \nu\bigl(\rho\dd W_t^{1,\Q}+\sqrt{1-\rho^2}\dd W_t^{2,\Q}\bigr),\\
+ \dd Z_t^U&=r_tZ_t^U\dd t+
+ \nu p_r\bigl(\rho\dd W_t^{1,\Q}+\sqrt{1-\rho^2}\dd W_t^{2,\Q}\bigr).
+ \end{aligned}
+\]
+Here \(b_\Q=b_\Pp-\nu\lambda_r\).
+Both premia are now determined; the diffusion rank spans both risks.
+\end{frame}
+
+\begin{frame}{Replication and risk-neutral valuation give the same equation}
+\small
+Under this measure, the discounted claim must have zero drift:
+\[
+ \dd(u/B)=\frac1B\left(u_t+\mathcal L^\Q u-ru\right)\dd t
+          +\text{Brownian terms}.
+\]
+Its generator \(\mathcal L^\Q\) gives exactly the PDE derived by historical
+self-financing, including the mixed derivative \(\rho\sigma\nu s u_{sr}\).
+With the usual admissibility and integrability assumptions,
+\[
+ \boxed{u(t,s,r)=\E^\Q\!\left[
+ e^{-\int_t^T r_u\dd u}h(S_T)\mid S_t=s,r_t=r\right].}
+\]
+\begin{keybox}Stock and cash leave rate risk unspanned.
+Adding a nondegenerate traded bond determines its premium and permits replication.
+The expectation and the hedge now describe the same market.
+\end{keybox}
+\end{frame}
+
+\section{8. Reassemble the pricing argument}
+
+\begin{frame}{Keep the payment, the unit and the measure together}
+\small
+For a payment \(H\) at date \(T\):
+\begin{center}\begin{tabular}{L{.22\textwidth}L{.16\textwidth}L{.48\textwidth}}
+\toprule Unit & Measure & Currency value\\\midrule
+Bank account \(B_t\) & \(\Q\) & \(B_t\E^\Q[H/B_T\mid\F_t]\)\\[.7em]
+Stock \(S_t\) & \(\Q^S\) & \(S_t\E^{\Q^S}[H/S_T\mid\F_t]\)\\[.7em]
+Payment bond \(P(t,T)\) & \(\Q^T\) & \(P(t,T)\E^{\Q^T}[H\mid\F_t]\)\\[.7em]
+Collateral payment bond \(P^c(t,T)\) & \(\Q^{c,T}\) & \(P^c(t,T)\E^{\Q^{c,T}}[H\mid\F_t]\)\\\bottomrule
+\end{tabular}\end{center}
+\begin{keybox}Read the payment dates first. Define the rate convention and the pricing model.
+Then choose the unit that simplifies the expectation.\end{keybox}
+\end{frame}
+
+\begin{frame}{Exit questions: explain the object before using the formula}
+\small
 \begin{enumerate}
-  \item Local volatility fits the current vanilla surface.
-  \item Stochastic volatility adds a random volatility state and richer
-  dynamics.
-  \item Stochastic rates add a random discount curve and fixed-income risk.
-  \item More realism comes with more state variables, calibration work, and
-  hedging uncertainty.
+\item For principal \(N\), annual coupon rate \(c\), and accrual length
+\(\delta_i\), what is paid at \(T_i\), and what is added at maturity?
+\item In bootstrapping, what is given and what is unknown?
+\item Duration differentiates the bond price with respect to what change?
+\item For a caplet, which date sets volatility time and which sets discounting?
 \end{enumerate}
+\begin{answerbox}
+\begin{enumerate}
+\item The coupon is \(Nc\delta_i\); add the principal \(N\) at maturity.
+\item Market prices and early discount factors are given; infer the next discount factor.
+\item The specified parallel shift in continuously compounded zero rates.
+\item Volatility runs to reset \(U\); discounting runs to payment \(V\).
+\end{enumerate}
+\end{answerbox}
 \end{frame}
 
-\begin{frame}{Final check: start from the risk you need to model}
-\begin{pausebox}
-A desk is hedging a barrier option and needs to reproduce today’s full
-vanilla smile surface accurately. Which model is the natural first
-benchmark, and what caveat should remain in mind?
-\end{pausebox}
-\pause
-\begin{exampleblock}{Answer}
-Local volatility is the natural first benchmark because it fits today's
-vanilla surface. Its future smile dynamics may nevertheless be unrealistic,
-so the hedge can be model dependent.
-\end{exampleblock}
-\vfill
-\begin{center}
-{\large\color{CourseBlue}\bfseries A richer model earns its place only by explaining a material risk.}
-\end{center}
+\begin{frame}{Reading and the next lecture}
+\small
+\begin{itemize}
+\item R. Kohn, \href{https://math.nyu.edu/~kohn/cont-time-finance/section3.pdf}
+{Continuous Time Finance, Section 3}: alternative numeraires.
+\item R. Kohn, \href{https://math.nyu.edu/~kohn/cont-time-finance/section4.pdf}
+{Section 4}: bond prices and short-rate models.
+\item D. Brigo and F. Mercurio, \emph{Interest Rate Models: Theory and Practice},
+Chapters 1--2: introductory rate products and conventions.
+\item M. Bianchetti and M. Carlicchi, \href{https://arxiv.org/abs/1103.2567}
+{Interest Rates After the Credit Crunch}, Section 3: multicurve valuation.
+\end{itemize}
+\begin{keybox}Lecture 13: numerical pricing, Asian, barrier and lookback options, and correlation swaps.
+Lecture 14: review of Lectures 1--11 only.\end{keybox}
+The appendices give optional calculations after introducing the objects they use.
+\end{frame}
+
+\appendix
+\section{Optional: translate the numeraire density into Brownian drifts}
+
+\begin{frame}{Define both volatility vectors before shifting the Brownian motion}
+\small
+Let \(W^\Q\) have \(d\) independent Brownian components.
+For two strictly positive, no-payout traded portfolios, define volatility vectors
+\(\sigma_{\mathcal N,t}\) and \(\sigma_{X,t}\) through
+\[
+ \frac{\dd\mathcal N_t}{\mathcal N_t}=r_t\dd t+\sigma_{\mathcal N,t}\cdot\dd W_t^\Q,
+ \qquad \frac{\dd X_t}{X_t}=r_t\dd t+\sigma_{X,t}\cdot\dd W_t^\Q.
+\]
+The dot is the sum over Brownian components. For the numeraire density,
+\[
+ \frac{\dd Z_t}{Z_t}=\sigma_{\mathcal N,t}\cdot\dd W_t^\Q.
+\]
+Assuming a true density martingale, Girsanov gives the new Brownian motion:
+\[
+ \boxed{\dd W_t^{\mathcal N}=\dd W_t^\Q-\sigma_{\mathcal N,t}\dd t.}
+\]
+\end{frame}
+
+\begin{frame}{The ratio becomes driftless after the matching measure change}
+\small
+Let \(Y_t=X_t/\mathcal N_t\). It\^o's quotient rule under \(\Q\) gives
+\[
+ \frac{\dd Y_t}{Y_t}
+ =\left(\|\sigma_{\mathcal N,t}\|^2
+ -\sigma_{X,t}\cdot\sigma_{\mathcal N,t}\right)\dd t
+ +(\sigma_{X,t}-\sigma_{\mathcal N,t})\cdot\dd W_t^\Q.
+\]
+Substitute \(\dd W_t^\Q=\dd W_t^{\mathcal N}+\sigma_{\mathcal N,t}\dd t\).
+The drift terms cancel:
+\[
+ \boxed{\frac{\dd Y_t}{Y_t}
+ =(\sigma_{X,t}-\sigma_{\mathcal N,t})\cdot\dd W_t^{\mathcal N}.}
+\]
+\begin{keybox}The price ratio is a local martingale under the new measure;
+the true-martingale pricing statements require integrability.
+The currency-price drift itself need not remain \(r_t\).\end{keybox}
+\end{frame}
+
+\section{Optional: a swap option and the annuity unit}
+
+\begin{frame}{Introduce the swaption by asking what its owner can choose}
+A \textbf{payer swaption} gives its owner the right, at date \(T_0\),
+to enter the payer swap with contractual fixed rate \(K\).
+The swap's remaining payment dates are \(T_1,\ldots,T_n\).
+\[
+ \text{Swap value at }T_0
+ =NA(T_0)\big(K_{\rm par}(T_0)-K\big).
+\]
+\begin{itemize}
+\item Enter when this value is positive; otherwise let the right expire.
+\item The option's expiry value is therefore
+\end{itemize}
+\[
+ H=NA(T_0)\big(K_{\rm par}(T_0)-K\big)^+.
+\]
+\begin{keybox}We already defined the swap's par rate and annuity.
+The new instrument adds a choice at \(T_0\).\end{keybox}
+\end{frame}
+
+\begin{frame}{The annuity is a useful unit for this expiry value}
+\small
+Before \(T_0\), \(A(t)=\sum_i\delta_iP(t,T_i)\) is a positive fixed bond basket
+with no payments yet. Subject to the numeraire assumptions, use it as the unit
+and call the associated measure \(\Q^A\), the \textbf{annuity measure}.
+\[
+ K_{\rm par}(t)=\frac{P(t,T_0)-P(t,T_n)}{A(t)}
+\]
+is a bond-portfolio price divided by this unit, hence a martingale with the usual integrability.
+Applying the general formula to the swaption's expiry value,
+\[
+ \boxed{\mathrm{PayerSwaption}_t=NA(t)
+ \E^{\Q^A}[(K_{\rm par}(T_0)-K)^+\mid\F_t].}
+\]
+\begin{keybox}The factor \(A(T_0)\) cancels in terminal units.
+An option price still needs a distribution for the future par swap rate.\end{keybox}
+\end{frame}
+
+\section{Optional: compare rate quotation conventions}
+
+\begin{frame}{Different growth conventions can describe the same bond price}
+\small
+Fix \(\tau=T-t>0\) and the observed price \(P=P(t,T)\).
+Define each quoted annual rate by how one invested unit would grow:
+\begin{center}\begin{tabular}{L{.25\textwidth}L{.25\textwidth}L{.35\textwidth}}
+\toprule Convention & Repayment factor & Rate inferred from \(P\)\\\midrule
+Continuous zero rate \(R\) & \(e^{R\tau}=1/P\) & \(R=-\log P/\tau\)\\[.7em]
+Simple rate \(L\) & \(1+\tau L=1/P\) & \(L=(P^{-1}-1)/\tau\)\\[.7em]
+Annual effective rate \(Y\) & \((1+Y)^\tau=1/P\) & \(Y=P^{-1/\tau}-1\)\\\bottomrule
+\end{tabular}\end{center}
+\begin{keybox}State the convention before comparing quoted percentages.
+Converting the quote does not change the price of the dated payment.\end{keybox}
+\end{frame}
+
+\section{Optional: build a Gaussian short-rate bond price}
+
+\begin{frame}{Introduce the mean-reverting short-rate model and its parameters}
+\small
+Use the selected \textbf{Vasicek pricing model}, writing \(\kappa=\kappa_\Q\) and
+\(\theta=\theta_\Q\). The short rate under \(\Q\) follows
+\[
+ \dd r_u=\kappa(\theta-r_u)\dd u+\nu\dd W_u^\Q.
+\]
+\begin{center}\begin{tabular}{ll}
+\toprule Parameter & Meaning\\\midrule
+\(\kappa>0\) & speed of reversion toward the level \(\theta\)\\
+\(\theta\) & long-run short-rate level in this pricing model\\
+\(\nu\geq0\) & size of the Brownian rate shocks\\\bottomrule
+\end{tabular}\end{center}
+\begin{keybox}This is an Ornstein--Uhlenbeck process.
+We will solve for the accumulated rate, then use its Gaussian distribution to price a bond.\end{keybox}
+\end{frame}
+
+\begin{frame}{First solve the rate process}
+Multiplying \(r_u-\theta\) by \(e^{\kappa u}\) cancels its drift:
+\[
+ \dd[e^{\kappa u}(r_u-\theta)]=\nu e^{\kappa u}\dd W_u^\Q.
+\]
+Integrate from the known current state \(r_t\) to a future date \(u\):
+\[
+ \boxed{r_u=\theta+(r_t-\theta)e^{-\kappa(u-t)}
+       +\nu\int_t^u e^{-\kappa(u-s)}\dd W_s^\Q.}
+\]
+\begin{keybox}The initial deviation decays exponentially.
+Future shocks enter through a deterministic kernel, so the future rate is conditionally Gaussian.\end{keybox}
+\end{frame}
+
+\begin{frame}{Next integrate the rate over the bond's remaining life}
+\small
+Set \(\tau=T-t\). The integrated decay weight is
+\[
+ b(\tau)=\int_0^\tau e^{-\kappa u}\dd u=\frac{1-e^{-\kappa\tau}}{\kappa}.
+\]
+Integrating the preceding rate solution gives
+\[
+ \boxed{J_{t,T}=\theta\tau+(r_t-\theta)b(\tau)
+ +\frac\nu\kappa\int_t^T(1-e^{-\kappa(T-s)})\dd W_s^\Q.}
+\]
+\begin{block}{Why this helps}
+The stochastic integral has a deterministic integrand. Conditional on \(\F_t\),
+it is centered Gaussian and its variance follows from It\^o's isometry.
+\end{block}
+\end{frame}
+
+\begin{frame}{Compute its mean and variance before taking the exponential moment}
+\small
+Write \(J_{t,T}\mid\F_t\sim N(m,q)\), where
+\[
+ m=\theta\tau+(r_t-\theta)b(\tau),
+\]
+\[
+ q=\frac{\nu^2}{\kappa^2}\left[\tau-2b(\tau)
+                  +\frac{1-e^{-2\kappa\tau}}{2\kappa}\right].
+\]
+A Gaussian variable with mean \(m\) and variance \(q\) satisfies
+\(\E[e^{-J}]=e^{-m+q/2}\). Therefore
+\[
+ \boxed{P(t,T)=\E^\Q[e^{-J_{t,T}}\mid\F_t]=e^{-m+q/2}.}
+\]
+\begin{keybox}The \(+q/2\) term is the convexity correction anticipated
+by the earlier conditional Jensen inequality.\end{keybox}
+\end{frame}
+
+\begin{frame}{Check the deterministic and short-maturity limits}
+\small
+\begin{pausebox}What happens to the bond formula when the rate volatility
+vanishes, or when the payment date approaches?\end{pausebox}
+\begin{answerbox}
+\begin{itemize}
+\item If \(\nu=0\), the rate path is deterministic. Then \(q=0\)
+and \(P(t,T)=e^{-m}\): the variance correction disappears.
+\item As \(\tau\downarrow0\), \(b(\tau)\to0\), \(m\to0\), and \(q\to0\).
+Thus \(P(t,T)\to1\), as required for a unit payment at maturity.
+\end{itemize}
+\end{answerbox}
+\begin{watchbox}
+Vasicek permits negative rates; constant parameters need not fit an arbitrary observed initial curve.\end{watchbox}
+\source{R. Kohn, Continuous Time Finance, Section 4; short-rate chapters in Shreve and Bj\"ork.}
 \end{frame}
 
 \end{document}

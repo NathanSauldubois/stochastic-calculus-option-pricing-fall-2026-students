@@ -1,5 +1,5 @@
 % !TEX program = pdflatex
-\documentclass[10pt,aspectratio=169]{beamer}
+\documentclass[handout,10pt,aspectratio=169]{beamer}
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -258,7 +258,7 @@ V_t=e^{-r(T-t)}
 \begin{pausebox}
 Where is the physical drift \(\mu\) in this formula?
 \end{pausebox}
-\pause
+
 It has been absorbed into the change from \(\Pp\) to \(\Q\).
 \end{frame}
 
@@ -289,7 +289,7 @@ V_t=e^{-r(T-t)}\Q(S_T>K\mid\cF_t).
 \begin{pausebox}
 Is the option price itself a probability?
 \end{pausebox}
-\pause
+
 No. It is a discounted risk-neutral probability.
 \end{frame}
 
@@ -303,7 +303,7 @@ V_t=e^{-r(T-t)}
 Why is this not
 \(e^{-r(T-t)}S_t\Q(S_T>K\mid\cF_t)\)?
 \end{pausebox}
-\pause
+
 \(S_T\) and the event are dependent. The stock-weighted tail produces the
 \(d_+\) term in Black--Scholes.
 \end{frame}
@@ -339,7 +339,7 @@ C_t=e^{-r\tau}
 \begin{pausebox}
 Which term becomes the \(d_+\) term and which becomes the \(d_-\) term?
 \end{pausebox}
-\pause
+
 The stock-weighted tail gives \(d_+\); the cash-or-nothing tail gives \(d_-\).
 \end{frame}
 
@@ -413,7 +413,7 @@ A claim delivering one share at \(T\) is worth
 \begin{pausebox}
 How many shares should we buy at time \(t\) if all dividends are reinvested?
 \end{pausebox}
-\pause
+
 Buy \(e^{-q(T-t)}\) shares. Reinvestment grows the position at rate \(q\),
 so it reaches one share at \(T\).
 \[
@@ -436,7 +436,7 @@ Z_T=e^{-\lambda W_T^\Pp-\lambda^2T/2},
 Substitute \(\dd W_t^\Pp=\dd W_t^\Q-\lambda\dd t\). What is the new
 ex-dividend drift?
 \end{pausebox}
-\pause
+
 \[\boxed{\dd S_t/S_t=(r-q)\dd t+\sigma\dd W_t^\Q.}\]
 \end{frame}
 
@@ -512,7 +512,7 @@ Suppose \(H=N_TY_T\). Then
 \begin{pausebox}
 What happens if \(H=N_T\)? What is the price without any calculation?
 \end{pausebox}
-\pause
+
 \[
 Y_T=1
 \quad\Longrightarrow\quad
@@ -673,7 +673,7 @@ but \(Y\) is not traded.
 We assumed \(W^1\) and \(W^2\) independent. Is that realistic or useful?
 What might change if sector and market shocks are correlated?
 \end{pausebox}
-\pause
+
 Independence simplifies the calculation; observed sector and market shocks
 may be correlated.
 \end{frame}
@@ -827,7 +827,7 @@ so
 \begin{pausebox}
 Why do different expectation values not create an arbitrage?
 \end{pausebox}
-\pause
+
 Because \(H\) is not replicable by assets driven only by \(W^1\).
 \end{frame}
 
@@ -864,7 +864,7 @@ For claim exposure \(\psi=3\), hedge holdings satisfy
 Give two different hedges. Does nonuniqueness of holdings imply nonuniqueness
 of the claim price?
 \end{pausebox}
-\pause
+
 Examples are \((3,0)\) and \((1,1)\). The risk is fully spanned; the second
 asset is redundant.
 \end{frame}
@@ -1058,7 +1058,7 @@ state is high-dimensional.
 %Which claim do you buy and which do you sell? Track cash at time \(0\) and
 %payoff at \(T\).
 %\end{pausebox}
-%\pause
+%
 %Buy \(A\) and sell \(B\):
 %\[
 %\text{initial receipt}=b-a>0,
@@ -1174,7 +1174,7 @@ state is high-dimensional.
 %Translate both payoff inequalities into price inequalities. Then use
 %put--call parity and \(P_t\geq0\) for a lower bound.
 %\end{pausebox}
-%\pause
+%
 %The upper bound is immediate:
 %\[
 %0\leq C_t\leq S_t.

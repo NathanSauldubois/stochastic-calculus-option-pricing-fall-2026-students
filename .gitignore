@@ -3,7 +3,6 @@
 *
 !/.gitignore
 !/README.md
-!/Exercises/
 !/Python/
 !/Seance 1/
 !/Seance 10/
@@ -21,20 +20,15 @@
 !/Seance 9/
 !/Syllabus/
 !/Synthesis/
-!/Exercises/Exercise Sheet/
-!/Exercises/In-Class/
-!/Exercises/Session Worksheets/
 !/Seance 1/Notes/
 !/Seance 1/Slides/
 !/Seance 10/Notes/
 !/Seance 10/Slides/
 !/Seance 11/Notes/
 !/Seance 11/Slides/
-!/Seance 12/Notes/
+!/Seance 11/Slides/Figures/
 !/Seance 12/Slides/
-!/Seance 13/Notes/
 !/Seance 13/Slides/
-!/Seance 14/Notes/
 !/Seance 14/Slides/
 !/Seance 2/Notes/
 !/Seance 2/Slides/
@@ -53,42 +47,6 @@
 !/Seance 9/Figures/
 !/Seance 9/Notes/
 !/Seance 9/Slides/
-!/Exercises/In-Class/Seance 7/
-!/Exercises/Session Worksheets/Seance 10/
-!/Exercises/Session Worksheets/Seance 11/
-!/Exercises/Session Worksheets/Seance 12/
-!/Exercises/Session Worksheets/Seance 13/
-!/Exercises/Session Worksheets/Seance 14/
-!/Exercises/Session Worksheets/Seance 9/
-!/Exercises/Exercise Sheet/Exercises.pdf
-!/Exercises/Exercise Sheet/Exercises.tex
-!/Exercises/Exercise Sheet/Week_1_Exercises.tex
-!/Exercises/Exercise Sheet/Week_2_Exercises.tex
-!/Exercises/Exercise Sheet/Week_3_Exercises.tex
-!/Exercises/Exercise Sheet/Week_4_Exercise_Sheet.pdf
-!/Exercises/Exercise Sheet/Week_4_Exercise_Sheet.tex
-!/Exercises/Exercise Sheet/Week_4_Exercises.tex
-!/Exercises/Exercise Sheet/Week_5_Exercise_Sheet.pdf
-!/Exercises/Exercise Sheet/Week_5_Exercise_Sheet.tex
-!/Exercises/Exercise Sheet/Week_5_Exercises.tex
-!/Exercises/Exercise Sheet/Week_6_Exercise_Sheet.pdf
-!/Exercises/Exercise Sheet/Week_6_Exercise_Sheet.tex
-!/Exercises/Exercise Sheet/Week_6_Exercises.tex
-!/Exercises/Exercise Sheet/Week_7_Exercises.tex
-!/Exercises/Exercise Sheet/Week_8_Exercises.tex
-!/Exercises/In-Class/Seance 7/doneninclass.tex
-!/Exercises/Session Worksheets/Seance 10/Exercises.pdf
-!/Exercises/Session Worksheets/Seance 10/Exercises.tex
-!/Exercises/Session Worksheets/Seance 11/Exercises.pdf
-!/Exercises/Session Worksheets/Seance 11/Exercises.tex
-!/Exercises/Session Worksheets/Seance 12/Exercises.pdf
-!/Exercises/Session Worksheets/Seance 12/Exercises.tex
-!/Exercises/Session Worksheets/Seance 13/Exercises.pdf
-!/Exercises/Session Worksheets/Seance 13/Exercises.tex
-!/Exercises/Session Worksheets/Seance 14/Exercises.pdf
-!/Exercises/Session Worksheets/Seance 14/Exercises.tex
-!/Exercises/Session Worksheets/Seance 9/Exercises.pdf
-!/Exercises/Session Worksheets/Seance 9/Exercises.tex
 !/Python/Python_doc.pdf
 !/Python/Python_doc.tex
 !/Seance 1/Notes/Notes_Lecture_1.pdf
@@ -103,16 +61,12 @@
 !/Seance 11/Notes/Notes.tex
 !/Seance 11/Slides/Slides.pdf
 !/Seance 11/Slides/Slides.tex
-!/Seance 12/Notes/Notes.pdf
-!/Seance 12/Notes/Notes.tex
+!/Seance 11/Slides/Figures/heston_smiles.csv
+!/Seance 11/Slides/Figures/README.md
 !/Seance 12/Slides/Slides.pdf
 !/Seance 12/Slides/Slides.tex
-!/Seance 13/Notes/Notes.pdf
-!/Seance 13/Notes/Notes.tex
 !/Seance 13/Slides/Slides.pdf
 !/Seance 13/Slides/Slides.tex
-!/Seance 14/Notes/Notes.pdf
-!/Seance 14/Notes/Notes.tex
 !/Seance 14/Slides/Slides.pdf
 !/Seance 14/Slides/Slides.tex
 !/Seance 2/Notes/Notes_Lecture_2.pdf
@@ -155,3 +109,66 @@
 !/Synthesis/synthesis.pdf
 !/Synthesis/synthesis.tex
 !/Synthesis/weeks_5_7.tex
+!/Synthesis/weeks_8_11.tex
+!/Synthesis/Essentials_Math_Code_1_11.pdf
+!/Synthesis/Essentials_Math_Code_1_11.tex
+
+
+
+# Revised end-of-semester plan and optional Lecture 13 experiments.
+!/PLAN_FIN_SEMESTRE.md
+!/Seance 13/Workshop/
+!/Seance 13/Workshop/README.md
+!/Seance 13/Workshop/numerical_lab.py
+!/Seance 13/Workshop/numerical_results.json
+!/Seance 13/Workshop/pricing_schemes.py
+!/Seance 13/Workshop/pricing_schemes_results.json
+
+# Exercise library: questions and sources only.
+!/Exercises/
+!/Exercises/01_Core/
+!/Exercises/02_Further_Practice/
+!/Exercises/03_Fire_Drill/
+!/Exercises/04_By_Session/
+!/Exercises/05_In_Class/
+!/Exercises/04_By_Session/Seance 1/
+!/Exercises/04_By_Session/Seance 10/
+!/Exercises/04_By_Session/Seance 11/
+!/Exercises/04_By_Session/Seance 2/
+!/Exercises/04_By_Session/Seance 3/
+!/Exercises/04_By_Session/Seance 4/
+!/Exercises/04_By_Session/Seance 5/
+!/Exercises/04_By_Session/Seance 6/
+!/Exercises/04_By_Session/Seance 7/
+!/Exercises/04_By_Session/Seance 8/
+!/Exercises/04_By_Session/Seance 9/
+!/Exercises/05_In_Class/Seance 7/
+!/Exercises/01_Core/Exercises.pdf
+!/Exercises/01_Core/Exercises.tex
+!/Exercises/02_Further_Practice/Further_Practice.pdf
+!/Exercises/02_Further_Practice/Further_Practice.tex
+!/Exercises/03_Fire_Drill/Fire_Drill_Lectures_1_11.pdf
+!/Exercises/03_Fire_Drill/Fire_Drill_Lectures_1_11.tex
+!/Exercises/04_By_Session/Seance 1/Week_1_Exercises.tex
+!/Exercises/04_By_Session/Seance 10/Exercises.pdf
+!/Exercises/04_By_Session/Seance 10/Exercises.tex
+!/Exercises/04_By_Session/Seance 11/Exercises.pdf
+!/Exercises/04_By_Session/Seance 11/Exercises.tex
+!/Exercises/04_By_Session/Seance 2/Week_2_Exercises.tex
+!/Exercises/04_By_Session/Seance 3/Week_3_Exercises.tex
+!/Exercises/04_By_Session/Seance 4/Week_4_Exercise_Sheet.pdf
+!/Exercises/04_By_Session/Seance 4/Week_4_Exercise_Sheet.tex
+!/Exercises/04_By_Session/Seance 4/Week_4_Exercises.tex
+!/Exercises/04_By_Session/Seance 5/Week_5_Exercise_Sheet.pdf
+!/Exercises/04_By_Session/Seance 5/Week_5_Exercise_Sheet.tex
+!/Exercises/04_By_Session/Seance 5/Week_5_Exercises.tex
+!/Exercises/04_By_Session/Seance 6/Week_6_Exercise_Sheet.pdf
+!/Exercises/04_By_Session/Seance 6/Week_6_Exercise_Sheet.tex
+!/Exercises/04_By_Session/Seance 6/Week_6_Exercises.tex
+!/Exercises/04_By_Session/Seance 7/Week_7_Exercises.tex
+!/Exercises/04_By_Session/Seance 8/Week_8_Exercises.tex
+!/Exercises/04_By_Session/Seance 9/Exercises.pdf
+!/Exercises/04_By_Session/Seance 9/Exercises.tex
+!/Exercises/05_In_Class/Seance 7/doneninclass.tex
+!/Exercises/README.md
+!/Exercises/05_In_Class/Seance 7/doneninclass.pdf

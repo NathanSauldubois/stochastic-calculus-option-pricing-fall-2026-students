@@ -1,0 +1,45 @@
+% !TEX program = pdflatex
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{enumitem,needspace}
+\usepackage[hidelinks]{hyperref}
+
+\newcommand{\Pb}{\mathbb{P}}
+\newcommand{\Qbb}{\mathbb{Q}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\1}{\mathbf{1}}
+\newcommand{\dd}{\,\mathrm{d}}
+\newcommand{\norm}[1]{\left\lVert #1\right\rVert}
+\newcommand{\lecturesummary}[1]{\begin{quote}\small\textbf{Focus.} #1\end{quote}}
+\newcommand{\Ito}{\mathrm{It\hat{o}}}
+
+\theoremstyle{definition}
+\newtheorem{exercise}{Exercise}[section]
+\newtheorem{remark}{Remark}[section]
+
+\newlist{exparts}{enumerate}{1}
+\setlist[exparts,1]{label=\textbf{(\alph*)},itemsep=0.25em,topsep=0.4em,leftmargin=2em}
+
+
+\title{Stochastic Calculus and Option Pricing\\Lecture 6 Exercise Sheet}
+\author{}\date{}
+\newif\ifIncludeCore
+\newif\ifIncludeFurther
+\IncludeCoretrue\IncludeFurthertrue
+\AddToHook{env/exercise/before}{\Needspace{7\baselineskip}}
+\begin{document}
+\maketitle\vspace{-1.2em}
+\def\ExercisesSynthesis{true}
+\setcounter{section}{5}
+\input{Week_6_Exercises.tex}
+\end{document}

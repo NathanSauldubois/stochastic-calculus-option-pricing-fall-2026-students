@@ -1,8 +1,9 @@
 % !TEX program = pdflatex
 \documentclass[10pt]{article}
 \usepackage[utf8]{inputenc}\usepackage[T1]{fontenc}\usepackage[english]{babel}
-\usepackage{lmodern,microtype}\usepackage[margin=.72in]{geometry}
+\usepackage{lmodern,microtype}\usepackage{needspace}\usepackage[margin=.72in]{geometry}
 \usepackage{amsmath,amssymb,amsthm,mathtools,booktabs,array,xcolor,enumitem}
+\usepackage{tikz,pgfplots}\pgfplotsset{compat=1.18}
 \usepackage[most]{tcolorbox}\usepackage{fancyhdr}\usepackage[hidelinks]{hyperref}
 \definecolor{CourseBlue}{HTML}{1A3C68}\definecolor{CourseGreen}{HTML}{216E39}
 \definecolor{CourseGold}{HTML}{B8860B}\definecolor{CourseRed}{HTML}{9A2C2C}
@@ -14,7 +15,7 @@
 \pagestyle{fancy}\fancyhf{}\lhead{Stochastic Calculus and Option Pricing}
 \rhead{Lecture 11 Notes}\cfoot{\thepage}\renewcommand{\headrulewidth}{.3pt}
 \newcommand{\E}{\mathbb E}\newcommand{\Q}{\mathbb Q}\newcommand{\cF}{\mathcal F}
-\newcommand{\dd}{\,\mathrm d}\newcommand{\esssup}{\operatorname*{ess\,sup}}
+\newcommand{\dd}{\,\mathrm d}\newcommand{\Pp}{\mathbb P}\newcommand{\Var}{\operatorname{Var}}\newcommand{\Cov}{\operatorname{Cov}}
 \theoremstyle{definition}\newtheorem{definition}{Definition}[section]
 \newtheorem{proposition}[definition]{Proposition}
 \newtcolorbox{boardexample}[1]{enhanced,breakable,colback=SoftBlue,colframe=CourseBlue,boxrule=.55pt,arc=1mm,title={Example --- #1},fonttitle=\bfseries}
@@ -22,159 +23,848 @@
 \newtcolorbox{shortsolution}[1][]{enhanced,breakable,colback=SoftGreen,colframe=CourseGreen,boxrule=.55pt,arc=1mm,title={Short solution#1},fonttitle=\bfseries}
 \newtcolorbox{keyidea}[1]{enhanced,breakable,colback=white,colframe=CourseGreen,boxrule=.7pt,arc=1mm,title={#1},fonttitle=\bfseries}
 \newtcolorbox{warningbox}[1]{enhanced,breakable,colback=SoftRed,colframe=CourseRed,boxrule=.65pt,arc=1mm,title={#1},fonttitle=\bfseries}
-\title{\textbf{Change of Numeraire}\\\large Lecture 11 Notes --- Units, Measures, Forward Pricing, and FX}
+
+\allowdisplaybreaks
+\setlength{\headheight}{14pt}
+\hypersetup{pdftitle={Lecture 11 Notes - Beyond Black-Scholes},
+pdfsubject={Dupire, Heston, barrier hedging under P, parametrization, and simulation}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\pgfplotsset{notesaxis/.style={width=.47\textwidth,height=4.5cm,
+ axis lines=left,xmin=70,xmax=130,xtick={70,85,100,115,130},
+ tick label style={font=\scriptsize},label style={font=\small},
+ title style={font=\small},xlabel={Strike \(K\)},ylabel={Implied volatility (\%)},
+ grid=major,grid style={gray!15}}}
+
+\title{\textbf{Beyond Black--Scholes}\\
+\large Lecture 11 Notes --- Dupire, Heston, Hedging, and Parametrization}
 \author{}\date{}
-\begin{document}\maketitle\vspace{-1.4em}
+\begin{document}
+\maketitle\vspace{-1.4em}
+
 \begin{keyidea}{Goals and logical structure}
-Risk-neutral valuation already uses a unit: the money-market account. We
-change that unit deliberately:
+A vanilla smile asks us to replace a single constant volatility by one
+coherent model. This lecture follows five steps:
 \[
-\text{positive traded numeraire}\longrightarrow\text{matching measure}
-\longrightarrow\text{martingale price ratio}\longrightarrow\text{simpler pricing}.
+\begin{aligned}
+\text{vanilla prices}&\longrightarrow\text{risk-neutral terminal densities}\\
+&\longrightarrow\text{a local-volatility diffusion}\\
+&\longrightarrow\text{random variance and its pricing measure}\\
+&\longrightarrow\text{pricing and hedging, with a barrier replicated under }\Pp\\
+&\longrightarrow\text{parametrization (state, }\Q\text{, }\Pp\text{) and simulation}.
+\end{aligned}
 \]
-The price does not change; only its representation does.
+Local volatility keeps one Brownian risk. Heston adds a variance factor,
+so choosing pricing dynamics and identifying hedge instruments become
+separate, explicit parts of the problem.
 \end{keyidea}
 
-\section{Numeraires, measures, and ratios}
-\subsection{The general pricing formula}
-With money-market account \(B_t\), a payoff \(X_T\) is worth
+\section{From implied volatility to a local diffusion}
+\subsection{Conventions and three different volatility objects}
+Throughout, the stock pays no dividends, the interest rate \(r\) is
+constant, and options are European. Time is measured in years and all
+prices are in the same currency. Under a selected pricing measure \(\Q\),
+discounted traded prices are assumed to be true martingales. Smoothness,
+integrability, and boundary assumptions will be stated where needed.
+
+For a call quote \(C^{\rm mkt}(K,T)\), implied volatility solves
 \[
-V_t=B_t\E^\Q\!\left[\frac{X_T}{B_T}\middle|\cF_t\right].
+C^{\rm mkt}(K,T)=C^{\rm BS}(S_0,K,T,r,\sigma_{\rm imp}(K,T)).
 \]
-\begin{definition}[Numeraire]
-A numeraire \(N_t\) is a strictly positive traded asset used as the unit of
-account. The \(N\)-denominated price of an asset \(S\) is \(S_t/N_t\).
+Constant-volatility Black--Scholes would give the same implied volatility
+for every strike and maturity. A smile or skew is strike dependence; its
+term structure is maturity dependence. For example, a strike-80 put quoted
+at 28\% and an ATM call quoted at 20\% cannot both be fitted by a single
+constant volatility. Assigning each option its own BS input is a quotation
+convention; it does not specify one stock process.
+
+\begin{center}
+\begin{tabular}{L{.23\textwidth}L{.42\textwidth}L{.26\textwidth}}
+\toprule Object & Meaning & How it is obtained\\\midrule
+Historical volatility & A summary of past returns & Estimate from observations\\[.4em]
+Implied volatility & A price expressed in BS units & Invert a vanilla quote\\[.4em]
+Instantaneous variance & The squared diffusion coefficient in a model & Specify and calibrate dynamics\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Local volatility retains one Brownian risk}
+\begin{definition}[Local-volatility model]
+Under \(\Q\), the stock follows
+\[
+\boxed{\dd S_t=rS_t\dd t+\sigma_{\rm loc}(t,S_t)S_t\dd W_t^\Q.}
+\]
+The function \((t,s)\mapsto\sigma_{\rm loc}(t,s)\) is deterministic.
+The current state is \((t,S_t)\), and the diffusion has one Brownian driver.
 \end{definition}
-\begin{proposition}[Change-of-numeraire density]
-Starting under \(\Q\), the measure associated with \(N\) is
+For a fixed payoff \(g(S_T)\), let \(u(t,s)\) denote its value. It\^o gives
 \[
-\left.\frac{\dd\Q^N}{\dd\Q}\right|_{\cF_t}
-=\frac{N_t/B_t}{N_0/B_0}.
+\dd u=\left(u_t+rsu_s+\tfrac12\sigma_{\rm loc}^2(t,s)s^2u_{ss}\right)\dd t
+       +\sigma_{\rm loc}(t,s)s u_s\dd W_t^\Q.
 \]
-Under \(\Q^N\), every traded price divided by \(N_t\) is a martingale.
-\end{proposition}
-\begin{keyidea}{One reusable formula}
+A self-financing replicating portfolio with \(\Delta=u_s\) shares has gain
+\(\dd u=\Delta\dd S+r(u-\Delta S)\dd t\). Equating drifts yields
 \[
-\boxed{V_t=N_t\E^{\Q^N}\!\left[\frac{X_T}{N_T}\middle|\cF_t\right].}
+\boxed{u_t+rsu_s+\tfrac12\sigma_{\rm loc}^2(t,s)s^2u_{ss}-ru=0,
+\qquad u(T,s)=g(s).}
 \]
-Divide the payoff by the numeraire, take expectation under its associated
-measure, then restore the current unit.
+This replication statement requires the usual regularity and
+nondegeneracy assumptions. Black--Scholes is the special case
+\(\sigma_{\rm loc}(t,s)\equiv\sigma\).
+
+\begin{warningbox}{Two variable pairs, two different equations}
+For one contract, \(u(t,s;T,K)\) varies with valuation time \(t\) and current
+spot \(s\); \((T,K)\) are fixed. The backward pricing PDE uses
+\(u_t,u_s,u_{ss}\). In contrast,
+\[
+C(T,K)=u(0,S_0;T,K)
+\]
+is today's price surface: fix \((0,S_0)\), and vary the contract's maturity
+and strike. Dupire uses \(C_T,C_K,C_{KK}\), with the other contract variable
+held fixed in each partial derivative.
+\end{warningbox}
+
+\section{Deriving Dupire from prices and a density}
+\subsection{Strike derivatives reveal tails and densities}
+Assume \(S_T\) has a smooth density \(p(T,x)\) under \(\Q\), conditional on
+\(S_0\). The integration variable \(x\) is a future stock price, and the
+density does not depend on the option's strike:
+\[
+C(T,K)=e^{-rT}\int_K^\infty(x-K)p(T,x)\dd x.
+\]
+Leibniz's rule includes the moving lower boundary:
+\begin{align*}
+C_K(T,K)
+&=e^{-rT}\left[-(K-K)p(T,K)+\int_K^\infty(-1)p(T,x)\dd x\right]\\
+&=-e^{-rT}\int_K^\infty p(T,x)\dd x
+=-e^{-rT}\Q(S_T>K).
+\end{align*}
+The lower-boundary term is zero because the payoff vanishes at \(x=K\).
+Differentiating the remaining tail integral once more gives
+\[
+\boxed{C_{KK}(T,K)=e^{-rT}p(T,K).}
+\]
+Consequently, calls decrease with strike and are convex in strike, with
+\(-e^{-rT}\leq C_K\leq0\) and \(C_{KK}\geq0\). A tight call spread
+approximates a digital payoff; a tight butterfly measures curvature.
+The density is inferred from prices under \(\Q\), rather than from
+historical return frequencies. If atoms are present, the derivative
+identities must be interpreted using distributional derivatives.
+
+\subsection{Derive the forward equation using a test function}
+Set \(a(t,x)=\sigma_{\rm loc}^2(t,x)x^2\), and take a smooth function
+\(\varphi\) with compact support in \((0,\infty)\). It\^o and a zero-mean
+stochastic integral give
+\[
+\frac{\dd}{\dd T}\E^\Q[\varphi(S_T)]
+=\E^\Q\left[rS_T\varphi'(S_T)+\tfrac12a(T,S_T)\varphi''(S_T)\right].
+\]
+In terms of the density,
+\[
+\int_0^\infty\varphi(x)p_T(T,x)\dd x
+=\int_0^\infty\left[rx\varphi'(x)+\tfrac12a(T,x)\varphi''(x)\right]p(T,x)\dd x.
+\]
+Compact support removes the boundary terms. One integration by parts for
+the drift and two for the diffusion produce
+\begin{align*}
+\int_0^\infty rxp\,\varphi'\dd x
+&=-\int_0^\infty\varphi\,\partial_x(rxp)\dd x,\\
+\int_0^\infty ap\,\varphi''\dd x
+&=-\int_0^\infty\partial_x(ap)\varphi'\dd x
+=\int_0^\infty\varphi\,\partial_{xx}(ap)\dd x.
+\end{align*}
+Since this holds for every such test function, the forward equation is
+\[
+\boxed{p_T=-\partial_x(rxp)+\tfrac12\partial_{xx}(ap).}
+\]
+It evolves probability. Discounting belongs to the pricing formula and
+will enter when we differentiate \(C\).
+
+\subsection{Differentiate in maturity and keep all boundary terms}
+With \(K\) fixed, differentiating the discounted integral gives
+\[
+C_T=-rC+e^{-rT}(I_{\rm drift}+I_{\rm diff}),
+\]
+where
+\[
+I_{\rm drift}=-\int_K^\infty(x-K)\partial_x(rxp)\dd x,
+\qquad
+I_{\rm diff}=\tfrac12\int_K^\infty(x-K)\partial_{xx}(ap)\dd x.
+\]
+Assume differentiation under the integral is justified. In the following
+calculations, also assume the displayed tail terms vanish.
+
+\paragraph{The drift integral.}
+Writing \(m(x)=rxp(T,x)\), integration by parts gives
+\begin{align*}
+I_{\rm drift}
+&=-\big[(x-K)m(x)\big]_K^\infty+\int_K^\infty m(x)\dd x\\
+&=r\int_K^\infty xp(T,x)\dd x.
+\end{align*}
+At the lower boundary, \(x-K=0\); at infinity, assume
+\((x-K)m(x)\to0\). Splitting \(x=(x-K)+K\) gives
+\begin{align*}
+e^{-rT}\int_K^\infty xp(T,x)\dd x
+&=C(T,K)+Ke^{-rT}\int_K^\infty p(T,x)\dd x\\
+&=C(T,K)-KC_K(T,K).
+\end{align*}
+Thus \(e^{-rT}I_{\rm drift}=r(C-KC_K)\).
+
+\paragraph{The diffusion integral.}
+Let \(A(x)=a(T,x)p(T,x)\). Then
+\begin{align*}
+I_{\rm diff}
+&=\tfrac12\big[(x-K)A'(x)\big]_K^\infty
+  -\tfrac12\int_K^\infty A'(x)\dd x\\
+&=-\tfrac12\big[A(x)\big]_K^\infty
+=\tfrac12a(T,K)p(T,K).
+\end{align*}
+Here we assumed \((x-K)A'(x)\to0\) and \(A(x)\to0\) at infinity.
+The factor \(x-K\) removes the first lower-boundary term, but the second
+integration leaves \(A(K)\). This boundary at the payoff's kink explains
+why the local coefficient is evaluated at spot \(K\).
+
+\paragraph{Assemble the terms.}
+Using \(e^{-rT}p(T,K)=C_{KK}(T,K)\),
+\begin{align*}
+C_T
+&=-rC+r(C-KC_K)+\tfrac12\sigma_{\rm loc}^2(T,K)K^2C_{KK}\\
+&=-rKC_K+\tfrac12\sigma_{\rm loc}^2(T,K)K^2C_{KK}.
+\end{align*}
+The terms \(-rC\) and \(+rC\) cancel. Therefore, wherever \(K>0\) and
+\(C_{KK}>0\),
+\begin{keyidea}{Dupire's local variance}
+\[
+\boxed{\sigma_{\rm loc}^2(T,K)
+=\frac{C_T(T,K)+rKC_K(T,K)}{\tfrac12K^2C_{KK}(T,K)}.}
+\]
+The result is a model coefficient at time \(T\), spot \(K\). It is not
+in general the implied volatility of the option with strike \(K\) and
+maturity \(T\). The formula assumes no dividends and a constant rate.
 \end{keyidea}
-\begin{warningbox}{Unit and measure must move together}
-Dividing by a new numeraire while retaining the old measure generally leaves
-a drift. The measure change reweights scenarios but does not create or
-remove possible market scenarios.
+The initial surface is \(C(0,K)=(S_0-K)^+\). Under the martingale and
+regularity assumptions, the boundary values are \(C(T,0)=S_0\) and
+\(C(T,K)\to0\) as \(K\to\infty\). Convexity and the nonnegative numerator
+\(C_T+rKC_K\) are necessary consistency checks for this diffusion.
+
+
+
+\paragraph{Differentiation amplifies quote noise}
+For equally spaced strikes,
+\[
+\widehat C_{KK}=\frac{C(T,K+h)-2C(T,K)+C(T,K-h)}{h^2}.
+\]
+If the three quote errors are independent with standard deviation
+\(\varepsilon\), the error variance of this estimate is
+\(6\varepsilon^2/h^4\), and its standard deviation is
+\(\sqrt6\,\varepsilon/h^2\). Smaller spacing reduces truncation error for a
+smooth surface but amplifies quote noise. Very small \(C_{KK}\) also makes
+the Dupire ratio unstable. Fit a smooth, arbitrage-consistent surface and
+check interpolation, extrapolation, and sensitivity to the grid.
+
+\begin{keyidea}{Terminal marginals do not specify the full path law}
+A sufficiently rich vanilla surface determines the risk-neutral marginal
+law of \(S_T\) at each maturity. Averages, maxima, and barrier events also
+need joint dynamics between dates. Local volatility supplies one diffusion
+consistent with a suitable surface; another model can share the same
+marginals and give different exotic prices and hedges.
+\end{keyidea}
+
+\section{Heston: a random variance factor and a pricing measure}
+\subsection{Risk-neutral dynamics and parameter meanings}
+Under the chosen pricing measure,
+\[
+\boxed{\begin{aligned}
+\frac{\dd S_t}{S_t}&=r\dd t+\sqrt{V_t}\dd W_t^S,\\
+\dd V_t&=\kappa(\theta-V_t)\dd t+\eta\sqrt{V_t}\dd W_t^V,
+\qquad \dd\langle W^S,W^V\rangle_t=\rho\dd t.
+\end{aligned}}
+\]
+The parameters satisfy \(V_0\geq0\), \(\kappa,\theta,\eta>0\), and
+\(|\rho|\leq1\). Below, arguments requiring two independent risks assume
+\(v>0\) and \(|\rho|<1\).
+\begin{center}
+\begin{tabular}{cL{.72\textwidth}}
+\toprule Parameter & Interpretation\\\midrule
+\(V_0\) & Current instantaneous variance; instantaneous volatility is \(\sqrt{V_0}\)\\
+\(\theta\) & Long-run variance level under the selected measure\\
+\(\kappa\) & Speed of mean reversion of variance\\
+\(\eta\) & Diffusion scale of variance, often called vol-of-vol\\
+\(\rho\) & Correlation of stock and variance Brownian shocks\\\bottomrule
+\end{tabular}
+\end{center}
+The Markov state is \((S_t,V_t)\). Two states with the same spot and
+different variance can have different option values.
+
+Write \(\dd W^V=\rho\dd W^S+\sqrt{1-\rho^2}\dd W^\perp\), where
+\(W^S,W^\perp\) are independent. If \(\rho<0\), a negative stock shock
+contributes positively to the variance shock. This mechanism can produce
+a downside equity skew, although independent variance shocks and parameter
+interactions remain.
+
+\subsection{Conditional means and the CIR boundary}
+Taking expectations in the variance SDE gives
+\[
+m'(u)=\kappa(\theta-m(u)),\qquad m(t)=v,
+\]
+so
+\[
+\boxed{\E^\Q[V_T\mid V_t=v]=\theta+(v-\theta)e^{-\kappa(T-t)}.}
+\]
+For \(v=0.09\), \(\theta=0.04\), \(\kappa=2\), and \(T-t=0.5\), the mean is
+\(0.04+0.05e^{-1}\simeq0.0584\). Its square root is about 24.2\%.
+By concavity, \(\E[\sqrt{V_T}\mid V_t]\leq\sqrt{\E[V_T\mid V_t]}\);
+these are different objects.
+
+The CIR variance process remains nonnegative. Starting from \(V_0>0\),
+the Feller condition \(2\kappa\theta\geq\eta^2\) makes zero unattainable;
+when it fails, the process may reach zero. This condition concerns the
+continuous process, not a discretization's ability to remain nonnegative.
+
+\subsection{The implied-volatility surface moves with the variance}
+In Heston, every vanilla price is a function \(C(t,S_t,V_t;K,T)\). Inverting
+the BS formula maturity by maturity and strike by strike, every implied
+volatility is therefore a function \(\Sigma(t,S_t,V_t;K,T)\). When \(V_t\)
+moves, the whole surface moves, including on days when the stock is unchanged.
+
+The average expected variance provides a deterministic-variance approximation
+to the ATM implied variance. When \(\eta=0\), variance follows its mean ODE,
+and BS with the time-averaged variance is exact at every strike:
+\[
+\Sigma_{\rm ATM}^2(t,T)\simeq\frac1{T-t}\int_t^T\E^\Q[V_u\mid V_t]\dd u
+=\theta+(V_t-\theta)\,\frac{1-e^{-\kappa(T-t)}}{\kappa(T-t)}.
+\]
+With \(\kappa=2\), \(\theta=0.04\), a move of \(V_t\) from 0.04 to 0.09
+raises the three-month ATM level from 20\% to about 28.2\%, and the two-year
+level only to about 22.9\%, within this approximation. The short end moves
+most. Mean reversion anchors average expected variance at \(\theta\);
+for \(\eta>0\), option-implied levels also depend on the distribution of
+variance and its correlation with stock shocks.
+
+\begin{keyidea}{Surface risk distinguishes the two models}
+In a local-volatility model, the future surface is a deterministic function
+of \((t,S_t)\): it moves only through the stock. In Heston, the variance has
+its own shock \(Z_2\) under \(\Pp\), so the surface carries a separate risk.
+The stock cannot hedge it. The next subsection explains how it is priced;
+Section~\ref{sec:barrier} shows how an option hedges it.
+\end{keyidea}
+
+\subsection{From historical dynamics to a pricing measure}\label{sec:measures}
+Under \(\Pp\), use independent Brownian coordinates
+\(Z_1^\Pp,Z_2^\Pp\):
+\[
+\begin{aligned}
+\frac{\dd S_t}{S_t}&=\mu\dd t+\sqrt{V_t}\dd Z_{1,t}^\Pp,\\
+\dd V_t&=\kappa_\Pp(\theta_\Pp-V_t)\dd t
++\eta\sqrt{V_t}\bigl(\rho\dd Z_{1,t}^\Pp+\sqrt{1-\rho^2}\dd Z_{2,t}^\Pp\bigr).
+\end{aligned}
+\]
+Suppose a valid equivalent measure change is defined by
+\[
+\dd Z_{j,t}^\Q=\dd Z_{j,t}^\Pp+\lambda_{j,t}\dd t,\qquad j=1,2.
+\]
+In particular, the stochastic exponential defining the density must be
+a true martingale; the algebra below alone does not establish this.
+On \(V_t>0\), the stock drift becomes \(\mu-\sqrt{V_t}\lambda_{1,t}\).
+Requiring it to equal \(r\) fixes
+\[
+\boxed{\lambda_{1,t}=\frac{\mu-r}{\sqrt{V_t}}.}
+\]
+The corresponding variance drift is
+\[
+b_\Q(t,s,v)=b_\Pp(v)-\pi(t,s,v),\qquad
+\pi_t=\eta\sqrt{V_t}
+\bigl(\rho\lambda_{1,t}+\sqrt{1-\rho^2}\lambda_{2,t}\bigr).
+\]
+The stock restriction leaves \(\lambda_2\) free. With stock and cash only,
+no-arbitrage does not select a unique drift for variance. Option prices
+provide information about this remaining risk premium. Equivalent changes
+of measure change drifts, while preserving quadratic variations and
+covariations, hence \(\eta\) and \(\rho\) within this model specification.
+
+\begin{boardexample}{an affine variance drift adjustment}
+Choose the convention \(\pi(v)=\lambda v\). Then
+\[
+b_\Q(v)=\kappa_\Pp\theta_\Pp-(\kappa_\Pp+\lambda)v
+=\kappa_\Q(\theta_\Q-v),
+\]
+with
+\[
+\boxed{\kappa_\Q=\kappa_\Pp+\lambda,\qquad
+\theta_\Q=\frac{\kappa_\Pp\theta_\Pp}{\kappa_\Pp+\lambda},}
+\qquad\kappa_\Pp+\lambda>0.
+\]
+As in the barrier case study, \(\kappa_\Pp=1.6\), \(\theta_\Pp=0.05\), and
+\(\lambda=0.4\) give \(\kappa_\Q=2\), \(\theta_\Q=0.04\), with
+\(\kappa_\Q\theta_\Q=\kappa_\Pp\theta_\Pp=0.08\). The sign convention is
+\(b_\Q=b_\Pp-\lambda v\); \(\lambda\) need not be positive. Admissibility
+of the measure change remains an assumption.
+\end{boardexample}
+From now on, \(\kappa,\theta\) denote risk-neutral parameters.
+
+\section{Pricing and hedging in Heston}
+\subsection{It\^o's formula and the mixed derivative}
+For \(u(t,S_t,V_t)\), the quadratic variation terms are
+\[
+(\dd S_t)^2=V_tS_t^2\dd t,\qquad
+(\dd V_t)^2=\eta^2V_t\dd t,\qquad
+\dd S_t\dd V_t=\rho\eta S_tV_t\dd t.
+\]
+The drift in It\^o's formula is \(u_t+\mathcal L^\Q u\), where
+\[
+\mathcal L^\Q u=rsu_s+\kappa(\theta-v)u_v
++\tfrac12vs^2u_{ss}+\rho\eta svu_{sv}+\tfrac12\eta^2vu_{vv}.
+\]
+There is no factor \(1/2\) in front of the mixed term: the symmetric
+terms in the Hessian combine. For payoff \(h(S_T)\), the pricing
+representation is
+\[
+u(t,s,v)=e^{-r(T-t)}\E^\Q[h(S_T)\mid S_t=s,V_t=v].
+\]
+Subject to sufficient regularity and appropriate boundary/growth
+conditions, the discounted value is a martingale and
+\begin{keyidea}{The Heston pricing PDE}
+\[
+\boxed{\begin{aligned}
+0={}&u_t+rsu_s+\kappa(\theta-v)u_v+\tfrac12vs^2u_{ss}\\
+&+\rho\eta svu_{sv}+\tfrac12\eta^2vu_{vv}-ru,
+\qquad u(T,s,v)=h(s).
+\end{aligned}}
+\]
+For a call, \(h(s)=(s-K)^+\). The variance drift under \(\Q\) has been
+specified and calibrated; stock-and-cash no-arbitrage alone did not fix it.
+\end{keyidea}
+
+\subsection{Why stock delta alone is insufficient}
+The random part of the claim's change is
+\[
+s\sqrt v\,u_s\dd W^S+\eta\sqrt v\,u_v\dd W^V.
+\]
+Subtracting \(\Delta=u_s\) shares leaves
+\[
+\eta\sqrt v\,u_v\bigl(\rho\dd W^S+\sqrt{1-\rho^2}\dd W^\perp\bigr).
+\]
+Changing the stock holding can offset the correlated component. In fact,
+\(\Delta=u_s+(\rho\eta/s)u_v\) cancels the common \(W^S\) exposure
+instantaneously. It still leaves
+\(\eta\sqrt v\sqrt{1-\rho^2}\,u_v\dd W^\perp\). When this coefficient
+is nonzero, no stock position can eliminate it. This is the local source
+of incompleteness with stock and cash alone.
+
+\subsection{A second traded option spans the variance exposure}
+Let \(g(t,s,v)\) be a traded hedge option priced consistently with the
+same dynamics. Hold \(\Delta\) shares, \(\alpha\) hedge options, and
+an amount \(b\) in the bank account. The portfolio value is
+\(u=\Delta s+\alpha g+b\), and its self-financing gain is
+\[
+\dd u=\Delta\dd S+\alpha\dd g+rb\dd t.
+\]
+The remaining random terms after hedging are
+\[
+\sqrt v\left[s(u_s-\Delta-\alpha g_s)\dd W^S
++\eta(u_v-\alpha g_v)\dd W^V\right].
+\]
+For \(v>0\), \(\eta>0\), and \(|\rho|<1\), cancellation requires both
+coefficients to vanish. If \(g_v\ne0\),
+\[
+\boxed{\alpha=\frac{u_v}{g_v},\qquad
+\Delta=u_s-\frac{u_v}{g_v}g_s,\qquad
+b=u-\Delta s-\alpha g.}
+\]
+First match variance exposure with the option, then match stock exposure
+with shares. If both option values satisfy the same pricing PDE, their
+drifts also match the self-financing portfolio drift. A global replication
+argument additionally requires the hedge option to remain available with
+nonzero variance sensitivity, adequate regularity, and an admissible
+trading strategy over the hedge horizon.
+
+\begin{warningbox}{Variance sensitivity and practical hedge limits}
+The derivatives \(u_v,g_v\) are with respect to the model's state variance.
+They are different from BS vega with respect to an implied volatility.
+A small \(g_v\) can produce an unstable, very large position. Discrete
+rebalancing, transaction costs, illiquidity, and model misspecification
+leave practical hedge error even when the formal diffusion risks are spanned.
 \end{warningbox}
-\begin{studentexercise}{a bond numeraire}
-If \(N_t=P(t,T)\), what quantity is a martingale and what is the measure
-called?
+
+\section{Case study: replicating a barrier option under the historical measure}\label{sec:barrier}
+This section carries out the replication argument of the previous section
+step by step, along the paths the market actually follows. The claim is
+path-dependent, and the hedge uses a liquid call.
+
+\subsection{Contract, instruments, and assumptions}
+A bank sells a \textbf{down-and-out call}: at \(T=1\) it pays
+\((S_T-K)^+\) if \(\min_{0\leq t\leq T}S_t>H\), and nothing otherwise.
+Monitoring is continuous and there is no rebate. Take \(K=100\), \(H=85\),
+\(S_0=100\), \(V_0=0.04\), and \(r=0\).
+
+The hedge instruments are the stock, cash, and a liquid ATM call \(g\) with
+\(K_g=100\) and \(T_g=1.5\). The call outlives the claim, avoiding expiry
+of the hedge instrument during the hedge horizon. We additionally assume
+\(g_v\ne0\) on the states visited before exit. A later expiry alone does
+not guarantee a uniform lower bound on \(g_v\); a small value still makes
+\(\alpha=u_v/g_v\) unstable.
+
+\begin{center}
+\begin{tabular}{lcccccc}
+\toprule Measure & Drift of \(S\) & \(\kappa\) & \(\theta\) & \(\eta\) & \(\rho\)\\\midrule
+\(\Pp\) & \(\mu\) & 1.6 & 0.05 & 0.4 & \(-0.6\)\\
+\(\Q\) & \(r=0\) & 2.0 & 0.04 & 0.4 & \(-0.6\)\\\bottomrule
+\end{tabular}
+\end{center}
+The two rows are linked by the affine premium of Section~\ref{sec:measures} with \(\lambda=0.4\):
+\(\kappa_\Q=1.6+0.4=2\) and \(\theta_\Q=1.6\times0.05/2=0.04\). The
+\(\Q\)-row is the baseline of the smile figures.
+
+\begin{warningbox}{Assumptions}
+Under \(\Pp\), \((S,V)\) follows Heston with the true \(\eta\) and \(\rho\).
+The call trades at its Heston \(\Q\)-price, i.e.\ the model is calibrated to
+the call market. Trading is continuous and costless, and \(V_t\) is known.
+\end{warningbox}
+
+\subsection{Step 1: It\^o along the \texorpdfstring{\(\Pp\)}{P}-paths}
+Write \(W^S=Z_1^\Pp\) and \(W^V=\rho Z_1^\Pp+\sqrt{1-\rho^2}\,Z_2^\Pp\).
+For a smooth price \(f(t,S_t,V_t)\), meaning the claim \(u\) while it is alive
+or the call \(g\),
+\[
+\dd f=\mathcal A^\Pp f\dd t+\sqrt{V_t}\,S_tf_s\dd W_t^S+\eta\sqrt{V_t}\,f_v\dd W_t^V,
+\]
+\[
+\mathcal A^\Pp f=f_t+\mu sf_s+\kappa_\Pp(\theta_\Pp-v)f_v
++\tfrac12vs^2f_{ss}+\rho\eta svf_{sv}+\tfrac12\eta^2vf_{vv}.
+\]
+Hold \(\Delta_t\) shares, \(\alpha_t\) calls, and cash \(b_t\). The portfolio
+\(X_t=\Delta_tS_t+\alpha_tg_t+b_t\) is self-financing when
+\[
+\dd X_t=\Delta_t\dd S_t+\alpha_t\dd g_t+rb_t\dd t.
+\]
+These are pathwise identities. No expectation, and no probability of any
+event, has been used.
+
+\subsection{Step 2: cancel both Brownian exposures}
+Subtracting,
+\[
+\begin{aligned}
+\dd(X_t-u_t)={}&\bigl[\Delta\mu s+\alpha\mathcal A^\Pp g+rb-\mathcal A^\Pp u\bigr]\dd t\\
+&+\sqrt v\,s\,(\Delta+\alpha g_s-u_s)\dd W^S+\eta\sqrt v\,(\alpha g_v-u_v)\dd W^V.
+\end{aligned}
+\]
+Write \(\tau=\inf\{t:S_t\le H\}\). Start from the sale proceeds, \(X_0=u_0\),
+and seek a self-financing portfolio satisfying \(X_t=u(t,S_t,V_t)\) for
+\(t<\tau\wedge T\). Matching first the independent \(Z_2^\Pp\) exposure,
+then \(Z_1^\Pp\), and finally the portfolio value gives
+\[
+\boxed{\alpha=\frac{u_v}{g_v},\qquad\Delta=u_s-\alpha g_s,\qquad b=u-\Delta s-\alpha g.}
+\]
+The holdings leave no Brownian exposure in ``portfolio minus claim''.
+Matching the drifts supplies a condition on \(u\): once the holdings have
+been fixed, no further degree of freedom remains. The pricing equation below
+makes this strategy self-financing with \(X=u\). At \(\tau<T\), both values
+are zero and the hedge is liquidated; on survival to \(T\), the portfolio
+delivers \((S_T-K)^+\).
+
+\subsection{Step 3: a single market price of variance risk}
+Match \(\mathcal A^\Pp u=\Delta\mu s+\alpha\mathcal A^\Pp g+rb\),
+then substitute \(\Delta\) and \(b\). The terms in \(\mu\) combine:
+\[
+\begin{aligned}
+0&=\mathcal A^\Pp u-\alpha\mathcal A^\Pp g-\mu s(u_s-\alpha g_s)
+ -r\bigl(u-(u_s-\alpha g_s)s-\alpha g\bigr)\\
+&=\bigl[\mathcal A^\Pp u-ru-(\mu-r)su_s\bigr]
+ -\alpha\bigl[\mathcal A^\Pp g-rg-(\mu-r)sg_s\bigr]=0.
+\end{aligned}
+\]
+Since \(\alpha=u_v/g_v\), at points where \(u_v\ne0\), dividing gives
+\[
+\boxed{\frac{\mathcal A^\Pp u-ru-(\mu-r)su_s}{u_v}
+=\frac{\mathcal A^\Pp g-rg-(\mu-r)sg_s}{g_v}=:\pi(t,s,v).}
+\]
+The left side involves only the claim, the right side only the call. Pairing
+any two traded claims with the same call shows that the ratio is one function
+of the state, shared by all traded claims. It is the market price of variance
+risk per unit of exposure \(u_v\), and it coincides with the drift adjustment
+\(\pi\) of Section~\ref{sec:measures}. Where \(u_v=0\), use the undivided
+identity; the pricing PDE still applies. The formula in terms of \(g\)
+requires the whole price function and its derivatives, as well as the
+historical dynamics. One observed call price supplies none of these by itself.
+
+\subsection{What call prices identify: the pricing drift}
+In the case study, the liquid call trades at its calibrated Heston price,
+so \(g\) solves
+\[
+g_t+rsg_s+\kappa_\Q(\theta_\Q-v)g_v+
+\tfrac12vs^2g_{ss}+\rho\eta svg_{sv}+\tfrac12\eta^2vg_{vv}-rg=0.
+\]
+Substitution into the ratio above cancels the stock drift and all
+second derivatives, leaving
+\[
+\boxed{\pi(v)=b_\Pp(v)-b_\Q(v)
+=\kappa_\Pp(\theta_\Pp-v)-\kappa_\Q(\theta_\Q-v)=0.4v.}
+\]
+Calibration uses several strikes and maturities to select the \(\Q\)-parameters.
+Together with the model assumption, these parameters specify a price
+function \(g(t,s,v)\) in each state. Splitting the fitted drift into
+\(b_\Pp\) and \(\pi\) additionally requires estimates of
+\(\kappa_\Pp,\theta_\Pp\) from the variance history. The stock drift \(\mu\)
+is absent from this difference of variance drifts.
+
+\begin{keyidea}{One option for hedging; a surface for calibration}
+A liquid call with \(g_v\ne0\), together with stock and cash, spans both
+Brownian risks within the specified model. A single price observation
+does not identify that model. Prices and hedge ratios need the calibrated
+\(b_\Q\), without estimating the historical drift and its risk premium
+separately.
+\end{keyidea}
+
+\subsection{Step 4: the \texorpdfstring{\(\Q\)}{Q}-PDE with an absorbing boundary}
+Rearranging the identity for \(u\),
+\[
+u_t+rsu_s+\bigl[\kappa_\Pp(\theta_\Pp-v)-\pi\bigr]u_v
++\tfrac12vs^2u_{ss}+\rho\eta svu_{sv}+\tfrac12\eta^2vu_{vv}-ru=0.
+\]
+With \(\pi=\lambda v\), the bracket is \(\kappa_\Q(\theta_\Q-v)\): this is the
+Heston PDE under \(\Q\). The contract supplies the domain and the boundary
+conditions:
+\[
+\begin{aligned}
+\text{claim: }&s>H,\ t<T,\qquad u(t,H,v)=0,\qquad u(T,s,v)=(s-K)^+;\\
+\text{call: }&s>0,\ t<T_g,\qquad g(T_g,s,v)=(s-K_g)^+.
+\end{aligned}
+\]
+\begin{keyidea}{What happened to the historical drifts}
+\(\mu\) has disappeared, and \(\kappa_\Pp,\theta_\Pp\) enter only through the
+combination \(\kappa_\Pp(\theta_\Pp-v)-\pi=\kappa_\Q(\theta_\Q-v)\). The hedge is
+built and verified along \(\Pp\)-paths; prices and hedge ratios come from \(\Q\).
+\end{keyidea}
+
+
+\section{Parametrizing the model: state, \texorpdfstring{\(\Q\)}{Q}, and \texorpdfstring{\(\Pp\)}{P}}\label{sec:param}
+\subsection{Three kinds of inputs}
+\begin{center}
+\begin{tabular}{L{.1\textwidth}L{.2\textwidth}L{.2\textwidth}L{.38\textwidth}}
+\toprule Input & Role & Same under \(\Pp\) and \(\Q\)? & Where it comes from\\\midrule
+\(S_t,V_t\) & state & yes: same paths & \(S_t\) observed; \(V_t\) is not observed and is refitted daily from options\\[.3em]
+\(\eta,\rho\) & diffusion coefficients & yes & options; cross-check on time series\\[.3em]
+\(\kappa,\theta\) & variance drift & no & \(\Q\): option prices; \(\Pp\): time series\\[.3em]
+\(\mu\) & stock drift & \(\Pp\) only & not needed to price or to hedge\\[.3em]
+\(r\) & discounting & --- & rates market\\\bottomrule
+\end{tabular}
+\end{center}
+Prices and hedge ratios use \(\Q\)-parameters. Scenario probabilities, risk
+limits, and the expected P\&L of an imperfect hedge use \(\Pp\). The
+delta-only drift \(-\pi u_v\) of Section~\ref{sec:barrier} is an example of
+the last kind.
+
+\subsection{Why \texorpdfstring{\(\eta\)}{eta} and \texorpdfstring{\(\rho\)}{rho} cannot change with the measure}
+Quadratic variation and covariation are computed path by path:
+\[
+\langle V\rangle_t=\int_0^t\eta^2V_u\dd u,\qquad
+\langle\log S,V\rangle_t=\int_0^t\rho\eta V_u\dd u.
+\]
+Each is the limit in probability of sums of squared (or cross) increments
+along refining partitions, and a subsequence converges almost surely.
+Equivalent measures share the same null sets, so these limits are the same
+under \(\Pp\) and \(\Q\). Girsanov changes drifts only.
+
+\begin{studentexercise}{a calibrated and an estimated correlation}
+Options calibrate \(\rho=-0.6\); a time-series estimate gives \(\rho=-0.3\).
+Is this a legitimate \(\Pp\)-versus-\(\Q\) difference?
 \end{studentexercise}
 \begin{shortsolution}
-For every traded asset \(S\), \(S_t/P(t,T)\) is a martingale under the
-\(T\)-forward measure \(\Q^T\).
+Not within Heston. Either the estimate is noisy, since \(V\) is not
+observed and its proxies (realized variance, variance-index levels) add
+error, or the model is misspecified. The barrier hedge relied on the true
+\(\rho\) being the one used in the PDE.
 \end{shortsolution}
 
-\subsection{Ratios need It\^o corrections}
-If
+\subsection{Calibration to vanilla prices}
+For observed vanilla prices \(C_i^{\rm mkt}\), a price-based calibration is
 \[
-\frac{\dd S_t}{S_t}=\mu_S\dd t+\sigma_S\dd W_t,\qquad
-\frac{\dd N_t}{N_t}=\mu_N\dd t+\sigma_N\dd W_t,
+\min_{\vartheta}\sum_iw_i
+\left(C^{\rm Heston}(K_i,T_i;\vartheta)-C_i^{\rm mkt}\right)^2,
+\qquad \vartheta=(V_0,\kappa,\theta,\eta,\rho).
 \]
-then
-\[
-\frac{\dd(S_t/N_t)}{S_t/N_t}
-=\bigl(\mu_S-\mu_N+\sigma_N^2-\sigma_S\sigma_N\bigr)\dd t
-+(\sigma_S-\sigma_N)\dd W_t.
-\]
-The drift is not just \(\mu_S-\mu_N\): quadratic variation matters.
+Choose the instrument set, positive weights, bid--ask treatment, and
+parameter constraints explicitly. Price-error and implied-volatility-error
+objectives assign different effective weights. Use several starting points;
+inspect parameter stability and the full smile across maturities, not only
+a single aggregate error. One ATM quote cannot generally identify all
+five parameters, and a good fit need not make every parameter well identified.
 
-\section{Forward measures match payment dates}
-\subsection{A bond absorbs discounting}
-Choose the bond \(P(t,T)\). Since \(P(T,T)=1\),
-\[
-\boxed{V_t=P(t,T)\E^{\Q^T}[X_T\mid\cF_t].}
-\]
-For a non-dividend-paying asset,
-\[
-F(t,T)=\frac{S_t}{P(t,T)}
-\]
-is a \(\Q^T\)-martingale.
-\begin{boardexample}{a zero-value forward}
-A forward delivering one share for \(K\) has value
-\[
-V_t=S_t-KP(t,T)=P(t,T)(F(t,T)-K).
-\]
-If \(S_0=100\) and \(P(0,T)=.95\), the fair delivery price is
-\(F(0,T)=105.26\).
-\end{boardexample}
-\subsection{A factor-cancelling choice}
-If \(X_T=S_TY_T\), the stock numeraire yields
-\[
-V_t=S_t\E^{\Q^S}[Y_T\mid\cF_t].
-\]
-The candidate must be strictly positive; an arbitrary payoff is not a
-numeraire.
-\begin{studentexercise}{first candidate}
-A claim pays at \(T\) and depends on future bond prices. Which numeraire is
-the natural first candidate?
-\end{studentexercise}
-\begin{shortsolution}
-\(P(t,T)\): it matches the payment date and removes discounting from the
-expectation under \(\Q^T\).
-\end{shortsolution}
+These are pricing parameters under \(\Q\). Estimating a time series under
+\(\Pp\) addresses a different problem. A richer model does not automatically
+fit every arbitrage-free surface, and fitting vanillas does not validate
+its joint path dynamics for every exotic payoff.
 
-\section{FX: two currencies, two units}
-Let \(X_t\) be domestic currency per foreign currency unit and
-\[
-B_d(t)=e^{r_dt},\qquad B_f(t)=e^{r_ft}.
-\]
-The domestic value of the foreign bank account is \(X_tB_f(t)\). Therefore,
-under the domestic measure,
-\[
-\boxed{\frac{\dd X_t}{X_t}=(r_d-r_f)\dd t+\sigma\dd W_t^{\Q^d}.}
-\]
-Foreign interest plays the role of a continuous dividend yield.
-\begin{boardexample}{FX forward}
-\[
-F_{0,T}=X_0e^{(r_d-r_f)T}.
-\]
-For \(X_0=1.10\) USD/EUR, \(r_d=5\%\), \(r_f=3\%\), and \(T=1\),
-\(F_{0,1}=1.1222\) USD/EUR.
-\end{boardexample}
+\begin{center}
+\begin{tabular}{cL{.74\textwidth}}
+\toprule Parameter & Effect to examine in the controlled comparisons\\\midrule
+\(\rho\) & More negative correlation strengthens downside skew in the experiment.\\[.4em]
+\(\eta\) & Changes wings, curvature, and ATM level together; an increase does not simply shift the whole smile upward.\\[.4em]
+\(V_0\) & Has a larger influence on the short-maturity smile in the experiment.\\[.4em]
+\(\theta\) & Has a larger influence at the longer maturity in the experiment.\\[.4em]
+\(\kappa\) & Changes persistence and the variance distribution. Even when \(V_0=\theta\), equal expected variance does not imply equal smiles.\\
+\bottomrule
+\end{tabular}
+\end{center}
 
-\subsection{FX options}
-A domestic call on one foreign-currency unit pays \((X_T-K)^+\):
+
+
+\subsection{Expected average variance and the term structure}\label{sec:term}
+Integrating the conditional-mean formula from time zero gives
 \[
-C_t=X_te^{-r_f\tau}\Phi(d_1)-Ke^{-r_d\tau}\Phi(d_2),
+\boxed{w(T):=\frac1T\E^\Q\!\left[\int_0^T V_t\dd t\right]
+=\theta+(V_0-\theta)A(\kappa T),\qquad
+A(x)=\frac{1-e^{-x}}x.}
 \]
-\[
-d_1=\frac{\log(X_t/K)+(r_d-r_f+\frac12\sigma^2)\tau}{\sigma\sqrt{\tau}},
-\qquad d_2=d_1-\sigma\sqrt{\tau}.
-\]
-Parity makes the two discount factors visible:
-\[
-\boxed{C_t-P_t=X_te^{-r_f\tau}-Ke^{-r_d\tau}.}
-\]
-\begin{warningbox}{Keep currencies explicit}
-The spot term represents foreign cash and is discounted at \(r_f\). The
-strike is domestic cash and is discounted at \(r_d\).
+The identity is exact for Heston and, at deterministic rates, \(w(T)\)
+is the fair strike of a variance swap paying
+\(T^{-1}\int_0^T V_t\dd t-K_{\rm var}\) at \(T\). The weight satisfies
+\(A(x)=1-x/2+O(x^2)\) near zero and \(A(x)\sim1/x\) for large \(x\).
+Consequently \(w(T)\to V_0\) as \(T\to0\), and \(w(T)\to\theta\) as
+\(T\to\infty\). The weight is one half at \(\kappa T\simeq1.594\).
+Larger \(\kappa\) removes the influence of \(V_0-\theta\) more quickly.
+When \(V_0<\theta\), \(w\) increases with maturity; when \(V_0>\theta\),
+it decreases.
+
+\begin{warningbox}{Expected variance and ATM implied variance}
+\(\Sigma_{\rm ATM}^2(T)\approx w(T)\) is a deterministic-variance approximation,
+exact when \(\eta=0\). With stochastic variance, neither equality nor the
+long-maturity limit \(\Sigma_{\rm ATM}^2\to\theta\) follows from the mean
+variance formula. Use the Heston pricer for calibration and for the
+controlled comparisons in the Lecture 11 slides.
 \end{warningbox}
 
-\section{Synthesis and practice}
-\begin{keyidea}{Checklist}
+
+\subsection{ATM skew: a guide for sign, size, and maturity}\label{sec:skew}
+Let \(F_{0,T}=S_0e^{rT}\), \(k=\log(K/F_{0,T})\), and \(\Sigma(k,T)\)
+denote BS implied volatility. For the flat-mean baseline \(V_0=\theta\),
+the leading small-\(\eta\) expansion gives
+\[
+\boxed{\partial_k\Sigma^2(0,T)\approx
+\frac{\rho\eta}{\kappa T}
+\left[1-\frac{1-e^{-\kappa T}}{\kappa T}\right].}
+\]
+See R. Lee, \href{https://math.uchicago.edu/~rogerlee/impvol.pdf}
+{\emph{Implied Volatility: Statics, Dynamics, and Probabilistic Interpretation}},
+Example 3.9. The restriction \(V_0=\theta\) matters for this simple finite-maturity
+formula; it is not a formula for arbitrary forward variance curves.
+Since \(1-A(\kappa T)\sim\kappa T/2\) near zero and
+\(\partial_k\Sigma^2=2\Sigma\partial_k\Sigma\), the short-time guide is
+\[
+\partial_k\Sigma(0,T)\longrightarrow\frac{\rho\eta}{4\sqrt{V_0}}.
+\]
+For large \(\kappa T\), the finite-maturity guide instead behaves like
+\(\rho\eta/(\kappa T)\) for the variance skew. Thus the sign follows
+\(\rho\), the size scales with \(\eta\), and mean reversion damps the
+longer-dated skew within this approximation. Curvature and ATM shifts
+require further terms or the full pricer.
+
+
+\subsection{A calibration protocol}
 \begin{enumerate}
-\item State payoff date and currency.
-\item Select a strictly positive traded numeraire.
-\item Use its associated measure.
-\item Price the normalized payoff and restore the current unit.
-\item Check against a forward relation or money-market pricing.
+\item \textbf{Clean the quotes.} Use mid prices inside the bid--ask spread.
+Remove stale quotes and quotes that violate static no-arbitrage (calendar
+spreads, butterflies).
+\item \textbf{Choose the error.} Price errors overweight expensive options.
+A first-order expansion of the BS price in its volatility gives
+\[
+C^{\rm model}-C^{\rm mkt}\simeq\mathcal V^{\rm BS}\bigl(\Sigma^{\rm model}-\Sigma^{\rm mkt}\bigr),
+\]
+so dividing price errors by BS vega approximately measures errors in implied
+volatility without inverting the model price.
+\item \textbf{Impose constraints.} Require \(V_0,\kappa,\theta,\eta>0\) and
+\(|\rho|<1\), and report the Feller ratio \(2\kappa\theta/\eta^2\).
+\item \textbf{Start from the parameter guides} above, then from several
+other starting points, and compare the minima.
+\item \textbf{Validate.} Compare residuals with bid--ask widths, test
+out-of-sample strikes and maturities, and check stability from one day to the next.
 \end{enumerate}
+
+\begin{center}
+\begin{tabular}{L{.34\textwidth}L{.08\textwidth}L{.46\textwidth}}
+\toprule Feature of the implied surface & Lever & Reason\\\midrule
+Short-dated ATM level & \(V_0\) & \(\Sigma_{\rm ATM}^2\to V_0\) as \(T\to0\)\\[.3em]
+Long-dated level & \(\theta\) & anchors expected average variance\\[.3em]
+Term-structure transition & \(\kappa\) & weight \((1-e^{-\kappa T})/(\kappa T)\) on \(V_0-\theta\)\\[.3em]
+Skew (slope across strikes) & \(\rho\) & falls in \(S\) come with rises in \(V\)\\[.3em]
+Curvature and wings & \(\eta\) & random variance fattens both tails\\\bottomrule
+\end{tabular}
+\end{center}
+These are parameter guides, not identities. \(\eta\) also scales the skew
+when \(\rho\neq0\), and \(\kappa\) damps both skew and curvature at long maturities.
+
+
+
+
+\section{From the continuous model to a simulation}\label{sec:sim}
+\subsection{Generate correlated Brownian increments}
+At each time step draw independent \(Z_1,Z_2\sim N(0,1)\), then set
+\[
+\Delta W^S=\sqrt{\Delta t}\,Z_1,\qquad
+\Delta W^V=\sqrt{\Delta t}
+\bigl(\rho Z_1+\sqrt{1-\rho^2}Z_2\bigr).
+\]
+Directly,
+\[
+\Var(\Delta W^S)=\Var(\Delta W^V)=\Delta t,
+\qquad \Cov(\Delta W^S,\Delta W^V)=\rho\Delta t.
+\]
+Use a fresh independent pair at each step and for each independent path.
+Using independent stock and variance increments would simulate \(\rho=0\),
+rather than the requested correlated model.
+
+\subsection{Euler can cross a boundary the exact process respects}
+The naive Euler step is
+\[
+V_{n+1}=V_n+\kappa(\theta-V_n)\Delta t
++\eta\sqrt{V_n}\,\Delta W_n^V.
+\]
+A sufficiently negative normal increment produces \(V_{n+1}<0\), so the
+next square root is undefined. The continuous Feller condition does not
+prevent this numerical failure.
+
+A full-truncation variance update with a log stock step uses
+\(V_n^+=\max(V_n,0)\):
+\begin{keyidea}{State the approximation precisely}
+\[
+\boxed{\begin{aligned}
+V_{n+1}&=V_n+\kappa(\theta-V_n^+)\Delta t
++\eta\sqrt{V_n^+}\,\Delta W_n^V,\\
+S_{n+1}&=S_n\exp\left[(r-\tfrac12V_n^+)\Delta t
++\sqrt{V_n^+}\,\Delta W_n^S\right].
+\end{aligned}}
+\]
+Keep the raw \(V_n\) in the first term. Truncation is applied inside the
+drift and diffusion coefficients; the raw next variance can still be negative.
+Use the same old-time \(V_n^+\) in the stock update, which keeps \(S_n>0\).
 \end{keyidea}
-\begin{studentexercise}{final check}
-Why is it false that a change of numeraire changes the economic price?
-\end{studentexercise}
-\begin{shortsolution}
-The claim has one no-arbitrage value. The unit, equivalent probability
-weights, and martingale ratio change; the economic price does not.
-\end{shortsolution}
+This scheme approximates Heston; it is not an exact simulation. Replacing
+the entire variance update by its positive part defines a different scheme.
+
+\subsection{Check time bias separately from sampling error}
+For independent paths and terminal payoff \(H^{(m)}\), estimate
+\[
+\widehat V_0=e^{-rT}\frac1M\sum_{m=1}^M H^{(m)},
+\qquad
+\widehat{\rm SE}=e^{-rT}\frac{s_H}{\sqrt M},
+\]
+where \(s_H\) is the sample standard deviation of the payoffs. This standard
+error measures sampling variability for the simulated discretization.
+It does not measure time-discretization or monitoring bias. Refine
+\(\Delta t\) as well as increasing \(M\), check a vanilla against an
+independent Heston price, and verify the \(\eta\to0\) limit. When
+\(\eta=0\), variance follows a deterministic mean-reversion ODE;
+constant-volatility BS is recovered when in addition \(V_0=\theta\).
+
+
+\subsection*{Further reading}
+\begin{itemize}
+\item R. Kohn, \emph{Continuous Time Finance}, Section 9: terminal densities
+and the forward pricing equation.
+\item J. Gatheral, \emph{The Volatility Surface}, Chapter 1: local and
+stochastic volatility.
+\item S. Heston (1993), \emph{A Closed-Form Solution for Options with
+Stochastic Volatility with Applications to Bond and Currency Options}.
+\item R. Lord, R. Koekkoek, and D. van Dijk, \emph{A Comparison of Biased
+Simulation Schemes for Stochastic Volatility Models}.
+\end{itemize}
 \end{document}

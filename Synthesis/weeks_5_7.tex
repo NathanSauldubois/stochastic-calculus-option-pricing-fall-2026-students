@@ -129,6 +129,15 @@ that holding changes. Discrete rebalancing, funding frictions, jumps,
 and volatility misspecification make the continuous-time hedge
 imperfect.
 
+\paragraph{Variation: deterministic volatility.}
+If the model coefficient is a deterministic schedule \(\sigma(u)\), the
+conditional log-return variance is \(A(t,T)=\int_t^T\sigma(u)^2\dd u\).
+A European call uses the BS formula with effective volatility
+\(\sqrt{A(t,T)/(T-t)}\). All strikes at one maturity identify that total
+variance, not its allocation over intermediate dates. This distinction
+returns in Lecture~11 when comparing terminal marginals and path dynamics.
+
+\Needspace{8\baselineskip}
 \subsection*{Lecture 5 checklist}
 \begin{itemize}[leftmargin=1.5em,itemsep=0.15em]
   \item distinguish portfolio value from self-financing gains;
@@ -305,7 +314,7 @@ ex-dividend price alone has dividend-related drift.
 
 \subsection{Change of numeraire}
 
-For a strictly positive traded numeraire \(N\) with associated measure
+For a strictly positive self-financing traded numeraire \(N\) with associated measure
 \(\Qbb^N\), a replicable payoff has the representation
 \[
 \boxed{
@@ -313,6 +322,18 @@ V_t=N_t\E^{\Qbb^N}\!\left[\frac{H}{N_T}\middle|\F_t\right].}
 \]
 The numeraire, its measure, and the ratio \(H/N_T\) form one matched
 choice of units. Taking \(N=B\) recovers money-market discounting.
+The associated density relative to the money-market measure is
+\[
+\left.\frac{\dd\Qbb^N}{\dd\Qbb}\right|_{\F_t}
+=\frac{N_t/B_t}{N_0/B_0},
+\]
+assuming this positive process is a true martingale. For a stock with
+constant continuous dividend yield \(q\), the reinvested wealth
+\(N_t=e^{qt}S_t\) is self-financing; the ex-dividend price alone omits
+the dividend gains. In particular, a payoff \(S_T\1_A\) is worth
+\[
+S_t e^{-q(T-t)}\Qbb^N(A\mid\F_t).
+\]
 
 \subsection{Martingale representation turns prices into hedges}
 

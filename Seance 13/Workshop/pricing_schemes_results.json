@@ -1,0 +1,298 @@
+{
+  "conventions": {
+    "data": "illustrative pricing-model simulations, not market observations",
+    "barrier": "continuous down-and-out call, no rebate, BS, expiry cash payment",
+    "vix": "Heston continuous-diffusion 30/365-window proxy; idealized futures quotation",
+    "correlation": "pairwise continuous log covariation ratio; centered sample statistic on 16 fixed future dates separately labeled",
+    "error_intervals": "MC sampling error only",
+    "asian": "equally weighted discrete arithmetic average; 64 future fixings, excluding S0",
+    "lookback": "continuous fixed-strike BS call on the running maximum, including the past record",
+    "variance_reduction": "independent pilot controls; antithetic SE from independent pair averages"
+  },
+  "asian": {
+    "fixings": 64,
+    "geometric_exact": 4.924665285149975,
+    "pilot_paths": 4096,
+    "beta": 1.0344426722446116,
+    "plain": {
+      "mean": 5.092822336089841,
+      "se": 0.042285160379821225,
+      "ci95": [
+        5.009943421745391,
+        5.175701250434291
+      ],
+      "paths": 32768
+    },
+    "geometric_control": {
+      "mean": 4.906549525595105,
+      "se": 0.04091457279612322,
+      "ci95": [
+        4.826356962914704,
+        4.9867420882755065
+      ],
+      "paths": 32768
+    },
+    "control": {
+      "mean": 5.11156205081352,
+      "se": 0.0011105163860908181,
+      "ci95": [
+        5.109385438696782,
+        5.113738662930258
+      ],
+      "paths": 32768
+    },
+    "antithetic": {
+      "mean": 5.0902611453262105,
+      "se": 0.02238346415750631,
+      "ci95": [
+        5.046389555577498,
+        5.134132735074923
+      ],
+      "paths": 32768
+    },
+    "antithetic_independent_pairs": 32768,
+    "antithetic_path_evaluations": 65536,
+    "control_variance_ratio": 1449.8598454500761,
+    "antithetic_equal_cost_variance_ratio": 1.784396519151038,
+    "pathwise_arithmetic_ge_geometric": true
+  },
+  "barrier": {
+    "reflection": 7.30044742010758,
+    "pde_coarse": 7.296819850757101,
+    "pde_fine": 7.298684807240565,
+    "mc": {
+      "bridge": {
+        "mean": 7.305127680190069,
+        "se": 0.036972824975922976,
+        "ci95": [
+          7.23266094323726,
+          7.377594417142879
+        ],
+        "paths": 131072
+      },
+      "bernoulli_bridge": {
+        "mean": 7.30487421019345,
+        "se": 0.03738953849402051,
+        "ci95": [
+          7.2315907147451695,
+          7.378157705641731
+        ],
+        "paths": 131072
+      },
+      "endpoint_only": {
+        "mean": 7.859761140732798,
+        "se": 0.03784495001162909,
+        "ci95": [
+          7.785585038710004,
+          7.933937242755591
+        ],
+        "paths": 131072
+      },
+      "conditioning_variance_ratio": 1.0226686420023727,
+      "pathwise_grid_ge_bridge": true
+    }
+  },
+  "lookback": {
+    "tail_quadrature": 17.832075608715037,
+    "mc": {
+      "bridge": {
+        "mean": 17.837967219240404,
+        "se": 0.05821876977495531,
+        "ci95": [
+          17.723858430481492,
+          17.952076007999317
+        ],
+        "paths": 65536
+      },
+      "endpoint_only": {
+        "mean": 15.60883028115575,
+        "se": 0.05706876141619073,
+        "ci95": [
+          15.496975508780016,
+          15.720685053531485
+        ],
+        "paths": 65536
+      },
+      "pathwise_bridge_ge_grid": true,
+      "pathwise_bridge_ge_vanilla": true
+    }
+  },
+  "vix": {
+    "pde_coarse": 18.664732617733772,
+    "pde_medium": 18.680730167601062,
+    "pde_fine": 18.68860423445852,
+    "pde_larger_domain": 18.68860423445771,
+    "laplace_quadrature": 18.696393285543625,
+    "mc": {
+      "futures_quote": {
+        "mean": 18.701203468992084,
+        "se": 0.009804504544647737,
+        "ci95": [
+          18.681986640084574,
+          18.720420297899594
+        ],
+        "paths": 524288
+      },
+      "variance_control": {
+        "mean": 18.698125456530104,
+        "se": 0.0021701516055715113,
+        "ci95": [
+          18.693871959383184,
+          18.702378953677023
+        ],
+        "paths": 524288
+      },
+      "control_beta": 212.07865178818932,
+      "control_pilot_paths": 16384,
+      "jensen_upper_bound": 20.0,
+      "terminal_variance": {
+        "mean": 0.04001451354219783,
+        "se": 4.487948463828655e-05,
+        "ci95": [
+          0.039926549752306785,
+          0.040102477332088875
+        ],
+        "paths": 524288
+      },
+      "exact_terminal_variance_mean": 0.04,
+      "exact_terminal_variance_variance": 0.0010592142780351493
+    }
+  },
+  "correlation": {
+    "constant_coefficient_check": {
+      "steps": 32,
+      "contractual_fixings": 16,
+      "fixing_dates": [
+        0.0625,
+        0.125,
+        0.1875,
+        0.25,
+        0.3125,
+        0.375,
+        0.4375,
+        0.5,
+        0.5625,
+        0.625,
+        0.6875,
+        0.75,
+        0.8125,
+        0.875,
+        0.9375,
+        1.0
+      ],
+      "continuous_fair_strike": {
+        "mean": 0.4000000000000003,
+        "se": 2.6024029094934034e-18,
+        "ci95": [
+          0.4000000000000003,
+          0.4000000000000003
+        ],
+        "paths": 4096
+      },
+      "sampled_centered_fair_strike": {
+        "mean": 0.38834352876602646,
+        "se": 0.0035098984917015658,
+        "ci95": [
+          0.3814641277222914,
+          0.39522292980976154
+        ],
+        "paths": 4096
+      },
+      "continuous_range": [
+        0.40000000000000013,
+        0.40000000000000013
+      ],
+      "model": "constant coefficients"
+    },
+    "local_32_steps": {
+      "steps": 32,
+      "contractual_fixings": 16,
+      "fixing_dates": [
+        0.0625,
+        0.125,
+        0.1875,
+        0.25,
+        0.3125,
+        0.375,
+        0.4375,
+        0.5,
+        0.5625,
+        0.625,
+        0.6875,
+        0.75,
+        0.8125,
+        0.875,
+        0.9375,
+        1.0
+      ],
+      "continuous_fair_strike": {
+        "mean": 0.3526243541324842,
+        "se": 0.00017742215254946874,
+        "ci95": [
+          0.35227660671348726,
+          0.3529721015514812
+        ],
+        "paths": 32768
+      },
+      "sampled_centered_fair_strike": {
+        "mean": 0.3427190726552717,
+        "se": 0.0012751828238329727,
+        "ci95": [
+          0.34021971432055903,
+          0.34521843098998434
+        ],
+        "paths": 32768
+      },
+      "continuous_range": [
+        0.24032357697748413,
+        0.46967979507620045
+      ],
+      "model": "bounded two-stock local diffusion"
+    },
+    "local_64_steps": {
+      "steps": 64,
+      "contractual_fixings": 16,
+      "fixing_dates": [
+        0.0625,
+        0.125,
+        0.1875,
+        0.25,
+        0.3125,
+        0.375,
+        0.4375,
+        0.5,
+        0.5625,
+        0.625,
+        0.6875,
+        0.75,
+        0.8125,
+        0.875,
+        0.9375,
+        1.0
+      ],
+      "continuous_fair_strike": {
+        "mean": 0.3526878786265325,
+        "se": 0.0001794140717762188,
+        "ci95": [
+          0.3523362270458511,
+          0.3530395302072139
+        ],
+        "paths": 32768
+      },
+      "sampled_centered_fair_strike": {
+        "mean": 0.34313222829388357,
+        "se": 0.0012811478092140548,
+        "ci95": [
+          0.34062117858782404,
+          0.3456432779999431
+        ],
+        "paths": 32768
+      },
+      "continuous_range": [
+        0.23682034797643714,
+        0.4666032080502115
+      ],
+      "model": "bounded two-stock local diffusion"
+    }
+  }
+}

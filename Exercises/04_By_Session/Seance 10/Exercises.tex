@@ -1,0 +1,102 @@
+% Weekly exercise sheet for Lecture 10; also included in the synthesis sheet.
+\ifdefined\ExercisesSynthesis
+\else
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern,microtype}
+\usepackage[margin=0.9in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{enumitem,hyperref,needspace}
+\newcommand{\E}{\mathbb E}
+\newcommand{\Qbb}{\mathbb Q}
+\newcommand{\dd}{\,\mathrm d}
+\newcommand{\Pb}{\mathbb P}\newcommand{\F}{\mathcal F}\newcommand{\Var}{\operatorname{Var}}
+\theoremstyle{definition}
+\newtheorem{exercise}{Exercise}[section]
+\newlist{exparts}{enumerate}{1}
+\setlist[exparts,1]{label=\textbf{(\alph*)},itemsep=0.3em,topsep=0.4em,leftmargin=2em}
+\newcommand{\lecturesummary}[1]{\begin{quote}\small\textbf{Focus.} #1\end{quote}}
+\title{Stochastic Calculus and Option Pricing\\Lecture 10 Exercises}
+\author{}
+\date{}
+\AddToHook{env/exercise/before}{\Needspace{7\baselineskip}}
+\expandafter\newif\csname ifIncludeCore\endcsname\IncludeCoretrue
+\expandafter\newif\csname ifIncludeFurther\endcsname\IncludeFurthertrue
+\begin{document}
+\maketitle
+\vspace{-1.2em}
+\setcounter{section}{9}
+\fi
+
+\section{Week 10 --- American Options and Optimal Stopping}
+\lecturesummary{Work with admissible stopping rules, settlement conventions, exercise incentives, and numerical-policy diagnostics.}
+
+\ifIncludeCore
+
+\lecturesummary{Core workload: about 90 minutes, including 10 minutes to check signs, assumptions, and conclusions. Suggested solving times: 10.1: 25 min; 10.2: 15 min; 10.3: 20 min; 10.4: 20 min. These are planning estimates after studying the lecture.}
+\setcounter{exercise}{0}
+\begin{exercise}[A supermartingale gives a writer's hedge]
+Work in a discrete-time, arbitrage-free market with money-market account
+\(B_t\). Let \(G_t\) be the amount due if an American claim is exercised at
+date \(t\). Suppose a self-financing portfolio has value \(X_t\) and
+\(X_t/B_t\) is a nonnegative supermartingale under a risk-neutral measure.
+\begin{exparts}
+  \item Prove that if \(X_t\geq G_t\) at every exercise date, then the
+  initial portfolio value upper-bounds the expected discounted payment for
+  every admissible exercise rule.
+  \item Explain why checking only the terminal payoff \(G_T\) is
+  insufficient for an American claim.
+  \item What additional condition would make this superhedge cheapest among
+  all portfolios that cover every exercise date? Relate your answer to the
+  least supermartingale that dominates the discounted exercise payoff.
+\end{exparts}
+\end{exercise}
+
+\begin{exercise}[Variation --- Delayed settlement changes the exercise payment]
+A holder chooses an exercise time \(\tau\in[t,T]\). The amount
+\(g(S_\tau)\geq0\) is fixed at exercise but paid only at
+\(\tau+\delta\), with constant delay \(\delta>0\). Rates are constant,
+settlement is certain, and exercise opportunities are otherwise unchanged.
+\begin{exparts}
+\item Express the discounted payment from a chosen \(\tau\) as seen at time \(t\). What is the effective time-\(\tau\) exercise reward?
+\item Relate the delayed-settlement American value to the ordinary immediate-settlement value. Does the optimal exercise region change?
+\item Now let the known delay depend on the exercise state, \(\delta=\delta(S_\tau)\). Write the new reward and explain why the same constant scaling argument no longer applies.
+\item Why would the argument fail if the payment amount were instead recomputed from \(S_{\tau+\delta}\)? State the conditional valuation step then needed at exercise.
+\end{exparts}
+\end{exercise}
+
+\begin{exercise}[Variation --- A local exercise test with continuous dividends]
+Under \(\Qbb\), let
+\(\dd S/S=(r-q)\dd t+\sigma\dd W\), with \(r,q\geq0\) and
+\(\sigma>0\). Define
+\(\mathcal L f=(r-q)s f_s+\tfrac12\sigma^2s^2f_{ss}\).
+For an American value, use
+\(\max\{g-u,u_t+\mathcal L u-ru\}=0\).
+\begin{exparts}
+\item Inside a smooth, in-the-money exercise region for a put, substitute \(u=g=K-s\) and derive a necessary inequality involving \(q s\) and \(rK\).
+\item Repeat for a call with \(g=s-K\). Explain how dividend yield changes the economic incentive to exercise.
+\item Are these local inequalities sufficient to determine the exercise region? Explain what continuation values and boundary conditions still contribute.
+\item At a regular put exercise boundary \(s=b(t)\), state value matching and smooth fit. Explain why the boundary must be found as part of the problem.
+\end{exparts}
+\end{exercise}
+
+\begin{exercise}[Practice --- Audit a Longstaff--Schwartz exercise decision]
+At a candidate exercise date, a put has strike 100. A regression fitted
+on a separate training sample estimates continuation values
+\(\widehat C(80)=18\) and \(\widehat C(90)=12\). On two independent
+evaluation paths, the current spots are 80 and 90; their realized
+future cash flows, discounted back to the decision date, are 30 and 0.
+\begin{exparts}
+\item Apply the regression-based rule on the two evaluation paths. State the decisions and the realized cash flows used in the policy evaluation.
+\item A programmer instead uses the larger of immediate payoff and the path's realized future cash flow. Compute the resulting two numbers and identify the look-ahead error.
+\item Why is a zero realized future cash flow compatible with a positive fitted continuation value? Distinguish a conditional expectation from one observation.
+\item Explain why a fixed admissible learned policy has expected value no larger than the optimal stopping value, but neither its finite-sample estimate nor an in-sample optimized estimate is automatically a rigorous lower bound.
+\end{exparts}
+\end{exercise}
+\fi
+
+\ifdefined\ExercisesSynthesis\else
+\end{document}
+\fi

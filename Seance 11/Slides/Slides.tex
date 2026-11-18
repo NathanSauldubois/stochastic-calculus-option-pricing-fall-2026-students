@@ -1,18 +1,15 @@
 % !TEX program = pdflatex
-\documentclass[10pt,aspectratio=169]{beamer}
-
+% Revised progression and layout, November 2026. Self-contained lecture source.
+\documentclass[handout,10pt,t,aspectratio=169]{beamer}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[english]{babel}
-\usepackage{lmodern}
-\usepackage{microtype}
-\usepackage{amsmath,amssymb,bm,mathtools}
-\usepackage{booktabs,array}
-
+\usepackage{lmodern,microtype,amsmath,amssymb,mathtools,booktabs,array}
+\usepackage{tikz,pgfplots}
+\usetikzlibrary{arrows.meta,positioning,calc}
+\pgfplotsset{compat=1.18}
 \usetheme[numbering=fraction,progressbar=frametitle]{metropolis}
-\setbeamertemplate{frame numbering}[fraction]
 \setbeamertemplate{navigation symbols}{}
-
 \definecolor{CourseBlue}{HTML}{1A3C68}
 \definecolor{CourseGreen}{HTML}{216E39}
 \definecolor{CourseGold}{HTML}{B8860B}
@@ -20,19 +17,15 @@
 \definecolor{SoftBlue}{HTML}{F2F6FA}
 \definecolor{SoftGreen}{HTML}{F1F8F3}
 \definecolor{SoftRed}{HTML}{FFF3F3}
-
 \setbeamercolor{normal text}{fg=black,bg=white}
 \setbeamercolor{structure}{fg=CourseBlue}
 \setbeamercolor{title}{fg=CourseBlue}
 \setbeamerfont{title}{size=\Large,series=\bfseries}
 \setbeamercolor{frametitle}{bg=CourseBlue,fg=white}
 \setbeamerfont{frametitle}{series=\bfseries,size=\large}
-\setbeamertemplate{frametitle}{
-  \nointerlineskip
-  \begin{beamercolorbox}[wd=\paperwidth,ht=3.2ex,dp=1.4ex,leftskip=1em,rightskip=1em]{frametitle}
-    \usebeamerfont{frametitle}\insertframetitle
-  \end{beamercolorbox}
-}
+\setbeamertemplate{frametitle}{\nointerlineskip
+ \begin{beamercolorbox}[wd=\paperwidth,ht=3.2ex,dp=1.4ex,leftskip=1em,rightskip=1em]{frametitle}
+ \usebeamerfont{frametitle}\insertframetitle\end{beamercolorbox}}
 \setbeamercolor{block title}{bg=CourseBlue,fg=white}
 \setbeamercolor{block body}{bg=SoftBlue,fg=black}
 \setbeamercolor{block title example}{bg=CourseGreen,fg=white}
@@ -40,492 +33,1389 @@
 \setbeamercolor{block title alerted}{bg=CourseRed,fg=white}
 \setbeamercolor{block body alerted}{bg=SoftRed,fg=black}
 \setbeamertemplate{blocks}[rounded][shadow=false]
-
-\newenvironment{modelbox}{\begin{beamercolorbox}[rounded=true,sep=0.7em,wd=\textwidth]{block body}
-  \textbf{\color{CourseBlue}MODEL}\quad}{\end{beamercolorbox}}
-\newenvironment{marketbox}{\begin{beamercolorbox}[rounded=true,sep=0.7em,wd=\textwidth]{block body example}
-  \textbf{\color{CourseGreen}NO-ARBITRAGE}\quad}{\end{beamercolorbox}}
-\newenvironment{simplificationbox}{\begin{beamercolorbox}[rounded=true,sep=0.7em,wd=\textwidth]{block body alerted}
-  \textbf{\color{CourseRed}WATCH OUT}\quad}{\end{beamercolorbox}}
-\newenvironment{pausebox}{\begin{beamercolorbox}[rounded=true,sep=0.8em,wd=\textwidth]{block body}
-  \textbf{\color{CourseGold}YOUR TURN}\quad}{\end{beamercolorbox}}
-
+\newenvironment{pausebox}{\begin{block}{Your turn}}{\end{block}}
+\newenvironment{answerbox}{\begin{exampleblock}{Answer}}{\end{exampleblock}}
+\newenvironment{keybox}{\begin{exampleblock}{Takeaway}}{\end{exampleblock}}
+\newenvironment{watchbox}{\begin{alertblock}{Check the assumption}}{\end{alertblock}}
 \newcommand{\E}{\mathbb E}
 \newcommand{\Q}{\mathbb Q}
+\newcommand{\Pp}{\mathbb P}
 \newcommand{\F}{\mathcal F}
 \newcommand{\dd}{\,\mathrm d}
-\newcommand{\Pz}{P}
+\newcommand{\ind}{\mathbf 1}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcommand{\source}[1]{\vfill{\scriptsize\color{gray}#1\par}}
+\pgfplotsset{courseaxis/.style={width=.92\textwidth,height=4.3cm,
+ axis lines=left,tick label style={font=\scriptsize},label style={font=\small},
+ legend style={font=\scriptsize,draw=none,fill=white},grid=major,
+ grid style={gray!15},every axis plot/.append style={thick}}}
+\AtBeginSection[]{\begin{frame}[plain]\vfill
+ {\Large\bfseries\color{CourseBlue}\parbox{.95\textwidth}{\raggedright\insertsectionhead}\par}
+ \medskip{\color{CourseGold}\rule{.92\textwidth}{.8pt}}\vfill\end{frame}}
 
-\AtBeginSection[]{
-  \begin{frame}[plain]\vfill
-    {\Large\bfseries\color{CourseBlue}\insertsectionhead\par}
-    \medskip{\color{CourseBlue}\rule{0.92\textwidth}{0.8pt}}\vfill
-  \end{frame}
-}
 
-\title{Change of Numeraire}
-\subtitle{Choosing the unit that makes pricing simple}
-\author{}
-\date{Lecture 11}
+\title{Beyond Black--Scholes}\subtitle{From the implied smile to local and stochastic volatility}\author{}\date{Lecture 11}
 
 \begin{document}
 
-\begin{frame}[plain]
-  \vfill
-  {\LARGE\bfseries\color{CourseBlue}Change of Numeraire\par}
-  \medskip{\large Choosing the unit that makes pricing simple\par}
-  \medskip{\color{CourseGold}\rule{0.94\textwidth}{0.8pt}}
-  \medskip{Lecture 11\par}\vfill
+\begin{frame}[plain]\vfill
+            {\LARGE\bfseries\color{CourseBlue}Beyond Black--Scholes\par}
+            \medskip{\large From the implied smile to local and stochastic volatility\par}
+            \medskip{\color{CourseGold}\rule{.94\textwidth}{.8pt}}
+            \medskip Lecture 11 --- Stochastic Calculus and Option Pricing\vfill
+            \end{frame}
+
+\begin{frame}{A new model must solve an identifiable problem}
+
+    \begin{enumerate}
+    \item Recover what vanilla prices tell us about the terminal distribution.
+    \item Construct a one-factor diffusion consistent with a call surface.
+    \item Choose pricing dynamics and hedge the variance risk with an option.
+    \item Connect Heston parameters, smile shapes, calibration, and simulation.
+    \end{enumerate}
+    \begin{keybox}One common framework: no dividends, a constant rate \(r\),
+    European payoffs, and dynamics specified under a pricing measure \(\Q\).
+    \end{keybox}
 \end{frame}
 
-\begin{frame}{One price, many useful representations}
-\begin{block}{The question}
-Risk-neutral pricing discounts by the money-market account. What changes if a
-different positive traded asset is used as the unit of account?
+\section{1. What the smile asks us to explain}
+
+\begin{frame}{A price quote becomes an implied volatility}
+
+    \[C^{\rm mkt}(K,T)=C^{\rm BS}(S_0,K,T,r,\sigma_{\rm imp}(K,T)).\]
+    \begin{block}{Under a constant-volatility Black--Scholes model}
+    All strikes and maturities would return the same implied volatility.
+    \end{block}
+    \begin{pausebox}A one-year put at strike 80 has 28\% implied volatility;
+    an ATM call has 20\%. Can one constant \(\sigma\) fit both?\end{pausebox}
+    \begin{answerbox}No. Using a different BS input for every option quotes
+    prices conveniently; it does not specify one joint model for the stock.\end{answerbox}
+\end{frame}
+
+\begin{frame}{The surface contains more information than an ATM quote}
+
+    \begin{center}\begin{tikzpicture}\begin{axis}[courseaxis,
+    xlabel={Strike},ylabel={Implied volatility (\%)},xmin=70,xmax=130,
+    ymin=15,ymax=31,legend pos=north east]
+    \addplot[CourseBlue,domain=70:130,samples=61]{20-.12*(x-100)+.003*(x-100)^2};
+    \addlegendentry{Illustrative 3-month slice}
+    \addplot[CourseGreen,dashed,domain=70:130,samples=61]{21-.07*(x-100)+.0015*(x-100)^2};
+    \addlegendentry{Illustrative 1-year slice}
+    \end{axis}\end{tikzpicture}\end{center}
+    \begin{keybox}Strike dependence describes the smile/skew; maturity dependence
+    describes its term structure.\end{keybox}
+    \source{Illustrative curves drawn for teaching; these are not market observations.}
+\end{frame}
+
+\begin{frame}{Three volatility objects answer different questions}
+
+    \begin{center}\begin{tabular}{L{.22\textwidth}L{.35\textwidth}L{.31\textwidth}}
+    \toprule Object & Meaning & How we obtain it\\\midrule
+    Historical volatility & A summary of past returns & Estimate from a sample\\[.6em]
+    Implied volatility & A price expressed in BS units & Invert a vanilla quote\\[.6em]
+    Instantaneous variance & The current diffusion coefficient squared & Specify a model and calibrate\\
+    \bottomrule\end{tabular}\end{center}
+\end{frame}
+
+\section{2. Local volatility: from prices to a diffusion}
+
+\begin{frame}{Keep one factor; let its volatility depend on spot}
+
+    \[\boxed{\dd S_t=rS_t\dd t+\sigma_{\rm loc}(t,S_t)S_t\dd W_t^\Q.}\]
+    \begin{itemize}
+    \item \(\sigma_{\rm loc}(t,s)\) is a deterministic function, evaluated at a random spot.
+    \item The current state is still \((t,S_t)\).
+    \item Black--Scholes corresponds to \(\sigma_{\rm loc}(t,s)\equiv\sigma\).
+    \end{itemize}
+    \begin{pausebox}Has the number of independent Brownian risks increased?\end{pausebox}
+    \begin{answerbox}No. There is still one stock diffusion shock.\end{answerbox}
+\end{frame}
+
+\begin{frame}{Apply the same It\^o and replication argument}
+
+    For a smooth value \(u(t,S_t)\), It\^o gives
+    \[\dd u=\left(u_t+rsu_s+\tfrac12\sigma_{\rm loc}^2(t,s)s^2u_{ss}\right)\dd t
+      +\sigma_{\rm loc}(t,s)s u_s\dd W_t.\]
+    Match the Brownian term with \(\Delta=u_s\), then use self-financing:
+    \[\boxed{u_t+rsu_s+\tfrac12\sigma_{\rm loc}^2(t,s)s^2u_{ss}-ru=0,}
+       \qquad u(T,s)=g(s).\]
+    \begin{keybox}Under the usual regularity and nondegeneracy assumptions,
+    the model retains the one-factor replication structure.\end{keybox}
+\end{frame}
+
+% BEGIN INLINE: Dupire_Notation
+\begin{frame}{Dupire: which variables are we differentiating?}
+\small
+Fix today's stock \(S_0\), the rate \(r\), and the model coefficient
+\(\sigma_{\rm loc}(t,s)\).
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{One option, changing valuation state}
+\[
+u(t,s;T,K).
+\]
+Fix the contract \((T,K)\); vary \((t,s)\).
+The backward pricing PDE uses \(u_t,u_s,u_{ss}\).
 \end{block}
-\begin{enumerate}
-  \item Define a numeraire and the measure that comes with it.
-  \item Derive the pricing formula in any unit of account.
-  \item See why a bond numeraire produces a forward measure.
-  \item Apply the same logic to domestic and foreign currency viewpoints.
-\end{enumerate}
-\begin{marketbox}
-The no-arbitrage price does not change. We change only its representation:
-the unit, the measure, and the martingale process.
-\end{marketbox}
+\column{0.48\textwidth}
+\begin{exampleblock}{Today's prices of different contracts}
+\[
+C(T,K)=u(0,S_0;T,K).
+\]
+Fix \((0,S_0)\); vary \((T,K)\).
+The Dupire equation uses \(C_T,C_K,C_{KK}\).
+\end{exampleblock}
+\end{columns}
+\[
+p(T,x)\dd x=\Q(S_T\in\dd x\mid S_0),\qquad
+C(T,K)=e^{-rT}\int_K^\infty(x-K)p(T,x)\dd x.
+\]
+The integration variable \(x\) is a future stock price; \(K\) is the strike.
+\end{frame}
+% END INLINE: Dupire_Notation
+
+\begin{frame}{Call prices encode tail probabilities}
+
+    Keep \(S_0\) fixed and write today's call surface as \(C(T,K)\).
+    If \(S_T\) has density \(p(T,s)\),
+    \[C(T,K)=e^{-rT}\int_K^\infty(s-K)p(T,s)\dd s.\]
+    \begin{pausebox}Differentiate once with respect to strike.\end{pausebox}
+
+    \[\boxed{C_K(T,K)=-e^{-rT}\int_K^\infty p(T,s)\dd s
+                  =-e^{-rT}\Q(S_T>K).}\]
+    \begin{keybox}A tight call spread approximates a digital payoff.\end{keybox}
 \end{frame}
 
-\section{Units, measures, and martingales}
+% BEGIN INLINE: Dupire_Strike_Derivatives
+\begin{frame}{Strike derivatives: include the moving integration limit}
+\small
+The density \(p(T,x)\) does not depend on the contract's strike \(K\).
+Leibniz's rule gives
+\[
+\begin{aligned}
+C_K(T,K)
+&=e^{-rT}\left[-(K-K)p(T,K)
++\int_K^\infty\partial_K(x-K)p(T,x)\dd x\right]\\
+&=-e^{-rT}\int_K^\infty p(T,x)\dd x.
+\end{aligned}
+\]
+The lower-limit term is zero because the call payoff vanishes at \(x=K\).
+Differentiate the remaining tail integral:
+\[
+\boxed{C_{KK}(T,K)=-e^{-rT}[-p(T,K)]
+=e^{-rT}p(T,K).}
+\]
+Thus \(C_K\leq0\) and \(C_{KK}\geq0\): calls decrease and are convex in strike.
+\end{frame}
+% END INLINE: Dupire_Strike_Derivatives
 
-\begin{frame}{Risk-neutral valuation already uses a numeraire}
-With money-market account \(B_t\), the usual pricing formula is
+\begin{frame}{Differentiate again: convexity becomes a density}
+
+    \[\boxed{C_{KK}(T,K)=e^{-rT}p(T,K)\geq0.}\]
+    \begin{block}{One relation, three interpretations}
+    \begin{itemize}
+    \item Static arbitrage: call prices must be convex in strike.
+    \item Probability: curvature reveals the risk-neutral terminal density.
+    \item Calibration: this curvature will enter the local variance.
+    \end{itemize}\end{block}
+    \begin{pausebox}Is this density an estimate of historical return frequencies?\end{pausebox}
+    \begin{answerbox}No. It is implied by prices under \(\Q\).\end{answerbox}
+\end{frame}
+
+\begin{frame}{The density evolves according to a forward equation}
+
+    Define \(a(T,s)=\sigma_{\rm loc}^2(T,s)s^2\). The forward equation is
+    \[p_T=-\partial_s(rsp)+\tfrac12\partial_{ss}(ap).\]
+    Differentiate the discounted call expectation:
+    \[C_T=-rC+e^{-rT}\int_K^\infty(s-K)p_T(T,s)\dd s.\]
+    \begin{block}{The calculation to perform}
+    Insert the forward equation, then integrate by parts once for the drift
+    term and twice for the diffusion term. Assume smoothness and vanishing tail terms.
+    \end{block}
+\end{frame}
+
+% BEGIN INLINE: Dupire_Derivation
+% Derivation in the no-dividend model, with constant interest rate r.
+\begin{frame}{Derive the forward equation (1/2): start with It\^o}
+\small
+Put \(a(t,x)=\sigma_{\rm loc}^2(t,x)x^2\). For a smooth test function
+\(\varphi\) with compact support in \((0,\infty)\), It\^o gives
 \[
-V_t=B_t\,\E^\Q\!\left[\frac{X_T}{B_T}\mid\F_t\right].
+\dd\varphi(S_t)=\left[rS_t\varphi'(S_t)
++\tfrac12 a(t,S_t)\varphi''(S_t)\right]\dd t
++\sigma_{\rm loc}(t,S_t)S_t\varphi'(S_t)\dd W_t^\Q.
 \]
-Equivalently, for a constant rate \(r\),
+Take expectations; the stochastic integral has mean zero:
 \[
-V_t=\E^\Q\!\left[e^{-r(T-t)}X_T\mid\F_t\right].
+\frac{\dd}{\dd T}\E^\Q[\varphi(S_T)]
+=\E^\Q\!\left[rS_T\varphi'(S_T)
++\tfrac12 a(T,S_T)\varphi''(S_T)\right].
 \]
-\begin{block}{What is a numeraire?}
-It is the strictly positive traded asset used as the unit in which prices
-are quoted. Here, one unit means one unit of cash invested in \(B\).
+Write both sides using the density:
+\[
+\boxed{\int_0^\infty\varphi(x)p_T(T,x)\dd x
+=\int_0^\infty\left[rx\varphi'(x)+\tfrac12a(T,x)\varphi''(x)\right]p(T,x)\dd x.}
+\]
+We assume the smoothness and integrability needed for these operations.
+\end{frame}
+
+\begin{frame}{Derive the forward equation (2/2): move the derivatives}
+\small
+Compact support removes the boundary terms at \(0\) and \(\infty\).
+Integrate once for the drift and twice for the diffusion:
+\[
+\int_0^\infty rxp\,\varphi'\dd x
+=-\int_0^\infty\varphi\,\partial_x(rxp)\dd x,
+\]
+\[
+\int_0^\infty ap\,\varphi''\dd x
+=-\int_0^\infty\partial_x(ap)\varphi'\dd x
+=\int_0^\infty\varphi\,\partial_{xx}(ap)\dd x.
+\]
+The preceding equality holds for every such \(\varphi\), hence
+\[
+\boxed{p_T=-\partial_x(rxp)+\tfrac12\partial_{xx}(ap).}
+\]
+This evolves a probability density. Discounting enters separately when we
+differentiate the option price.
+\end{frame}
+
+\begin{frame}{Differentiate in maturity: keep the discount derivative}
+\small
+With \(K\) fixed,
+\[
+\begin{aligned}
+C_T(T,K)
+&=-r e^{-rT}\int_K^\infty(x-K)p(T,x)\dd x
++e^{-rT}\int_K^\infty(x-K)p_T(T,x)\dd x\\
+&=-rC+e^{-rT}(I_{\rm drift}+I_{\rm diff}),
+\end{aligned}
+\]
+where the forward equation gives
+\[
+I_{\rm drift}=\int_K^\infty(x-K)[-\partial_x(rxp)]\dd x,
+\]
+\[
+I_{\rm diff}=\tfrac12\int_K^\infty(x-K)\partial_{xx}(ap)\dd x.
+\]
+We now compute these two integrals, displaying the boundary terms.
+Assume the tail terms shown on the next slides vanish.
+\end{frame}
+
+\begin{frame}{The drift integral: one integration by parts}
+\small
+Write \(m(x)=rxp(T,x)\). Then
+\[
+\begin{aligned}
+I_{\rm drift}
+&=-\int_K^\infty(x-K)m'(x)\dd x\\
+&=-\big[(x-K)m(x)\big]_K^\infty
++\int_K^\infty m(x)\dd x.
+\end{aligned}
+\]
+\begin{itemize}
+\item At \(x=K\): \((K-K)m(K)=0\).
+\item At infinity: assume \((x-K)m(x)\to0\).
+\end{itemize}
+\[
+\boxed{I_{\rm drift}=r\int_K^\infty xp(T,x)\dd x.}
+\]
+The minus sign in the forward drift disappears after integration by parts.
+\end{frame}
+
+\begin{frame}{Express the tail first moment using call prices}
+\small
+Split \(x=(x-K)+K\):
+\[
+\begin{aligned}
+e^{-rT}\int_K^\infty xp(T,x)\dd x
+&=e^{-rT}\int_K^\infty(x-K)p(T,x)\dd x
++Ke^{-rT}\int_K^\infty p(T,x)\dd x\\
+&=C(T,K)-K C_K(T,K).
+\end{aligned}
+\]
+The sign follows from
+\[
+C_K(T,K)=-e^{-rT}\int_K^\infty p(T,x)\dd x.
+\]
+Therefore the discounted drift contribution is
+\[
+\boxed{e^{-rT}I_{\rm drift}=r(C-KC_K).}
+\]
+\end{frame}
+
+\begin{frame}{The diffusion integral (1/2): remove one derivative}
+\small
+Write \(A(x)=a(T,x)p(T,x)\). The first integration by parts gives
+\[
+\begin{aligned}
+I_{\rm diff}
+&=\tfrac12\int_K^\infty(x-K)A''(x)\dd x\\
+&=\tfrac12\big[(x-K)A'(x)\big]_K^\infty
+-\tfrac12\int_K^\infty A'(x)\dd x.
+\end{aligned}
+\]
+\begin{itemize}
+\item At \(x=K\): the factor \(x-K\) again gives zero.
+\item At infinity: assume \((x-K)A'(x)\to0\).
+\end{itemize}
+\[
+\boxed{I_{\rm diff}=-\tfrac12\int_K^\infty A'(x)\dd x.}
+\]
+One boundary contribution remains to be evaluated.
+\end{frame}
+
+\begin{frame}{The diffusion integral (2/2): the boundary at the strike}
+\small
+The remaining integral is a boundary difference. Assume \(A(x)\to0\):
+\[
+I_{\rm diff}=-\tfrac12\big[A(x)\big]_K^\infty
+=-\tfrac12(0-A(K))
+=\tfrac12a(T,K)p(T,K).
+\]
+Substitute
+\[
+a(T,K)=\sigma_{\rm loc}^2(T,K)K^2,\qquad
+e^{-rT}p(T,K)=C_{KK}(T,K).
+\]
+Then
+\[
+\boxed{e^{-rT}I_{\rm diff}
+=\tfrac12\sigma_{\rm loc}^2(T,K)K^2 C_{KK}(T,K).}
+\]
+This is why the coefficient is evaluated at spot \(K\): the integration
+leaves a boundary term at the call payoff's kink.
+\end{frame}
+
+\begin{frame}{Assemble Dupire: the two terms in \(rC\) cancel}
+\small
+Return to the maturity derivative:
+\[
+\begin{aligned}
+C_T
+&=-rC+e^{-rT}I_{\rm drift}+e^{-rT}I_{\rm diff}\\
+&=-rC+r(C-KC_K)+\tfrac12\sigma_{\rm loc}^2(T,K)K^2 C_{KK}\\
+&=-rK C_K+\tfrac12\sigma_{\rm loc}^2(T,K)K^2 C_{KK}.
+\end{aligned}
+\]
+Thus
+\[
+\boxed{C_T+rK C_K=\tfrac12\sigma_{\rm loc}^2(T,K)K^2 C_{KK}.}
+\]
+When \(C_{KK}>0\), this equation identifies the local variance from
+derivatives of today's call-price surface.
+\source{R. Kohn, \href{https://math.nyu.edu/faculty/kohn/cont-time-finance/section9.pdf}{Continuous Time Finance, Section 9}: forward pricing equation and Dupire.}
+\end{frame}
+% END INLINE: Dupire_Derivation
+
+\begin{frame}{Integration by parts gives the Dupire equation}
+
+    The two integrals become
+    \[\int_K^\infty(s-K)[-\partial_s(rsp)]\dd s
+       =r\int_K^\infty s p(T,s)\dd s,\]
+    \[\tfrac12\int_K^\infty(s-K)\partial_{ss}(ap)\dd s
+       =\tfrac12 a(T,K)p(T,K).\]
+    Since \(e^{-rT}\int_K^\infty s p\dd s=C-KC_K\),
+    \[\boxed{C_T=-rK C_K+\tfrac12\sigma_{\rm loc}^2(T,K)K^2C_{KK}.}\]
+    \begin{keybox}The forward equation acts on maturity and strike;
+    the backward pricing PDE acts on valuation time and current spot.\end{keybox}
+\end{frame}
+
+\begin{frame}{Solve for the local variance}
+
+    \[\boxed{\sigma_{\rm loc}^2(T,K)
+        =\frac{C_T(T,K)+rKC_K(T,K)}{\tfrac12K^2C_{KK}(T,K)}.}\]
+    \begin{itemize}
+    \item Inputs are a sufficiently smooth, arbitrage-consistent call surface.
+    \item The denominator must be positive where the formula is used.
+    \item The result defines a model coefficient at time \(T\), spot \(K\).
+    \end{itemize}
+    \begin{watchbox}This expression assumes constant \(r\) and no dividends.
+    It is not the formula for arbitrary carry or stochastic interest rates.\end{watchbox}
+\end{frame}
+
+% BEGIN INLINE: Dupire_Practice
+\begin{frame}{Check Dupire on a Black--Scholes price surface}
+\small
+Use the usual \(d_1,d_2\), with \(\phi,\Phi\) the standard normal density and CDF.
+For constant volatility \(\sigma\),
+\[
+\begin{aligned}
+C_K&=-e^{-rT}\Phi(d_2),\\
+C_{KK}&=\frac{e^{-rT}\phi(d_2)}{K\sigma\sqrt T},\\
+C_T&=\frac{\sigma S_0\phi(d_1)}{2\sqrt T}+rKe^{-rT}\Phi(d_2).
+\end{aligned}
+\]
+Using \(S_0\phi(d_1)=Ke^{-rT}\phi(d_2)\),
+\[
+C_T+rKC_K=\frac{\sigma S_0\phi(d_1)}{2\sqrt T}
+=\tfrac12\sigma^2K^2C_{KK}.
+\]
+\[
+\boxed{\sigma_{\rm loc}^2(T,K)=\sigma^2.}
+\]
+A flat implied-volatility surface recovers the constant BS coefficient.
+\end{frame}
+
+
+% END INLINE: Dupire_Practice
+
+\begin{frame}{Differentiating noisy quotes is a numerical problem}
+
+    For equally spaced strikes,
+    \[C_{KK}(T,K)\approx
+      \frac{C(T,K+h)-2C(T,K)+C(T,K-h)}{h^2}.\]
+    \begin{pausebox}If each quote has independent error of standard deviation
+    \(\varepsilon\), what is the standard deviation of this second difference?\end{pausebox}
+    \begin{answerbox}
+    \[\frac{\sqrt{1^2+(-2)^2+1^2}\,\varepsilon}{h^2}
+      =\frac{\sqrt6\,\varepsilon}{h^2}.\]
+    A smaller strike spacing amplifies quote noise. Fit a smooth,
+    arbitrage-consistent surface before applying Dupire.
+    \end{answerbox}
+\end{frame}
+
+\begin{frame}{Fitting today does not determine realistic future smile motion}
+
+    \begin{block}{What a full vanilla surface determines}
+    The risk-neutral marginal distribution of \(S_T\) for each maturity \(T\).
+    \end{block}
+    \begin{block}{What a path-dependent product also needs}
+    The joint evolution of the stock between dates: averages, maxima, and
+    barrier-crossing events depend on more than separate terminal marginals.
+    \end{block}
+    \begin{keybox}Local volatility supplies one dynamic model consistent with
+    those marginals, under suitable assumptions. Other dynamics can imply
+    different exotic prices and hedges.\end{keybox}
+\end{frame}
+
+\section{3. Stochastic volatility: price a barrier by replication}
+
+\begin{frame}{Heston: the variance is a second random factor}
+\small
+Under the historical measure \(\Pp\), with \(Z_1,Z_2\) independent Brownian motions,
+\[
+\frac{\dd S_t}{S_t}=\mu\dd t+\sqrt{V_t}\dd W_t^S,\qquad
+\dd V_t=\kappa_\Pp(\theta_\Pp-V_t)\dd t+\eta\sqrt{V_t}\dd W_t^V,
+\]
+\[
+W^S=Z_1,\qquad W^V=\rho Z_1+\sqrt{1-\rho^2}\,Z_2,\qquad \dd\langle W^S,W^V\rangle_t=\rho\dd t.
+\]
+\begin{center}\begin{tabular}{clcl}
+\toprule \(V_t\)&current variance (state)&\(\theta_\Pp\)&long-run variance\\
+\(\kappa_\Pp\)&mean-reversion speed&\(\eta\)&volatility of variance\\
+\(\rho\)&stock--variance correlation&\(\mu\)&stock drift\\\bottomrule
+\end{tabular}\end{center}
+\begin{keybox}The state is \((S_t,V_t)\): two dates with the same spot can carry different
+option prices. Two Brownian shocks, but only one traded stock.\end{keybox}
+\end{frame}
+
+
+\begin{frame}{A variance move shifts the implied-volatility surface}
+\small
+In Heston, a vanilla price is \(C(t,S_t,V_t;K,T)\). Each implied volatility is
+therefore a function \(\Sigma(t,S_t,V_t;K,T)\): when \(V_t\) moves, the whole surface moves.
+\begin{columns}[T,onlytextwidth]
+\column{0.50\textwidth}
+\begin{tikzpicture}
+\begin{axis}[width=\linewidth,height=4.0cm,axis lines=left,
+xmin=0,xmax=3,ymin=10,ymax=32,xlabel={Maturity \(T-t\) (years)},
+ylabel={ATM implied vol.\ (\%)},tick label style={font=\scriptsize},
+label style={font=\scriptsize},grid=major,grid style={gray!15},
+legend style={font=\scriptsize,draw=none,fill=white},legend pos=north east]
+\addplot[CourseRed,thick,domain=0.02:3,samples=80]{100*sqrt(.04+(.09-.04)*(1-exp(-2*x))/(2*x))};
+\addlegendentry{\(V_t=0.09\)}
+\addplot[CourseBlue,very thick,domain=0.02:3,samples=80]{100*sqrt(.04+(.04-.04)*(1-exp(-2*x))/(2*x))};
+\addlegendentry{\(V_t=0.04\)}
+\addplot[CourseGreen,thick,dashed,domain=0.02:3,samples=80]{100*sqrt(.04+(.0225-.04)*(1-exp(-2*x))/(2*x))};
+\addlegendentry{\(V_t=0.0225\)}
+\end{axis}
+\end{tikzpicture}
+\column{0.47\textwidth}
+\begin{itemize}
+\item Under \(\Pp\), \(V\) has its own shock \(Z_2\). The surface can move
+when \(S\) is unchanged.
+\item The short end moves most. In the plotted guide, the long end tends to \(\sqrt\theta\).
+\item In local volatility, the future surface is a deterministic function of
+\((t,S_t)\). Heston adds a separate surface risk.
+\end{itemize}
+\end{columns}
+\begin{keybox}The stock cannot hedge this move: we must price it, then hedge it with an option.\end{keybox}
+\source{ATM implied variance \(\simeq\frac{1}{T-t}\int_t^T\E^\Q[V_u\mid V_t]\dd u\),
+exact as \(\eta\to0\); \(\kappa=2\), \(\theta=0.04\).}
+\end{frame}
+
+\begin{frame}{It\^o along \(\Pp\)-paths: a mixed second derivative appears}
+\small
+For a smooth price \(f(t,S_t,V_t)\): \((\dd S)^2=VS^2\dd t\), \((\dd V)^2=\eta^2V\dd t\),
+\(\dd S\dd V=\rho\eta SV\dd t\).
+\begin{pausebox}What is the coefficient of \(f_{sv}\) in the drift of \(f\)?\end{pausebox}
+\begin{answerbox}\(\rho\eta sv\): the two cross terms \(\tfrac12f_{sv}\) and
+\(\tfrac12f_{vs}\) add up, so there is no factor \(1/2\).\end{answerbox}
+\[
+\dd f=\mathcal A^\Pp f\dd t+\sqrt{V_t}\,S_tf_s\dd W_t^S+\eta\sqrt{V_t}\,f_v\dd W_t^V,
+\]
+\[
+\mathcal A^\Pp f=f_t+\mu sf_s+b_\Pp(v)f_v
++\tfrac12vs^2f_{ss}+\rho\eta svf_{sv}+\tfrac12\eta^2vf_{vv},
+\qquad b_\Pp(v)=\kappa_\Pp(\theta_\Pp-v).
+\]
+No expectation, no pricing measure: an identity along the actual paths of \(S\) and \(V\).
+\end{frame}
+
+\begin{frame}{With the stock alone, the variance shock stays}
+\small
+Sell one claim \(u(t,S_t,V_t)\) and hold \(\Delta\) shares. The Brownian part of
+\(\Delta\dd S-\dd u\) is
+\[
+\sqrt v\bigl[s(\Delta-u_s)-\rho\eta\,u_v\bigr]\dd Z_1
+-\sqrt{1-\rho^2}\,\eta\sqrt v\,u_v\dd Z_2.
+\]
+\begin{pausebox}For \(|\rho|<1\) and \(\eta u_v\ne0\), which \(\Delta\) removes all the risk?\end{pausebox}
+\begin{answerbox}None. \(\Delta=u_s+\rho\eta u_v/s\) cancels the \(Z_1\) term, but the
+\(Z_2\) term does not involve \(\Delta\). Stock and cash cannot replicate the claim:
+the market is incomplete.\end{answerbox}
+\begin{keybox}Consequence for pricing: the risk-neutral measure is no longer unique.\end{keybox}
+\end{frame}
+
+\begin{frame}{From \(\Pp\) to \(\Q\): the stock fixes \(\lambda_1\)}
+\small
+Take an equivalent measure \(\Q\) with \(\dd Z_{j,t}^\Q=\dd Z_{j,t}^\Pp+\lambda_{j,t}\dd t\),
+\(j=1,2\). The stock equation becomes
+\[
+\frac{\dd S_t}{S_t}=(\mu-\sqrt{V_t}\lambda_{1,t})\dd t
++\sqrt{V_t}\dd Z_{1,t}^\Q.
+\]
+The discounted stock is a \(\Q\)-martingale only if
+\[
+\boxed{\lambda_{1,t}=\frac{\mu-r}{\sqrt{V_t}}.}
+\]
+\begin{itemize}
+\item \(\lambda_1\) is the market price of stock risk, exactly as in Black--Scholes.
+\item Nothing in the stock constrains \(\lambda_2\), the price of the independent shock \(Z_2\).
+\end{itemize}
+These formulas are written on \(V_t>0\), with \(|\rho|<1\).
+\end{frame}
+
+\begin{frame}{The stock does not determine the variance drift under \(\Q\)}
+\small
+Substitute the same Brownian shifts into the variance equation:
+\[
+\dd V_t=\bigl[b_\Pp(V_t)-\pi\bigr]\dd t
++\eta\sqrt{V_t}\bigl(\rho\dd Z_{1,t}^\Q+\sqrt{1-\rho^2}\dd Z_{2,t}^\Q\bigr),
+\]
+\[
+\boxed{\pi:=b_\Pp-b_\Q=\eta\sqrt{V_t}\bigl(\rho\lambda_{1,t}+\sqrt{1-\rho^2}\,\lambda_{2,t}\bigr)}
+\quad\text{the variance risk premium.}
+\]
+\begin{block}{One traded stock, two independent shocks}
+The stock fixes \(\lambda_1\) and leaves \(\lambda_2\) free: the market is incomplete, and
+each choice of \(\lambda_2\) gives a different \(\Q\), hence a different \(b_\Q\).
 \end{block}
-\begin{marketbox}
-Under the measure associated with \(B\), every traded price divided by
-\(B_t\) is a martingale.
-\end{marketbox}
+\begin{itemize}
+\item \(V\) is not traded: there is no ``drift \(=r\)'' rule for it. Its \(\Q\)-drift is the one
+that makes discounted prices of traded assets depending on \(V\) (options) martingales.
+\item It will be determined by option prices, through the model.
+\item The diffusion term is unchanged: \(\eta\) and \(\rho\) are the same under \(\Pp\) and \(\Q\).
+\end{itemize}
 \end{frame}
 
-\begin{frame}{A numeraire is a change of unit, not a new economy}
-Let \(N_t>0\) be a traded asset. Its denominated price for an asset \(S\) is
+\begin{frame}{An affine variance premium preserves the Heston form}
+\small
+\textbf{Model assumption:} the premium is affine, \(\pi(v)=\lambda v\). Then
 \[
-S_t^{(N)}=\frac{S_t}{N_t}.
+b_\Q(v)=\kappa_\Pp\theta_\Pp-(\kappa_\Pp+\lambda)v=\kappa_\Q(\theta_\Q-v),\qquad
+\boxed{\kappa_\Q=\kappa_\Pp+\lambda,\quad
+\theta_\Q=\frac{\kappa_\Pp\theta_\Pp}{\kappa_\Pp+\lambda},}
 \]
+with \(\kappa_\Pp+\lambda>0\).
+\begin{itemize}
+\item Why this assumption: \(V\) stays a Heston process under \(\Q\), so calls have a
+closed form.
+\item It imposes the constraint \(\kappa_\Q\theta_\Q=\kappa_\Pp\theta_\Pp\).
+\item Sign convention \(b_\Q=b_\Pp-\lambda v\); \(\lambda\) need not be positive.
+\end{itemize}
+\begin{exampleblock}{Example used in the case study}
+\(\kappa_\Pp=1.6,\ \theta_\Pp=0.05,\ \lambda=0.4\ \Longrightarrow\
+\kappa_\Q=2,\ \theta_\Q=0.04\), and \(1.6\times0.05=2\times0.04=0.08\).
+\end{exampleblock}
+\source{Heston (1993), \href{https://finance.martinsewell.com/stylized-facts/volatility/Heston1993.pdf}{A Closed-Form Solution for Options with Stochastic Volatility}.}
+\end{frame}
+
+\begin{frame}{The Heston pricing PDE under the chosen \(\Q\)}
+\small
+The discounted claim value is a \(\Q\)-martingale. It\^o with the \(\Q\)-drifts gives
+\[\boxed{\begin{aligned}
+0={}&u_t+rsu_s+\kappa_\Q(\theta_\Q-v)u_v+\tfrac12vs^2u_{ss}\\
+   &+\rho\eta svu_{sv}+\tfrac12\eta^2vu_{vv}-ru.
+\end{aligned}}\]
+For a European call, \(u(T,s,v)=(s-K)^+\).
+\begin{watchbox}So far \(\Q\) is postulated: stock and cash alone do not select \(\lambda_2\).
+The case study derives the same PDE by replication, once a liquid option is added
+to the market.\end{watchbox}
+\end{frame}
+
+\begin{frame}{Case study: sell a barrier option, hedge it with a liquid call}
+\small
+\begin{block}{The claim we sell: a down-and-out call}
+It pays \((S_T-K)^+\) at \(T\) if \(\min_{0\le t\le T}S_t>H\), and nothing otherwise
+(continuous monitoring, no rebate). Here \(K=100\), \(H=85\), \(T=1\), \(S_0=100\), \(V_0=0.04\).
+\end{block}
+\begin{columns}[T,onlytextwidth]
+\column{0.40\textwidth}
+\textbf{Hedge instruments}
+\begin{itemize}
+\item the stock \(S\);
+\item a liquid call \(g\): \(K_g=100\), \(T_g=1.5\);
+\item cash (\(r=0\) here).
+\end{itemize}
+The call outlives the claim; assume \(g_v\ne0\) throughout the hedge.
+\column{0.56\textwidth}
+\textbf{What we know}\\[.4em]
+\begin{tabular}{lcccc}
+\toprule & \(\kappa\) & \(\theta\) & \(\eta\) & \(\rho\)\\\midrule
+\(\Pp\): history of \(S,V\) & 1.6 & 0.05 & 0.4 & \(-0.6\)\\
+\(\Q\): call surface & 2.0 & 0.04 & 0.4 & \(-0.6\)\\\bottomrule
+\end{tabular}\\[.4em]
+\(\eta,\rho\) agree: Girsanov changes drifts only.
+\end{columns}
+\begin{watchbox}Calls are liquid and trade at their Heston \(\Q\)-prices (calibrated to the whole
+surface). Trading is continuous and costless. \(V_t\) is known.\end{watchbox}
+\end{frame}
+
+\begin{frame}{Step 1: write every price change along the \(\Pp\)-paths}
+\small
+By It\^o under \(\Pp\), a smooth price \(f(t,S_t,V_t)\) (the claim \(u\) before the barrier is hit,
+or the call \(g\)) satisfies
+\[
+\dd f=\mathcal A^\Pp f\dd t+\sqrt{V_t}\,S_tf_s\dd W_t^S+\eta\sqrt{V_t}\,f_v\dd W_t^V,
+\]
+with \(W^S=Z_1^\Pp\), \(W^V=\rho Z_1^\Pp+\sqrt{1-\rho^2}\,Z_2^\Pp\), and \(\mathcal A^\Pp\) the
+generator under \(\Pp\) (drifts \(\mu\) and \(b_\Pp\)).
+
+Hold \(\Delta_t\) shares, \(\alpha_t\) calls, and cash \(b_t\). The portfolio is self-financing:
+\[
+X_t=\Delta_tS_t+\alpha_tg_t+b_t,\qquad
+\dd X_t=\Delta_t\dd S_t+\alpha_t\dd g_t+rb_t\dd t.
+\]
+\begin{keybox}No expectation has been taken. These are identities along the paths that
+the stock and the variance actually follow, under the historical measure.\end{keybox}
+\end{frame}
+
+\begin{frame}{Step 2: match both Brownian exposures}
+\small
+As in Black--Scholes, look for a self-financing \((\Delta,\alpha,b)\) with
+\(X_t=u(t,S_t,V_t)\) for all \(t<\tau\wedge T\), where \(\tau=\inf\{t:\ S_t\le H\}\).
+At \(\tau\) both are \(0\) and we liquidate; at \(T\), \(X_T=(S_T-K)^+\). With Step 1:
+\[
+\begin{aligned}
+\dd X_t&=\bigl[\Delta\mu s+\alpha\mathcal A^\Pp g+rb\bigr]\dd t
++\sqrt v\,s\,(\Delta+\alpha g_s)\dd W^S+\eta\sqrt v\,\alpha g_v\dd W^V,\\
+\dd u_t&=\mathcal A^\Pp u\dd t+\sqrt v\,s\,u_s\dd W^S+\eta\sqrt v\,u_v\dd W^V.
+\end{aligned}
+\]
+\(X=u\) forces \(\dd X=\dd u\): match \(Z_2^\Pp\), then \(Z_1^\Pp\)
+(\(|\rho|<1\), \(g_v\ne0\)), then the portfolio value:
+\[
+\boxed{\alpha=\frac{u_v}{g_v},\qquad \Delta=u_s-\alpha g_s,\qquad b=u-\Delta s-\alpha g.}
+\]
+\begin{pausebox}The holdings are fixed. What does matching the \(\dd t\) terms say?\end{pausebox}
+\begin{answerbox}Nothing is left to choose: it is a condition on \(u\), the pricing equation.\end{answerbox}
+\end{frame}
+
+\begin{frame}{Step 3: the drift condition gives one variance premium \(\pi\)}
+\small
+Matching the \(\dd t\) terms:\quad
+\(\Delta\mu s+\alpha\mathcal A^\Pp g+rb=\mathcal A^\Pp u.\)
+Substitute \(\Delta=u_s-\alpha g_s\) and \(b=u-\Delta s-\alpha g\):
+\[
+\bigl[\mathcal A^\Pp u-ru-(\mu-r)su_s\bigr]
+=\alpha\bigl[\mathcal A^\Pp g-rg-(\mu-r)sg_s\bigr].
+\]
+Since \(\alpha=u_v/g_v\), where \(u_v\ne0\) divide by \(u_v\):
+\[
+\boxed{\frac{\mathcal A^\Pp u-ru-(\mu-r)su_s}{u_v}
+=\frac{\mathcal A^\Pp g-rg-(\mu-r)sg_s}{g_v}=:\pi(t,s,v).}
+\]
+\begin{itemize}
+\item \(\pi\) is unique: the same identity holds for every claim replicated with \(S\) and \(g\).
+\item It is the variance risk premium of the measure change:
+\(\pi=\eta\sqrt v\,(\rho\lambda_1+\sqrt{1-\rho^2}\,\lambda_2)\).
+\item Call prices, through the model, give \(b_\Q=b_\Pp-\pi\), and that is all the PDE uses.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{What call prices tell us: the \(\Q\)-drift, not \(\pi\)}
+\small
+The call trades at its Heston \(\Q\)-price, so \(g\) solves
+\[
+g_t+rsg_s+\kappa_\Q(\theta_\Q-v)g_v+\tfrac12vs^2g_{ss}+\rho\eta svg_{sv}
++\tfrac12\eta^2vg_{vv}-rg=0.
+\]
+Inject \(g\) into the right side of Step 3: the \(\mu\)-terms and all derivatives except \(g_v\) cancel,
+\[
+\pi(v)=\kappa_\Pp(\theta_\Pp-v)-\kappa_\Q(\theta_\Q-v)=0.4\,v\quad\text{here}
+\quad(1.6\times0.05=2\times0.04=0.08).
+\]
+\begin{itemize}
+\item Calibrating to the surface (several strikes and maturities) gives \(\kappa_\Q,\theta_\Q\).
+One quoted price gives neither the function \(g(t,s,v)\) nor \(\pi\); the latter also needs \(\kappa_\Pp,\theta_\Pp\).
+\item The model assumption turns today's cross-section of prices into a \(g\) valid in every state.
+\item One call suffices to \emph{complete} the market for hedging; other calls are then redundant.
+\end{itemize}
+\begin{keybox}The PDE needs \(b_\Q\). Estimating \(\pi=b_\Pp-b_\Q\) separately
+also needs historical estimates of \(\kappa_\Pp,\theta_\Pp\).\end{keybox}
+\end{frame}
+
+\begin{frame}{Step 4: replication gives the \(\Q\)-pricing PDE}
+\small
+Rearranging the identity for the claim gives
+\[
+u_t+rsu_s+\bigl[\kappa_\Pp(\theta_\Pp-v)-\pi\bigr]u_v
++\tfrac12vs^2u_{ss}+\rho\eta svu_{sv}+\tfrac12\eta^2vu_{vv}-ru=0.
+\]
+With the \(\Q\)-drift read from call prices, the bracket equals \(\kappa_\Q(\theta_\Q-v)\):
+the Heston PDE under \(\Q\), now derived by replication.
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{Barrier claim \(u\)}
+On \(s>H\), \(t<T\):\quad \(u(t,H,v)=0\) (absorbing),\\
+\(u(T,s,v)=(s-K)^+\).
+\end{block}
+\column{0.48\textwidth}
+\begin{block}{Hedge call \(g\)}
+On \(s>0\), \(t<T_g\):\\
+\(g(T_g,s,v)=(s-K_g)^+\).
+\end{block}
+\end{columns}
+\begin{keybox}\(\mu\) has vanished, and so has \(\pi\): the PDE uses \(b_\Q\), and
+\(\alpha=u_v/g_v\), \(\Delta=u_s-\alpha g_s\) use only derivatives of \(\Q\)-prices.
+We hedge along \(\Pp\)-paths; we price with \(\Q\).\end{keybox}
+\end{frame}
+
+
+
+
+
+\begin{frame}{Replication along 20{,}000 simulated \(\Pp\)-paths}
+\small
+Sell the claim at 6.875 and hedge it under \(\Pp\) (12 Euler steps per day, barrier
+checked at each step). Hedging error at exit, in \% of the price: \((X-\text{payout})/u_0\).
 \begin{center}
-\begin{tabular}{c|c|c}
-\toprule
-Choice of unit & Martingale object & Associated measure\\
-\midrule
-Money-market account \(B_t\) & \(S_t/B_t\) & \(\Q\)\\
-Zero-coupon bond \(P(t,T)\) & \(S_t/P(t,T)\) & \(\Q^T\)\\
-Stock \(S_t\) & \(X_t/S_t\) & \(\Q^S\)\\
-\bottomrule
+\begin{tabular}{lrrrr}
+\toprule & & \multicolumn{3}{c}{Mean / standard deviation (\%)}\\\cmidrule(l){3-5}
+\(\Pp\)-drift, rebalancing & Knocked out & No hedge & Delta only & Delta--vega\\\midrule
+\(\mu=8\%\), daily & 34\% & \(-82\) / 215 & \(-3.6\) / 27.7 & \(0.1\) / 3.5\\
+\(\mu=-4\%\), daily & 49\% & \(+25\) / 135 & \(-3.6\) / 27.2 & \(0.0\) / 3.4\\
+\(\mu=8\%\), weekly & 34\% & \(-82\) / 215 & \(-3.6\) / 29.6 & \(0.1\) / 7.2\\\bottomrule
 \end{tabular}
 \end{center}
-\begin{simplificationbox}
-Dividing by \(N_t\) but keeping the old measure is generally wrong. The
-numeraire and probability measure must change together.
-\end{simplificationbox}
+\begin{itemize}
+\item \(\mu\) changes how often the barrier is hit, not the quality of the hedge.
+\item The remaining error comes from discrete rebalancing: weekly roughly doubles it.
+\item Delta only loses 3.6\% on average (about 18 standard errors): the variance
+risk premium. Here \(\theta_\Pp=0.05>\theta_\Q=0.04\), and the seller is short variance.
+\end{itemize}
 \end{frame}
 
-\begin{frame}{Ratios carry an It\^o correction}
-Suppose, under one measure,
-\[
-\frac{\dd S_t}{S_t}=\mu_S\dd t+\sigma_S\dd W_t,\qquad
-\frac{\dd N_t}{N_t}=\mu_N\dd t+\sigma_N\dd W_t.
-\]
-Then the ratio satisfies
-\[
-\frac{\dd(S_t/N_t)}{S_t/N_t}
-=
-\bigl(\mu_S-\mu_N+\sigma_N^2-\sigma_S\sigma_N\bigr)\dd t
-+(\sigma_S-\sigma_N)\dd W_t.
-\]
-\begin{pausebox}
-Is the drift of \(S_t/N_t\) simply \(\mu_S-\mu_N\)?
-\end{pausebox}
-\pause
-\begin{alertblock}{No}
-The quadratic-variation terms are real. The change of measure is precisely
-what removes the remaining drift of the denominated price.
+\begin{frame}{One \(\Pp\)-path that comes close to the barrier}
+\small
+\begin{columns}[T,onlytextwidth]
+\column{0.49\textwidth}
+\begin{tikzpicture}
+\begin{axis}[width=\linewidth,height=4.6cm,axis lines=left,xmin=0,xmax=252,
+ymin=80,ymax=150,xlabel={Trading day},ylabel={Stock price},title={Path of \(S_t\)},
+title style={font=\small},tick label style={font=\scriptsize},label style={font=\scriptsize},
+grid=major,grid style={gray!15}]
+\addplot[CourseBlue,thick] coordinates {(0,100.00) (3,97.14) (6,97.34) (9,96.14) (12,98.54) (15,98.05) (18,98.68) (21,93.44) (24,95.57) (27,95.47) (30,92.02) (33,89.15) (36,89.76) (39,89.66) (40,86.02) (42,88.43) (45,95.31) (48,97.19) (51,100.64) (54,103.63) (57,97.26) (60,99.89) (63,105.18) (66,102.65) (69,102.85) (72,106.92) (75,108.05) (78,111.12) (81,111.39) (84,111.65) (87,110.65) (90,109.82) (93,110.78) (96,111.97) (99,113.38) (102,111.19) (105,115.07) (108,119.01) (111,119.94) (114,119.91) (117,118.89) (120,118.75) (123,118.56) (126,118.02) (129,116.08) (132,118.92) (135,119.90) (138,121.84) (141,125.76) (144,126.23) (147,128.39) (150,130.47) (153,131.85) (156,131.10) (159,132.45) (162,133.61) (165,134.90) (168,136.83) (171,134.99) (174,132.89) (177,130.10) (180,125.89) (183,126.64) (186,130.48) (189,132.67) (192,135.39) (195,131.82) (198,128.92) (201,131.07) (204,131.08) (207,128.38) (210,127.95) (213,129.96) (216,130.46) (219,133.18) (222,135.37) (225,133.55) (228,133.36) (231,135.97) (234,140.66) (237,137.94) (240,136.88) (243,144.96) (246,143.50) (249,145.30) (252,143.31)};
+\addplot[CourseRed,thick,dashed,domain=0:252] {85};
+\node[font=\scriptsize,CourseRed,anchor=south west] at (axis cs:150,85) {barrier \(H=85\)};
+\end{axis}
+\end{tikzpicture}
+\column{0.49\textwidth}
+\begin{tikzpicture}
+\begin{axis}[width=\linewidth,height=4.6cm,axis lines=left,xmin=0,xmax=252,
+ymin=-1.6,ymax=0.9,xlabel={Trading day},ylabel={\(X_t-u_t\)},title={Tracking error},
+title style={font=\small},tick label style={font=\scriptsize},label style={font=\scriptsize},
+grid=major,grid style={gray!15},legend style={font=\scriptsize,draw=none,fill=white},
+legend pos=south east]
+\addplot[CourseGold,thick] coordinates {(0,0.000) (3,-0.016) (6,0.115) (9,0.023) (12,0.157) (15,0.233) (18,0.485) (21,-0.069) (24,-0.334) (27,-0.135) (30,-0.394) (33,-0.640) (36,-0.675) (39,-0.908) (42,-1.135) (45,-1.025) (48,-0.718) (51,-0.435) (54,-0.707) (57,-1.477) (60,-1.248) (63,-0.990) (66,-1.148) (69,-1.368) (72,-0.544) (75,-0.323) (78,0.071) (81,0.159) (84,-0.109) (87,-0.234) (90,-0.082) (93,-0.121) (96,-0.113) (99,-0.152) (102,0.101) (105,0.380) (108,0.397) (111,0.387) (114,0.546) (117,0.489) (120,0.453) (123,0.638) (126,0.597) (129,0.377) (132,0.462) (135,0.499) (138,0.544) (141,0.629) (144,0.568) (147,0.638) (150,0.631) (153,0.636) (156,0.685) (159,0.679) (162,0.674) (165,0.689) (168,0.684) (171,0.671) (174,0.632) (177,0.601) (180,0.393) (183,0.575) (186,0.572) (189,0.587) (192,0.623) (195,0.632) (198,0.648) (201,0.666) (204,0.665) (207,0.649) (210,0.633) (213,0.635) (216,0.636) (219,0.644) (222,0.649) (225,0.647) (228,0.646) (231,0.648) (234,0.648) (237,0.648) (240,0.648) (243,0.648) (246,0.648) (249,0.648) (252,0.648)};
+\addlegendentry{delta only}
+\addplot[CourseBlue,very thick] coordinates {(0,0.000) (3,-0.015) (6,-0.009) (9,-0.004) (12,-0.013) (15,-0.012) (18,-0.013) (21,-0.010) (24,-0.018) (27,0.013) (30,0.002) (33,0.037) (36,0.038) (39,0.015) (42,0.048) (45,0.027) (48,0.050) (51,0.039) (54,0.036) (57,0.043) (60,0.046) (63,0.036) (66,0.045) (69,0.056) (72,0.069) (75,0.076) (78,0.068) (81,0.058) (84,0.041) (87,0.030) (90,0.029) (93,0.036) (96,0.043) (99,0.044) (102,0.047) (105,0.045) (108,0.039) (111,0.039) (114,0.040) (117,0.035) (120,0.022) (123,0.011) (126,0.013) (129,0.014) (132,0.017) (135,0.019) (138,0.012) (141,0.005) (144,0.011) (147,0.011) (150,0.012) (153,0.012) (156,0.013) (159,0.013) (162,0.014) (165,0.009) (168,0.010) (171,0.011) (174,0.003) (177,0.007) (180,0.000) (183,0.004) (186,0.016) (189,0.023) (192,0.022) (195,0.026) (198,0.029) (201,0.029) (204,0.029) (207,0.031) (210,0.040) (213,0.046) (216,0.044) (219,0.045) (222,0.045) (225,0.044) (228,0.045) (231,0.045) (234,0.045) (237,0.045) (240,0.045) (243,0.045) (246,0.045) (249,0.045) (252,0.045)};
+\addlegendentry{delta--vega}
+\end{axis}
+\end{tikzpicture}
+\end{columns}
+The lowest close is 86.0, on day 40. Delta only drifts by up to 1.48 (21\% of the price)
+as the variance moves. Delta--vega stays within 0.08 of the claim throughout.
+\source{Daily rebalancing, \(\mu=8\%\), same \(\Pp\)-parameters as above; the claim finishes in the money.}
+\end{frame}
+
+\begin{frame}{What the replication argument used, and what it did not}
+\small
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{exampleblock}{Not needed}
+\begin{itemize}
+\item the stock drift \(\mu\);
+\item the \(\Pp\)-probability of hitting the barrier;
+\item \(\kappa_\Pp\), \(\theta_\Pp\), hence \(\pi\) itself.
+\end{itemize}
+\end{exampleblock}
+\column{0.48\textwidth}
+\begin{alertblock}{Needed}
+\begin{itemize}
+\item Heston paths under \(\Pp\), with the true \(\eta\), \(\rho\), and \(V_t\);
+\item \(\kappa_\Q,\theta_\Q\) calibrated to the call surface, and one call with \(g_v\ne0\);
+\item frequent, cheap rebalancing.
+\end{itemize}
 \end{alertblock}
-\end{frame}
-
-\begin{frame}{Every positive traded numeraire has its own martingale measure}
-Start under the money-market measure \(\Q\). The measure associated with
-a positive traded numeraire \(N\) is defined by
-\[
-\boxed{
-\left.\frac{\dd\Q^N}{\dd\Q}\right|_{\F_t}
-=
-\frac{N_t/B_t}{N_0/B_0}.}
-\]
-\begin{block}{Why this is a valid density}
-\(N_t/B_t\) is a positive \(\Q\)-martingale because \(N\) is traded.
-After normalizing at time \(0\), its expectation is one.
-\end{block}
-\begin{marketbox}
-Under \(\Q^N\), every traded asset price divided by \(N_t\) is a martingale.
-\end{marketbox}
-\end{frame}
-
-\begin{frame}{Changing measure reweights states; it does not create states}
-For two positive numeraires \(N\) and \(M\),
-\[
-\boxed{
-\left.\frac{\dd\Q^M}{\dd\Q^N}\right|_{\F_t}
-=
-\frac{M_t/N_t}{M_0/N_0}.}
-\]
-\begin{columns}[T,onlytextwidth]
-\column{0.48\textwidth}
-\begin{block}{Economic reading}
-States in which \(M\) performs well relative to \(N\) receive more weight
-under \(\Q^M\) than under \(\Q^N\).
-\end{block}
-\column{0.48\textwidth}
-\begin{exampleblock}{What stays fixed}
-The measures are equivalent: they assign zero probability to exactly the
-same events.
-\end{exampleblock}
 \end{columns}
-\begin{pausebox}
-Does a change of numeraire alter which market scenarios are possible?
-\end{pausebox}
-\pause
-\begin{exampleblock}{Answer}
-No. It changes probability weights, not the scenarios themselves.
-\end{exampleblock}
+\begin{keybox}If the model is wrong, or its parameters are refitted tomorrow, the call and
+the claim no longer move as predicted. The next section asks where the parameters come from.\end{keybox}
 \end{frame}
 
-\begin{frame}{The general pricing formula has the same three steps}
-For a claim paying \(X_T\) at time \(T\),
-\[
-\boxed{
-V_t=N_t\,\E^{\Q^N}\!\left[\frac{X_T}{N_T}\mid\F_t\right].}
-\]
-\begin{enumerate}
-  \item Divide the payoff by the numeraire at the payment date.
-  \item Take conditional expectation under the associated measure.
-  \item Multiply by the current numeraire value.
-\end{enumerate}
-\begin{marketbox}
-A good numeraire makes the normalized payoff \(X_T/N_T\) simple and makes
-the relevant normalized price a martingale.
-\end{marketbox}
-\end{frame}
+\section{4. Parametrizing the model: state, Q, and P}
 
-\begin{frame}{The money-market formula is one special case}
-Set \(N_t=B_t\). Then \(\Q^N=\Q\) and
-\[
-V_t=B_t\,\E^\Q\!\left[\frac{X_T}{B_T}\mid\F_t\right].
-\]
-For deterministic \(r\),
-\[
-\frac{B_t}{B_T}=e^{-r(T-t)},
-\]
-which gives the familiar discounted expectation.
-\begin{pausebox}
-What is the density process when the new numeraire is again \(B_t\)?
-\end{pausebox}
-\pause
-\begin{exampleblock}{Answer}
-It is identically one. Choosing the money-market account does not change
-the usual risk-neutral measure.
-\end{exampleblock}
-\end{frame}
-
-\section{Forward measures simplify payment-date pricing}
-
-\begin{frame}{A zero-coupon bond absorbs discounting}
-Fix payment date \(T\) and choose the bond \(P(t,T)\) as numeraire. Since
-\(P(T,T)=1\),
-\[
-\boxed{
-V_t=P(t,T)\,\E^{\Q^T}[X_T\mid\F_t].}
-\]
-\begin{columns}[T,onlytextwidth]
-\column{0.48\textwidth}
-\begin{block}{Under \(\Q\)}
-Discount factor and payoff may both be random:
-\[
-V_t=\E^\Q\!\left[e^{-\int_t^T r_s\dd s}X_T\mid\F_t\right].
-\]
-\end{block}
-\column{0.48\textwidth}
-\begin{exampleblock}{Under \(\Q^T\)}
-The discounting is embedded in \(P(t,T)\); only the payoff remains in the
-expectation.
-\end{exampleblock}
-\end{columns}
-\end{frame}
-
-\begin{frame}{Forward prices are martingales under their payment-date measure}
-For an asset with no intermediate cash flows, define
-\[
-F(t,T)=\frac{S_t}{P(t,T)}.
-\]
-Under the \(T\)-forward measure,
-\[
-\boxed{F(t,T)=\E^{\Q^T}[S_T\mid\F_t].}
-\]
-\begin{block}{What this buys us}
-The forward price has zero drift under the measure naturally attached to the
-delivery date. This is often much cleaner than tracking a stochastic short
-rate under the money-market measure.
-\end{block}
-\end{frame}
-
-\begin{frame}{A forward contract is priced by one martingale condition}
-A forward on a non-dividend-paying asset delivers one share at \(T\) for
-delivery price \(K\). Its value is
-\[
-V_t=S_t-KP(t,T)=P(t,T)\bigl(F(t,T)-K\bigr).
-\]
-\begin{pausebox}
-If \(S_0=100\) and \(P(0,T)=0.95\), what delivery price makes the forward
-worth zero at inception?
-\end{pausebox}
-\pause
-\begin{exampleblock}{Answer}
-Set \(K=F(0,T)=S_0/P(0,T)=105.26\). The forward measure did not change the
-economic price; it exposed the natural martingale behind it.
-\end{exampleblock}
-\end{frame}
-
-\begin{frame}{Choose the numeraire that cancels a payoff factor}
-Suppose a claim has payoff \(X_T=S_TY_T\). Under the stock numeraire,
-\[
-\boxed{V_t=S_t\,\E^{\Q^S}[Y_T\mid\F_t].}
-\]
-The factor \(S_T\) has disappeared from the expectation.
-\begin{columns}[T,onlytextwidth]
-\column{0.48\textwidth}
-\begin{block}{Good use case}
-Payoffs naturally proportional to the terminal stock, such as exchange
-options or share-settled claims.
-\end{block}
-\column{0.48\textwidth}
-\begin{alertblock}{Condition}
-The candidate must be a strictly positive traded asset. A payoff that can
-hit zero is not automatically a valid numeraire.
-\end{alertblock}
-\end{columns}
-\end{frame}
-
-\begin{frame}{A practical numeraire-selection checklist}
-\begin{enumerate}
-  \item What is the payoff date and currency?
-  \item Does the payoff contain a positive traded factor?
-  \item Does a bond maturing on the payment date remove discounting?
-  \item Under which measure is the relevant ratio a martingale?
-  \item Can the final answer be checked against money-market pricing?
-\end{enumerate}
-\begin{pausebox}
-A payoff is paid at \(T\) and depends on future bond prices. Which first
-candidate for the numeraire should you test?
-\end{pausebox}
-\pause
-\begin{exampleblock}{Answer}
-The zero-coupon bond \(P(t,T)\). It matches the payment date and generates
-the \(T\)-forward measure.
-\end{exampleblock}
-\end{frame}
-
-\section{FX makes the two viewpoints concrete}
-
-\begin{frame}{An exchange rate links two money-market accounts}
-Let \(X_t\) be domestic currency per unit of foreign currency. With constant
-rates,
-\[
-B_d(t)=e^{r_dt},\qquad B_f(t)=e^{r_ft}.
-\]
+% BEGIN INLINE: Model_Parametrization
+\begin{frame}{Three kinds of inputs: a state, \(\Q\)-parameters, \(\Pp\)-parameters}
+\small
 \begin{center}
-\begin{tabular}{c|c|c}
-\toprule
-Object & Units & Domestic value\\
-\midrule
-One foreign currency unit & foreign & \(X_t\) domestic\\
-Foreign bank account & foreign & \(\boxed{X_tB_f(t)}\) domestic\\
-Domestic bank account & domestic & \(B_d(t)\) domestic\\
-\bottomrule
+\begin{tabular}{@{}L{.12\textwidth}L{.19\textwidth}L{.20\textwidth}L{.39\textwidth}@{}}
+\toprule Input & Role & Measure change & Where it comes from\\\midrule
+\(S_t,V_t\) & state & yes: same paths & \(S_t\) observed; \(V_t\) refitted daily from options\\[.3em]
+\(\eta,\rho\) & diffusion coefficients & yes & options; cross-check on time series\\[.3em]
+\(\kappa,\theta\) & variance drift & no & \(\Q\): option prices; \(\Pp\): time series\\[.3em]
+\(\mu\) & stock drift & \(\Pp\) only & not needed to price or to hedge\\[.3em]
+\(r\) & discounting & --- & rates market\\\bottomrule
 \end{tabular}
 \end{center}
-\begin{marketbox}
-\(X_tB_f(t)\) is a positive traded asset in domestic currency. It is the
-natural bridge between domestic and foreign pricing viewpoints.
-\end{marketbox}
+\begin{keybox}Prices and hedge ratios use \(\Q\)-parameters. Scenario probabilities,
+risk limits, and the expected P\&L of an imperfect hedge use \(\Pp\).\end{keybox}
 \end{frame}
 
-\begin{frame}{Domestic no-arbitrage fixes the FX drift}
-Under the domestic money-market numeraire, the discounted domestic value of
-foreign cash must be a martingale:
+\begin{frame}{Why \(\eta\) and \(\rho\) cannot change with the measure}
+\small
+Quadratic variations are computed path by path:
 \[
-\frac{X_tB_f(t)}{B_d(t)}
-\quad\text{is a }\Q^d\text{-martingale}.
+\langle V\rangle_t=\int_0^t\eta^2V_u\dd u,\qquad
+\langle\log S,V\rangle_t=\int_0^t\rho\eta V_u\dd u.
 \]
-Therefore
-\[
-\boxed{
-\frac{\dd X_t}{X_t}=(r_d-r_f)\dd t+\sigma\dd W_t^{\Q^d}.}
-\]
-\begin{block}{Interpretation}
-The foreign rate acts exactly like a continuous dividend yield. Holding
-foreign currency gives access to foreign interest, just as holding a stock
-can generate dividends.
-\end{block}
+They are limits of sums of squared (or cross) increments along the observed path.
+Equivalent measures share the same almost-sure events, so these limits agree under
+\(\Pp\) and \(\Q\). Girsanov changes drifts only.
+\begin{pausebox}Options calibrate \(\rho=-0.6\); a time-series estimate gives \(\rho=-0.3\).
+Is this a legitimate \(\Pp\)-versus-\(\Q\) difference?\end{pausebox}
+\begin{answerbox}Not within Heston. Either the estimate is noisy (\(V\) is not observed,
+and its proxies add error), or the model is misspecified. The barrier hedge relied on the true \(\rho\).\end{answerbox}
 \end{frame}
 
-\begin{frame}{The FX forward is the first diagnostic}
-For delivery of one unit of foreign currency at \(T\),
-\[
-\boxed{F_{0,T}=X_0e^{(r_d-r_f)T}.}
-\]
-\begin{pausebox}
-Take \(X_0=1.10\) USD/EUR, \(r_d=5\%\), \(r_f=3\%\), and \(T=1\).
-What is the no-arbitrage one-year forward rate in USD/EUR?
-\end{pausebox}
-\pause
-\begin{exampleblock}{Answer}
-\[
-F_{0,1}=1.10e^{0.02}=1.1222\ \text{USD/EUR}.
-\]
-Domestic interest pushes the forward up; foreign interest pushes it down.
-\end{exampleblock}
-\end{frame}
+\begin{frame}{Calibrating a model differs from estimating historical parameters}
 
-\begin{frame}{An FX call is Black--Scholes with a foreign yield}
-A domestic-currency call on one unit of foreign currency pays
-\((X_T-K)^+\). Its domestic value is
-\[
-\boxed{
-C_t=X_te^{-r_f\tau}\Phi(d_1)-Ke^{-r_d\tau}\Phi(d_2),}
-\]
-where \(\tau=T-t\) and
-\[
-d_1=\frac{\ln(X_t/K)+(r_d-r_f+\tfrac12\sigma^2)\tau}
-{\sigma\sqrt{\tau}},\qquad d_2=d_1-\sigma\sqrt{\tau}.
-\]
-\begin{marketbox}
-Read this as the usual dividend-paying-stock formula: domestic rate discounts
-the strike, foreign rate discounts the spot.
-\end{marketbox}
+    For vanilla quotes \(C_i^{\rm mkt}\), a price-based objective is
+    \[\min_{\vartheta}\sum_iw_i
+      \big(C^{\rm model}(K_i,T_i;\vartheta)-C_i^{\rm mkt}\big)^2,
+      \quad\vartheta=(V_0,\kappa,\theta,\eta,\rho).\]
+    \begin{itemize}
+    \item State the instruments, weights, bid--ask ranges, and constraints.
+    \item Check several parameter starting points and stability across days.
+    \item Assess smile shape and maturities, not only one ATM option.
+    \end{itemize}
+    \begin{keybox}These are risk-neutral parameters fitted to prices.
+    Historical dynamics under \(\Pp\) answer a different estimation question.\end{keybox}
 \end{frame}
-
-\begin{frame}{Worked FX option: identify the two discount factors}
-Let \(X_0=1.10\), \(K=1.12\), \(r_d=5\%\), \(r_f=3\%\),
-\(\sigma=12\%\), and \(T=1\). Then
-\[
-d_1=0.077,\qquad d_2=-0.043,
-\]
-and
-\[
-C_0=1.10e^{-0.03}\Phi(0.077)
--1.12e^{-0.05}\Phi(-0.043)\approx0.052.
-\]
-\begin{block}{Reading the answer}
-The option costs approximately \(0.052\) USD per EUR of notional. The two
-rates appear in different places because the contract exchanges two currencies.
-\end{block}
-\end{frame}
-
-\begin{frame}{FX put--call parity reveals the same structure}
-For domestic prices \(C_t\) and \(P_t\) with the same \(K,T\),
-\[
-\boxed{
-C_t-P_t=X_te^{-r_f(T-t)}-Ke^{-r_d(T-t)}.}
-\]
-\begin{pausebox}
-Which term is the present value of one unit of foreign currency received at
-\(T\): \(X_te^{-r_f(T-t)}\) or \(X_te^{-r_d(T-t)}\)?
-\end{pausebox}
-\pause
-\begin{exampleblock}{Answer}
-\(X_te^{-r_f(T-t)}\). Invest one foreign unit at the foreign rate, then
-convert its future value into domestic currency.
-\end{exampleblock}
-\end{frame}
-
-\begin{frame}{Domestic and foreign measures are linked by the foreign bank account}
-In domestic currency, choose
-\[
-N_t^f=X_tB_f(t)
-\]
-as the foreign-cash numeraire. The density from the domestic measure is
-\[
-\boxed{
-\left.\frac{\dd\Q^f}{\dd\Q^d}\right|_{\F_t}
-=
-\frac{X_tB_f(t)/B_d(t)}{X_0B_f(0)/B_d(0)}.}
-\]
-\begin{block}{The two viewpoints}
-Domestic pricing measures values in domestic cash; foreign pricing measures
-values relative to foreign cash. They give the same no-arbitrage price after
-the appropriate currency conversion.
-\end{block}
-\end{frame}
-
-\begin{frame}{A change of numeraire is useful only with the matching measure}
+\begin{frame}{Read the surface: parameter guides}
+\small
 \begin{center}
-\begin{tabular}{p{0.30\textwidth}|p{0.30\textwidth}|p{0.25\textwidth}}
-\toprule
-Pricing situation & Helpful numeraire & Martingale quantity\\
-\midrule
-Ordinary equity claim & Money-market account & \(S_t/B_t\)\\
-Payoff at one fixed date & Bond \(P(t,T)\) & \(S_t/P(t,T)\)\\
-Payoff proportional to stock & Stock \(S_t\) & \(X_t/S_t\)\\
-FX in domestic currency & Domestic cash \(B_d\) & \(X_tB_f(t)/B_d(t)\)\\
-\bottomrule
+\begin{tabular}{@{}L{.30\textwidth}L{.08\textwidth}L{.52\textwidth}@{}}
+\toprule Feature of the implied surface & Lever & Reason\\\midrule
+Short-dated ATM level & \(V_0\) & \(\Sigma_{\rm ATM}^2(T)\to V_0\) as \(T\to0\)\\[.3em]
+Long-dated level & \(\theta\) & anchors expected average variance\\[.3em]
+Term-structure transition & \(\kappa\) & damps the influence of \(V_0-\theta\)\\[.3em]
+Skew across strikes & \(\rho\) & links stock and variance shocks\\[.3em]
+Curvature and wings & \(\eta\) & controls variance randomness; also scales skew\\\bottomrule
 \end{tabular}
 \end{center}
-\begin{simplificationbox}
-Never mix the numerator from one convention with the measure from another.
-That is the most common source of sign and drift mistakes.
-\end{simplificationbox}
+\begin{keybox}Use these guides for starting values and sanity checks.
+Fit the full \(\Q\)-model to prices: parameter effects interact.\end{keybox}
 \end{frame}
 
-\section{Takeaways}
-
-\begin{frame}{The lecture reduces to one reusable formula}
+\begin{frame}{Level and term structure: \(V_0\), \(\theta\), \(\kappa\)}
+\small
+The expected average variance is exact under \(\Q\):
 \[
-\boxed{
-V_t=N_t\,\E^{\Q^N}\!\left[\frac{X_T}{N_T}\mid\F_t\right].}
+w(T):=\frac1T\int_0^T\E^\Q[V_t]\dd t
+=\theta+(V_0-\theta)\,\frac{1-e^{-\kappa T}}{\kappa T}.
 \]
-\begin{enumerate}
-  \item A numeraire is a positive traded unit of account.
-  \item It determines an equivalent measure under which denominated prices
-  are martingales.
-  \item The price is invariant; the representation can become much simpler.
-  \item Bond numeraires create forward measures; FX supplies a natural
-  two-currency application.
-\end{enumerate}
+\(w(T)\) is the fair strike of a continuously sampled variance swap.
+\begin{itemize}
+\item \(T\to0\): \(w(T)\to V_0\); \quad \(T\to\infty\): \(w(T)\to\theta\).
+\item \(\kappa\) sets the clock: the weight on \(V_0-\theta\) is \(1/2\) at \(\kappa T\approx1.6\).
+\item \(V_0<\theta\): increasing \(w\); \quad \(V_0>\theta\): decreasing \(w\).
+\end{itemize}
+\begin{watchbox}\(\Sigma_{\rm ATM}^2(T)\approx w(T)\) is a deterministic-variance guide,
+exact when \(\eta=0\). It is not an identity for stochastic variance.\end{watchbox}
 \end{frame}
 
-\begin{frame}{Final check: choose the unit before doing the algebra}
-\begin{pausebox}
-A claim pays at date \(T\) in domestic currency and its payoff is a function
-of a \(T\)-maturity forward rate. What numeraire is the natural first choice,
-and what is the resulting pricing measure?
-\end{pausebox}
-\pause
-\begin{exampleblock}{Answer}
-Start with the zero-coupon bond \(P(t,T)\). It leads to the \(T\)-forward
-measure and removes discounting from the expectation at the payment date.
+\begin{frame}{Term structure: work through the baseline}
+\small
+\begin{exampleblock}{Case study (\(\Q\)): \(V_0=\theta=0.04\), \(\kappa=2\)}
+Expected average variance is flat at \(w(T)=0.04\), so the deterministic-variance
+guide gives \(\sqrt{w(T)}=20\%\) at every maturity.
 \end{exampleblock}
-\vfill
-\begin{center}
-{\large\color{CourseBlue}\bfseries The numeraire changes the view, not the value.}
+\begin{itemize}
+\item With \(\eta=0.4\), the calculated ATM volatilities are about \(19.30\%\)
+at three months and \(18.74\%\) at two years.
+\item With \(V_0=0.09\), the one-year guide instead gives
+\[
+\sqrt{w(1)}=\sqrt{0.04+0.05\,\frac{1-e^{-2}}{2}}\simeq24.8\%.
+\]
+\end{itemize}
+\begin{keybox}The mean of integrated variance helps interpret the level.
+Its distribution and its dependence with stock shocks also affect option prices.\end{keybox}
+\end{frame}
+
+\begin{frame}{ATM skew: \(\rho\), \(\eta\), and maturity}
+\small
+Let \(k=\log(K/F_{0,T})\), with \(F_{0,T}=S_0e^{rT}\).
+For \(V_0=\theta\), the leading small-\(\eta\) guide is
+\[
+\partial_k\Sigma^2(0,T)\approx\frac{\rho\eta}{\kappa T}
+\left[1-\frac{1-e^{-\kappa T}}{\kappa T}\right].
+\]
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{Short maturities}
+\[\partial_k\Sigma(0,T)\longrightarrow\frac{\rho\eta}{4\sqrt{V_0}}.\]
+\end{block}
+\column{0.48\textwidth}
+\begin{block}{Large \(\kappa T\), within the guide}
+\[\partial_k\Sigma^2(0,T)\approx\frac{\rho\eta}{\kappa T}.\]
+\end{block}
+\end{columns}
+\begin{itemize}
+\item \(\rho\) sets the sign; \(\eta\) scales the skew in this approximation.
+\item Mean reversion damps the skew at longer maturities.
+\end{itemize}
+\source{R. Lee, \href{https://math.uchicago.edu/~rogerlee/impvol.pdf}{Implied Volatility: Statics, Dynamics, and Probabilistic Interpretation}, Example 3.9.}
+\end{frame}
+
+\begin{frame}{Skew: turn the guide into a numerical check}
+\small
+\begin{exampleblock}{Case study: \(\rho=-0.6\), \(\eta=0.4\), \(V_0=0.04\), \(\kappa=2\)}
+At the short end,
+\[
+\partial_k\Sigma\approx\frac{-0.6\times0.4}{4\times0.2}=-0.30.
+\]
+Linearizing around \(20\%\), a 10\% OTM put (\(k=\log0.9\approx-0.105\))
+has the guide \(20\%+(-0.30)(-0.105)\approx23.2\%\).
+\end{exampleblock}
+At \(T=1\), the variance-skew guide is \(-0.0681\); dividing by
+\(2\times20\%\) gives a volatility slope of about \(-0.17\).
+\begin{keybox}The next five figures use calculated Heston prices.
+They show skew, curvature, and ATM level changing together.\end{keybox}
+\end{frame}
+% END INLINE: Model_Parametrization
+
+% BEGIN INLINE: Heston_Smiles
+% Heston smile data are embedded so this document compiles on its own.
+\pgfplotstableread[col sep=comma]{
+strike,base_short,base_long,rho_low_short,rho_low_long,rho_high_short,rho_high_long,eta_low_short,eta_low_long,eta_high_short,eta_high_long,v0_low_short,v0_low_long,v0_high_short,v0_high_long,theta_low_short,theta_low_long,theta_high_short,theta_high_long,kappa_low_short,kappa_low_long,kappa_high_short,kappa_high_long
+70.0,27.580492253711995,22.58277667628839,28.93469615256731,23.28462714960341,23.592914539505834,20.3441973948378,24.20578658053789,21.560952691344248,32.51819562520401,23.386318639844717,24.264851871646346,21.4751467644919,32.88600675662566,24.61905522859338,26.942110136002285,19.234127133087735,28.84917454609952,28.186543621094984,28.26260345181901,23.679895250318552,26.787098805419895,21.7473637519456
+71.5,27.16752206938574,22.35638998610325,28.484557407051668,23.01854584808375,23.286107796382254,20.235721077412705,23.963673432692296,21.440395037787773,31.856415736733055,23.01069001687615,23.82126389895221,21.243180901896075,32.52351975293095,24.404263436316803,26.51587122506043,18.957914260756915,28.461275395362374,28.013759182079013,27.82205060419041,23.28907368194241,26.408020612062277,21.608774354597752
+73.0,26.755287988139244,22.13379137889746,28.034001476851845,22.755363297920724,22.98396305046514,20.133506559079102,23.723922592084563,21.32225794196029,31.191093669630988,22.639631056940097,23.376746310220724,21.014893651323018,32.16376609306726,24.193326830149037,26.08968501247614,18.685029601846377,28.07525419292056,27.84445169876364,27.381511720709295,22.900719444536065,26.03050202721392,21.47300352541008
+74.5,26.343528780963087,21.91491802042269,27.582613556614678,22.494966607818224,22.686779676934083,20.037528964028283,23.486460804899778,21.206469989238713,30.521376927026566,22.273073108436677,22.93087778965924,20.790230184059656,31.806615535526085,23.986168926410915,25.66322420218513,18.415440390547396,27.690943105431753,27.678522859536525,26.940641101425477,22.51479689113296,25.654368576918397,21.33996917768614
+76.0,25.931992793920223,21.69971600493037,27.12996649823458,22.23725066207784,22.394950495264276,19.94775868250793,23.251226569818982,21.092964068511044,29.8463615609595,21.910972343500347,22.483227251241445,20.56914573060913,31.451954781492965,23.782720713741835,25.236162940638664,18.14912954861933,27.308192322232017,27.515880505855694,26.49909284383617,22.131300329771246,25.279462928145936,21.209594349352294
+77.5,25.520439268120477,21.488139914226533,26.67561763427103,21.982117675878825,22.10897863702992,19.864159883873615,23.01817041636518,20.98167703076304,29.165084721845858,21.55331109889574,22.033352599680107,20.351605224016378,31.099688326559182,23.58292014767317,24.80817695839316,17.88609618473162,26.926871935295683,27.35643814537957,26.05652053860953,21.750256754774135,24.905646926021163,21.081806801395075
+79.0,25.108640480875767,21.280152413354436,26.219105335299265,21.72947680940613,21.829497813900577,19.786689149097736,22.787255315188997,20.872549379027067,28.476517809952263,21.20009954651384,21.580800126986503,20.137582981379413,30.74973963851545,23.386711684739293,24.378944383358643,17.626356235957218,26.546874495279273,27.20011450885106,25.612577517594172,21.371729224316027,24.532804377355895,20.956538652281882
+80.5,24.696384974600566,21.0757238753349,25.75994525220906,21.479243836031873,21.557296276207467,19.71529424825027,22.558457223531786,20.76552498620895,27.779561266697062,20.851377707731405,21.125104937271644,19.927062414662267,30.402052699439754,23.194045850146,23.948147504156413,17.369943245487356,26.168118385533923,27.04683314583424,25.166917888601514,20.995820977333395,24.160844747142185,20.83372604434053
+82.0,24.28348224377305,20.87483202778894,25.297626196934885,21.231340860506233,21.293344439555945,19.64991308818616,22.33176576876134,20.660550837779024,27.07304277727962,20.507217822982177,20.665793036501896,19.720035762013627,30.056593957814904,23.00487883365831,23.51547589795615,17.11690926764228,25.790552191013838,26.896522055040162,24.71919871104645,20.622680393440156,23.789707977388286,20.713308838597655
+83.5,23.869769395786207,20.67746161460853,24.831605621823723,20.98569608374851,21.03882551018552,19.590472853887903,22.107185072446267,20.557576796673338,26.355721828419966,20.16772708143904,20.20238610701672,19.51650383071226,29.71335474294945,22.81917210891545,23.080631543795693,16.86732588690652,25.414160280411135,26.74911334551605,24.269083850415146,20.252506906421473,23.419370685558683,20.59523033501546
+85.0,23.45512050266142,20.48360406609081,24.361304675911356,20.74224361133349,20.79516725030817,19.53688936364553,21.8847347151797,20.456555388090607,25.626305413320505,19.83305070446244,19.73441061440555,19.316475742733846,29.37235420041696,22.636892071901073,22.64333685960405,16.62128533147148,25.038969864344896,26.604542925443898,23.816250340486807,19.8855579815436,23.04985405256309,20.47943701545374
+86.5,23.039459637933536,20.2932571711968,23.886102852222663,20.500923303264894,20.56407104483462,19.489066653540522,21.664450839952977,20.357441602146842,24.88348257934297,19.50337535860691,19.26141390969736,19.119968673668048,29.033642810899007,22.45800969471566,22.2033470898607,16.378901653444295,24.665059839414884,26.462750215689702,23.3603985487848,19.522157253907974,22.681233762160513,20.36587830700948
+88.0,22.622778964921892,20.106424745766855,23.405332311645633,20.26168066300018,20.34753145111617,19.446896800828544,21.446387386744338,20.260192712597824,24.125990079371828,19.17893284725123,18.782991636549813,18.927007575480705,28.697306554670774,22.28250019122127,21.760469221110245,16.140311936965325,24.29257176790528,26.32367788560065,22.901268203276498,19.162703890964572,22.3136523947689,20.25450636367308
+89.5,22.20516372363332,19.923116290760532,22.9182721007351,20.024466764026016,20.14783548693116,19.410259989034234,21.230617444134285,20.164768110046722,23.352728602405843,18.86000399174398,18.298833387869546,18.737624873338753,28.363471776521177,22.110342691498158,21.314590739041584,15.905677481713182,23.921723363458526,26.187271608844497,22.438663591354512,18.8076831751443,21.94733469121087,20.145275864492447
+91.0,21.78682653791436,19.74334663481705,22.42414272468561,19.789238212541054,19.967526755218856,19.379024810300383,21.01723469419177,20.07112914824734,22.562960531182163,18.54692256033379,17.808797670175164,18.551860126513713,28.032310786389303,21.941519922412727,20.86572320308707,15.675184892389415,23.552824830603598,26.053479837352334,21.97249328297707,18.457678185180526,21.58260605503026,20.038143826645456
+92.5,21.368154051238186,19.56713555572851,21.92210198059398,19.555957145025392,19.80931702642691,19.35304879322176,20.806354913595833,19.979239002257987,21.756638450546706,18.24007903335751,17.313033352021524,18.369759643287438,27.704048193283505,21.77601789194501,20.414067892336274,15.449046984795217,23.18629830166002,25.92225359165524,21.50283295335111,18.113382264851126,21.219914509585774,19.933069432017565
+94.0,20.94976927312689,19.394507375803837,21.41124376185867,19.324591259612557,19.675930474182866,19.332179137485518,20.598117477043846,19.889062537359397,20.934942272466955,17.93992390415875,16.812173071351722,18.191376039869656,27.37896790500488,21.613825575267605,19.960113517063434,15.22750339642538,22.82270037253768,25.79354626610606,21.030024626607535,17.775611678125795,20.859856002648648,19.830013866040485
+95.5,20.532612693859242,19.225490526581012,20.89060299857141,19.095113880259046,19.569877393606422,19.31625363055885,20.392686787640436,19.800566187758474,20.10114484366701,17.646970107078353,16.307633237436647,18.01676773365602,27.057420623559292,21.454934600911415,19.50477837397951,15.010820765151522,22.462747281613773,25.667313447655026,20.554831701812855,17.445317431590606,20.503202372751144,19.728940167693942
+97.0,20.118043311134272,19.060117078970386,20.359172494156013,18.867504052732066,19.493176696059095,19.30510171677895,20.190253533094854,19.71371784421506,19.261975073601818,17.361794040569272,15.802059708978467,17.84599836181664,26.739831515017464,21.299338935705777,19.049609082750212,14.79929231541065,22.107341513866523,25.543512747002218,20.07867430986901,17.123594677838344,20.150930370787272,19.629813089703994
+98.5,19.707955826087897,18.89842223568069,19.815941949814043,18.641746671349217,19.44707490206148,19.298545685742784,19.99103563715281,19.628486749818947,18.429656470282662,17.085034525427663,15.299942527389094,17.679136117251993,26.426707524929295,21.14703456753836,18.59704034996936,14.593236670393884,21.75759746676227,25.422103641086892,19.6039671284841,16.811687402859732,19.804248804929998,19.532598968076424
+100.0,19.30490074539829,18.740443783729443,19.25997705988652,18.417832635263952,19.4318300962384,19.296401945022346,19.795278744027694,19.5448434032304,17.624586442960354,16.817388925070166,14.808353891200715,17.51625299547056,26.11864354698261,20.998019185348145,18.15069698279116,14.392995695409605,21.414862269903573,25.303047325992512,19.13455664735264,16.510985309191977,19.4646191736147,19.437265600207116
+101.5,18.912179000741553,18.58622150596019,18.69056836589379,18.195759032824892,19.44662566567174,19.298482341948496,19.603256043167256,19.462759468768947,16.877716917267787,16.559605588439087,14.337589519772765,17.357423948005096,25.816326351451867,20.85229185614152,17.715671481909606,14.198931177554092,21.08072604441576,25.186306579455774,18.676183052836898,16.223009097422963,19.133763275846842,19.34378213089754
+103.0,18.53386394329416,18.435796551801424,18.107495472181633,17.975529352159175,19.489644388855492,19.304595500402645,19.415267217416933,19.38220769280029,16.229556974738944,16.31247180068756,13.901193742187868,17.202725940601375,25.52053488616458,20.70985269920515,17.298638020375222,14.011420166859196,20.757014223733865,25.071845632255695,18.23675705048685,15.949380026391557,18.81364973426367,19.25211894567851
+104.5,18.17468944315801,18.28921076898454,17.511467381383426,17.757153715625957,19.558282509505514,19.31454814105895,19.231636286753684,19.303161825928033,15.720938943402828,16.07679659516546,13.514596808962859,17.052236917623475,25.23213535600832,20.57070255807924,16.90759785346636,13.830848851158656,20.44575379173469,24.95963004784752,17.826089612791236,15.691770151294454,18.506450976026933,19.16224757091524
+106.0,17.839749530162763,18.146505999570508,16.904797234952458,17.54064913511788,19.649442560363617,19.328146357035504,19.05270813113953,19.225596550548286,15.375961779465902,15.853388142768193,13.19193464866868,16.906034677875425,24.952069479929563,20.434842671239405,16.551074608005806,13.657604916798222,20.14910648553328,24.849626609673997,17.454721134541483,15.451831516339892,18.214464081476535,19.07414058022526
+107.5,17.53400040491608,18.00772334538126,16.292310957203554,17.326039784357185,19.75983225177226,19.34519682116736,18.878843519176414,19.149487413368902,15.190415811940921,15.643026019184292,12.942010998035586,16.764195671259696,24.68133464287994,20.3022743428141,16.236785838269824,13.49206846238244,19.86926617960334,24.741803215653974,17.131902911792334,15.231106153653206,17.939993973775394,18.98777150679438
+109.0,17.261640140693473,17.872902409736312,15.682314388938751,17.11335728330384,19.886213725501168,19.365507905780277,18.710412551984795,19.074810762534383,15.137620866550932,15.446429435333965,12.765778503050667,16.62679373024616,24.420955400930932,20.17299861502911,15.970175110320566,13.334601679606312,19.608325106104267,24.636128779402362,16.86349253029506,15.030923785676913,17.685205748853488,18.903114761220905
+110.5,17.02552751189181,17.742080524190325,15.087123916675438,16.902640988564244,20.025577085422476,19.388890700640065,18.547786557181027,19.001543689034534,15.183698979902926,15.264223405383138,12.65700622654638,16.49389875479701,24.171946967782038,20.047015944406137,15.753421540413726,13.18553768238907,19.368123019514183,24.532573137787324,16.65084803687632,14.852299495055215,17.451962930980947,18.82014555456199
+112.0,16.826824347721814,17.615291970668334,14.522360840422554,16.69393828223398,20.175238203121616,19.41515991942257,18.39132863067452,18.929663972103448,15.298504911870292,15.096905642963183,12.6052819269586,16.36557537394654,23.93527277063438,19.924325884043732,15.585354999916506,13.04516903263641,19.150101783146923,24.43110696447058,16.49120846644164,14.695847284360275,17.24167664336354,18.7388398262886
+113.5,16.664969524237765,17.492567210912767,14.004415104752615,16.4873048499354,20.332875773483305,19.444134689389365,18.24138320804033,18.859150028344928,15.459160644928533,14.94481748855993,12.599182893161665,16.241881611336062,23.71179961128905,19.80492677456957,15.462196843559195,12.91373665011225,18.955191146084015,24.331701689119097,16.37908478522053,14.561725245400343,17.055192973449984,18.65917417688839
+115.0,16.53795808972837,17.37393213638852,13.546636539392987,16.28280493692867,20.496527021031262,19.475639222822554,18.098265225266964,18.78998086434415,15.649546057574614,14.80812216261867,12.628289591630404,16.122867585356556,23.50225499906198,19.688815446546727,15.378665792104446,12.791419874233078,18.78374698780455,24.23432942200406,16.307805856880535,14.4496230181004,16.8927397141273,18.58112580488428
+116.5,16.442794288561124,17.25940735264913,13.156183247016722,16.080511569103074,20.664559435818518,19.509503372065858,17.962249565915766,18.72213603254538,15.858662582979456,14.686792997672587,12.683983542072708,16.00857427679909,23.30719146215692,19.575986937258214,15.32899032236194,12.678328440477804,18.635551735859014,24.138962883735264,16.270665540116973,14.358793528446734,16.75394043710103,18.504672448057363
+118.0,16.37596647453252,17.14900751255477,12.833298686858585,15.880506723448018,20.835631409762488,19.54556307270594,17.833561554615923,18.655595590199002,16.07909059003645,14.580613093319888,12.759501560198544,15.89903239777724,23.126961913562894,19.466434224846296,15.307603173588502,12.574497029386805,18.509872283092932,24.045575339901564,16.261558549525247,14.288121715679852,16.637888404389763,18.42979232868424
+119.5,16.333839041789624,17.042740712594746,12.572949428748398,15.68288143035525,21.00865008557802,19.583660681501026,17.712369221698953,18.590340061192776,16.30583213538923,14.489186308625207,12.849676049988279,15.794261394928677,22.961708565404116,19.360147982773533,15.309509831155177,12.479882846596379,18.40555909215042,23.95414054040861,16.275228629892922,14.236216426471831,16.54326104382089,18.35646410261717
+121.0,16.312921633006933,16.940607965837224,12.367335441122629,15.487735787913026,21.182731143139556,19.62364521716145,17.59877792611202,18.526350400600943,16.53551197537069,14.411958015123549,12.950603856998727,15.694268617432078,22.811365846873088,19.257116357456677,15.330421055150145,12.394366423455597,18.321164972748388,23.864632663320766,16.30729172207559,14.201509696011128,16.46845121109172,18.284666812048027
+122.5,16.310023036993414,16.842602763745628,12.207965517498787,15.295178866404335,21.357162801194914,19.665372513045714,17.492827702648693,18.463607961794697,16.765843317560066,14.348242919912234,13.05934538911444,15.599048676150984,22.675675809243906,19.157324771739404,15.366748212107728,12.317755531150054,18.255063518793285,23.777026263033324,16.35415433685892,14.182349901384878,16.411694080145534,18.21437984180928
+124.0,16.322318080496263,16.74871073721127,12.086875229893735,15.105328479697755,21.53137481504057,19.708705291358037,17.394493431422703,18.40209446597606,16.995274038473738,14.297256737855724,13.17368273711939,15.508583014468702,22.554213049426792,19.060755756600084,15.415533639870338,12.249791824900228,18.20555298480415,23.691296222606873,16.41289674907046,14.177079926459157,16.371175370404472,18.145582879077782
+125.5,16.34735815498866,16.658909424818276,11.997142746245238,14.918310799440876,21.70491242215688,19.753513168565167,17.303687659726734,18.341791973995203,17.22275216326209,14.258148564461498,13.291935605239358,15.422839704313319,22.446415487578257,18.967388813124504,15.474359096915475,12.190159621279944,18.17093832872798,23.607417710105803,16.48115512642803,14.184096461409668,16.34511429862755,18.078255876348692
+127.0,16.38304994351212,16.57316815358326,11.932991602594045,14.734259788129556,21.877414786172228,19.79967260156525,17.220265682551567,18.28268286033522,17.44756940752929,14.23003133911423,13.412824653194061,15.341773472989217,22.35161737937958,18.877200306369296,15.541254323900894,12.138496087958424,18.149589963739786,23.525366138795732,16.557016554628586,14.201890494768532,16.33182078505846,18.01237901756342
+128.5,16.427619122404757,16.491448034392402,11.88970137644412,14.553316428669532,22.048597338067545,19.847066783753863,17.144032336839565,18.224749789141175,17.669255850581187,14.212008575915325,13.535370993928591,15.265325958161446,22.269081530930627,18.790163392241894,15.614615209256083,12.09440209858631,18.139981507274822,23.445117131052157,16.63893088920321,14.229071455714482,16.329730189768465,17.947932687269237
+130.0,16.479569258036086,16.41370207122741,11.863452034398389,14.375627731221808,22.218237396183493,19.89558549954562,17.074749898501594,18.167975692193217,17.887508297077815,14.203196365399794,13.658822343894922,15.193426180260266,22.19802854646491,18.706247978020208,15.69313445596383,12.057453064159676,18.140710573672504,23.366646485841063,16.725638945828575,14.264378483405244,16.337420438843548,17.88489744269433
+}\HestonSmileData
+
+% Generated by Preparation_fin_semestre/heston_smiles.py.
+
+\begin{frame}{Correlation: compare the direction of the skew}
+\small
+Baseline: \((V_0,\kappa,\theta,\eta,\rho)=(0.04,2,0.04,0.4,-0.6)\); \(S_0=100\), \(r=0\).
+\begin{columns}[T,onlytextwidth]
+\column{0.49\textwidth}
+\begin{tikzpicture}
+\begin{axis}[
+width=\linewidth,height=4.0cm,axis lines=left,
+xmin=70,xmax=130,ymin=10,ymax=30,
+xtick={70,85,100,115,130},ytick distance=5,
+xlabel={Strike \(K\)},ylabel={Implied volatility (\%)},
+title={\(T=0.25\) years},title style={font=\small},
+tick label style={font=\scriptsize},label style={font=\scriptsize},
+grid=major,grid style={gray!15}]
+\addplot[CourseGreen,thick,dashed] table[x=strike,y=rho_low_short,col sep=comma]{\HestonSmileData};
+\addplot[CourseBlue,very thick] table[x=strike,y=base_short,col sep=comma]{\HestonSmileData};
+\addplot[CourseRed,thick,dashdotted] table[x=strike,y=rho_high_short,col sep=comma]{\HestonSmileData};
+\end{axis}
+\end{tikzpicture}
+\column{0.49\textwidth}
+\begin{tikzpicture}
+\begin{axis}[
+width=\linewidth,height=4.0cm,axis lines=left,
+xmin=70,xmax=130,ymin=10,ymax=30,
+xtick={70,85,100,115,130},ytick distance=5,
+xlabel={Strike \(K\)},ylabel={Implied volatility (\%)},
+title={\(T=2\) years},title style={font=\small},
+tick label style={font=\scriptsize},label style={font=\scriptsize},
+grid=major,grid style={gray!15}]
+\addplot[CourseGreen,thick,dashed] table[x=strike,y=rho_low_long,col sep=comma]{\HestonSmileData};
+\addplot[CourseBlue,very thick] table[x=strike,y=base_long,col sep=comma]{\HestonSmileData};
+\addplot[CourseRed,thick,dashdotted] table[x=strike,y=rho_high_long,col sep=comma]{\HestonSmileData};
+\end{axis}
+\end{tikzpicture}
+\end{columns}
+\begin{center}\scriptsize
+\textcolor{CourseGreen}{\(\rho=-0.85\) (dashed)}\quad
+\textcolor{CourseBlue}{\(\rho=-0.6\) (solid)}\quad
+\textcolor{CourseRed}{\(\rho=0.0\) (dash-dot)}
 \end{center}
+More negative \(\rho\) produces a stronger downside skew in this experiment.
+\source{Calculated Heston call prices, then BS inversion. Only the labelled parameter varies; all parameters are under \(\Q\).}
+\end{frame}
+
+
+
+
+\begin{frame}{Volatility of variance: compare the wings and ATM}
+\small
+Baseline: \((V_0,\kappa,\theta,\eta,\rho)=(0.04,2,0.04,0.4,-0.6)\); \(S_0=100\), \(r=0\).
+\begin{columns}[T,onlytextwidth]
+\column{0.49\textwidth}
+\begin{tikzpicture}
+\begin{axis}[
+width=\linewidth,height=4.0cm,axis lines=left,
+xmin=70,xmax=130,ymin=12,ymax=34,
+xtick={70,85,100,115,130},ytick distance=5,
+xlabel={Strike \(K\)},ylabel={Implied volatility (\%)},
+title={\(T=0.25\) years},title style={font=\small},
+tick label style={font=\scriptsize},label style={font=\scriptsize},
+grid=major,grid style={gray!15}]
+\addplot[CourseGreen,thick,dashed] table[x=strike,y=eta_low_short,col sep=comma]{\HestonSmileData};
+\addplot[CourseBlue,very thick] table[x=strike,y=base_short,col sep=comma]{\HestonSmileData};
+\addplot[CourseRed,thick,dashdotted] table[x=strike,y=eta_high_short,col sep=comma]{\HestonSmileData};
+\end{axis}
+\end{tikzpicture}
+\column{0.49\textwidth}
+\begin{tikzpicture}
+\begin{axis}[
+width=\linewidth,height=4.0cm,axis lines=left,
+xmin=70,xmax=130,ymin=12,ymax=34,
+xtick={70,85,100,115,130},ytick distance=5,
+xlabel={Strike \(K\)},ylabel={Implied volatility (\%)},
+title={\(T=2\) years},title style={font=\small},
+tick label style={font=\scriptsize},label style={font=\scriptsize},
+grid=major,grid style={gray!15}]
+\addplot[CourseGreen,thick,dashed] table[x=strike,y=eta_low_long,col sep=comma]{\HestonSmileData};
+\addplot[CourseBlue,very thick] table[x=strike,y=base_long,col sep=comma]{\HestonSmileData};
+\addplot[CourseRed,thick,dashdotted] table[x=strike,y=eta_high_long,col sep=comma]{\HestonSmileData};
+\end{axis}
+\end{tikzpicture}
+\end{columns}
+\begin{center}\scriptsize
+\textcolor{CourseGreen}{\(\eta=0.2\) (dashed)}\quad
+\textcolor{CourseBlue}{\(\eta=0.4\) (solid)}\quad
+\textcolor{CourseRed}{\(\eta=0.8\) (dash-dot)}
+\end{center}
+Increasing \(\eta\) changes the wings and the ATM level together.
+\source{Calculated Heston call prices, then BS inversion. Only the labelled parameter varies; all parameters are under \(\Q\).}
+\end{frame}
+
+\begin{frame}{Initial variance: compare short and long maturities}
+\small
+Baseline: \((V_0,\kappa,\theta,\eta,\rho)=(0.04,2,0.04,0.4,-0.6)\); \(S_0=100\), \(r=0\).
+\begin{columns}[T,onlytextwidth]
+\column{0.49\textwidth}
+\begin{tikzpicture}
+\begin{axis}[
+width=\linewidth,height=4.0cm,axis lines=left,
+xmin=70,xmax=130,ymin=10,ymax=34,
+xtick={70,85,100,115,130},ytick distance=5,
+xlabel={Strike \(K\)},ylabel={Implied volatility (\%)},
+title={\(T=0.25\) years},title style={font=\small},
+tick label style={font=\scriptsize},label style={font=\scriptsize},
+grid=major,grid style={gray!15}]
+\addplot[CourseGreen,thick,dashed] table[x=strike,y=v0_low_short,col sep=comma]{\HestonSmileData};
+\addplot[CourseBlue,very thick] table[x=strike,y=base_short,col sep=comma]{\HestonSmileData};
+\addplot[CourseRed,thick,dashdotted] table[x=strike,y=v0_high_short,col sep=comma]{\HestonSmileData};
+\end{axis}
+\end{tikzpicture}
+\column{0.49\textwidth}
+\begin{tikzpicture}
+\begin{axis}[
+width=\linewidth,height=4.0cm,axis lines=left,
+xmin=70,xmax=130,ymin=10,ymax=34,
+xtick={70,85,100,115,130},ytick distance=5,
+xlabel={Strike \(K\)},ylabel={Implied volatility (\%)},
+title={\(T=2\) years},title style={font=\small},
+tick label style={font=\scriptsize},label style={font=\scriptsize},
+grid=major,grid style={gray!15}]
+\addplot[CourseGreen,thick,dashed] table[x=strike,y=v0_low_long,col sep=comma]{\HestonSmileData};
+\addplot[CourseBlue,very thick] table[x=strike,y=base_long,col sep=comma]{\HestonSmileData};
+\addplot[CourseRed,thick,dashdotted] table[x=strike,y=v0_high_long,col sep=comma]{\HestonSmileData};
+\end{axis}
+\end{tikzpicture}
+\end{columns}
+\begin{center}\scriptsize
+\textcolor{CourseGreen}{\(V_0=0.02\) (dashed)}\quad
+\textcolor{CourseBlue}{\(V_0=0.04\) (solid)}\quad
+\textcolor{CourseRed}{\(V_0=0.08\) (dash-dot)}
+\end{center}
+The initial variance has a larger effect on the short-maturity smile here.
+\source{Calculated Heston call prices, then BS inversion. Only the labelled parameter varies; all parameters are under \(\Q\).}
+\end{frame}
+
+\begin{frame}{Long-run variance: compare short and long maturities}
+\small
+Baseline: \((V_0,\kappa,\theta,\eta,\rho)=(0.04,2,0.04,0.4,-0.6)\); \(S_0=100\), \(r=0\).
+\begin{columns}[T,onlytextwidth]
+\column{0.49\textwidth}
+\begin{tikzpicture}
+\begin{axis}[
+width=\linewidth,height=4.0cm,axis lines=left,
+xmin=70,xmax=130,ymin=10,ymax=30,
+xtick={70,85,100,115,130},ytick distance=5,
+xlabel={Strike \(K\)},ylabel={Implied volatility (\%)},
+title={\(T=0.25\) years},title style={font=\small},
+tick label style={font=\scriptsize},label style={font=\scriptsize},
+grid=major,grid style={gray!15}]
+\addplot[CourseGreen,thick,dashed] table[x=strike,y=theta_low_short,col sep=comma]{\HestonSmileData};
+\addplot[CourseBlue,very thick] table[x=strike,y=base_short,col sep=comma]{\HestonSmileData};
+\addplot[CourseRed,thick,dashdotted] table[x=strike,y=theta_high_short,col sep=comma]{\HestonSmileData};
+\end{axis}
+\end{tikzpicture}
+\column{0.49\textwidth}
+\begin{tikzpicture}
+\begin{axis}[
+width=\linewidth,height=4.0cm,axis lines=left,
+xmin=70,xmax=130,ymin=10,ymax=30,
+xtick={70,85,100,115,130},ytick distance=5,
+xlabel={Strike \(K\)},ylabel={Implied volatility (\%)},
+title={\(T=2\) years},title style={font=\small},
+tick label style={font=\scriptsize},label style={font=\scriptsize},
+grid=major,grid style={gray!15}]
+\addplot[CourseGreen,thick,dashed] table[x=strike,y=theta_low_long,col sep=comma]{\HestonSmileData};
+\addplot[CourseBlue,very thick] table[x=strike,y=base_long,col sep=comma]{\HestonSmileData};
+\addplot[CourseRed,thick,dashdotted] table[x=strike,y=theta_high_long,col sep=comma]{\HestonSmileData};
+\end{axis}
+\end{tikzpicture}
+\end{columns}
+\begin{center}\scriptsize
+\textcolor{CourseGreen}{\(\theta=0.02\) (dashed)}\quad
+\textcolor{CourseBlue}{\(\theta=0.04\) (solid)}\quad
+\textcolor{CourseRed}{\(\theta=0.08\) (dash-dot)}
+\end{center}
+The long-run variance has a larger effect at the longer maturity here.
+\source{Calculated Heston call prices, then BS inversion. Only the labelled parameter varies; all parameters are under \(\Q\).}
+\end{frame}
+
+\begin{frame}{Mean reversion: compare the persistence of the smile}
+\small
+Baseline: \((V_0,\kappa,\theta,\eta,\rho)=(0.04,2,0.04,0.4,-0.6)\); \(S_0=100\), \(r=0\).
+\begin{columns}[T,onlytextwidth]
+\column{0.49\textwidth}
+\begin{tikzpicture}
+\begin{axis}[
+width=\linewidth,height=4.0cm,axis lines=left,
+xmin=70,xmax=130,ymin=12,ymax=30,
+xtick={70,85,100,115,130},ytick distance=5,
+xlabel={Strike \(K\)},ylabel={Implied volatility (\%)},
+title={\(T=0.25\) years},title style={font=\small},
+tick label style={font=\scriptsize},label style={font=\scriptsize},
+grid=major,grid style={gray!15}]
+\addplot[CourseGreen,thick,dashed] table[x=strike,y=kappa_low_short,col sep=comma]{\HestonSmileData};
+\addplot[CourseBlue,very thick] table[x=strike,y=base_short,col sep=comma]{\HestonSmileData};
+\addplot[CourseRed,thick,dashdotted] table[x=strike,y=kappa_high_short,col sep=comma]{\HestonSmileData};
+\end{axis}
+\end{tikzpicture}
+\column{0.49\textwidth}
+\begin{tikzpicture}
+\begin{axis}[
+width=\linewidth,height=4.0cm,axis lines=left,
+xmin=70,xmax=130,ymin=12,ymax=30,
+xtick={70,85,100,115,130},ytick distance=5,
+xlabel={Strike \(K\)},ylabel={Implied volatility (\%)},
+title={\(T=2\) years},title style={font=\small},
+tick label style={font=\scriptsize},label style={font=\scriptsize},
+grid=major,grid style={gray!15}]
+\addplot[CourseGreen,thick,dashed] table[x=strike,y=kappa_low_long,col sep=comma]{\HestonSmileData};
+\addplot[CourseBlue,very thick] table[x=strike,y=base_long,col sep=comma]{\HestonSmileData};
+\addplot[CourseRed,thick,dashdotted] table[x=strike,y=kappa_high_long,col sep=comma]{\HestonSmileData};
+\end{axis}
+\end{tikzpicture}
+\end{columns}
+\begin{center}\scriptsize
+\textcolor{CourseGreen}{\(\kappa=0.5\) (dashed)}\quad
+\textcolor{CourseBlue}{\(\kappa=2.0\) (solid)}\quad
+\textcolor{CourseRed}{\(\kappa=4.0\) (dash-dot)}
+\end{center}
+Here \(V_0=\theta\): expected variance stays at \(0.04\), but the smiles differ.
+\source{Calculated Heston call prices, then BS inversion. Only the labelled parameter varies; all parameters are under \(\Q\).}
+\end{frame}
+% END INLINE: Heston_Smiles
+
+% BEGIN INLINE: Calibration_Practice
+\begin{frame}{A calibration protocol you can defend}
+\small
+\begin{enumerate}
+\item \textbf{Clean the quotes}: mids; no stale quotes, no calendar or butterfly arbitrage.
+\item \textbf{Choose the error}: implied volatilities, or prices divided by BS vega, since
+\(\bigl(C^{\rm model}-C^{\rm mkt}\bigr)/\mathcal V^{\rm BS}\simeq\Sigma^{\rm model}-\Sigma^{\rm mkt}\).
+\item \textbf{Impose constraints}: \(V_0,\kappa,\theta,\eta>0\) and \(|\rho|<1\);
+report the Feller ratio \(2\kappa\theta/\eta^2\).
+\item \textbf{Start from the parameter guides}, then try several starting points.
+\item \textbf{Validate}: residuals against bid--ask widths, out-of-sample strikes,
+and stability from one day to the next.
+\end{enumerate}
+\begin{pausebox}Our baseline is \((\kappa,\theta,\eta)=(2,0.04,0.4)\). Compute \(2\kappa\theta/\eta^2\).\end{pausebox}
+\begin{answerbox}\(2\times2\times0.04/0.16=1\): exactly on the Feller boundary.
+Calibrated equity parameters often violate it. This is allowed, but the simulation
+scheme must then handle \(V\) near zero (Section 5).\end{answerbox}
+\end{frame}
+
+\begin{frame}{Daily recalibration exposes what the model leaves out}
+\small
+Heston treats \(\kappa,\theta,\eta,\rho\) as constants, yet desks refit them every day.
+Take the barrier hedge at \(t=0\) (\(-1\) claim, \(+0.8386\) calls, stock and cash),
+then refit one parameter with \(S\) and \(V\) unchanged:
+\begin{center}
+\begin{tabular}{lrrr}
+\toprule Refit & \(\Delta u\) & \(\alpha\,\Delta g\) & Hedger's P\&L \(=\alpha\Delta g-\Delta u\)\\\midrule
+\(\eta\colon0.40\to0.45\) & \(-0.119\) & \(-0.100\) & \(+0.018\)\\
+\(\rho\colon-0.6\to-0.7\) & \(-0.025\) & \(-0.048\) & \(-0.023\)\\\bottomrule
+\end{tabular}
+\end{center}
+\begin{itemize}
+\item The claim and the call load differently on \(\eta\) and \(\rho\); the model's
+own hedge does not cover parameter moves.
+\item Responses: hedge skew and wings with OTM options, hold reserves, or change model.
+\end{itemize}
+\begin{keybox}Calibration fixes today's prices. The hedge depends on the dynamics the
+model assumes between today and maturity.\end{keybox}
+\end{frame}
+% END INLINE: Calibration_Practice
+
+
+\section{5. From model equations to simulations}
+
+\begin{frame}{Generate two correlated shocks from independent normals}
+
+    At each time step draw independent \(Z_1,Z_2\sim N(0,1)\), then set
+    \[\Delta W^S=\sqrt{\Delta t}\,Z_1,\quad
+      \Delta W^V=\sqrt{\Delta t}\left(\rho Z_1+\sqrt{1-\rho^2}Z_2\right).\]
+    \begin{pausebox}Check the variances and covariance.\end{pausebox}
+    \begin{answerbox}
+    \[\Var(\Delta W^S)=\Var(\Delta W^V)=\Delta t,\quad
+       \Cov(\Delta W^S,\Delta W^V)=\rho\Delta t.\]
+    Draw a fresh independent pair at each step and for each independent path.
+    \end{answerbox}
+\end{frame}
+
+\begin{frame}{A positive continuous variance can have a negative Euler step}
+
+    A naive Euler update is
+    \[V_{n+1}=V_n+\kappa(\theta-V_n)\Delta t
+                 +\eta\sqrt{V_n}\,\Delta W_n^V.\]
+    \begin{block}{A problem for the next square root}
+    A sufficiently negative normal shock makes \(V_{n+1}<0\).
+    Continuous-time nonnegativity does not guarantee nonnegative Euler values.
+    \end{block}
+    \begin{watchbox}The Feller condition \(2\kappa\theta\geq\eta^2\)
+    concerns the continuous CIR boundary. It does not repair the Euler scheme.\end{watchbox}
+\end{frame}
+
+\begin{frame}{Name the approximation: full truncation and log stock steps}
+
+    Put \(V_n^+=\max(V_n,0)\), retain the raw \(V_n\), and use
+    \[\begin{aligned}
+    V_{n+1}&=V_n+\kappa(\theta-V_n^+)\Delta t
+                     +\eta\sqrt{V_n^+}\,\Delta W_n^V,\\
+    S_{n+1}&=S_n\exp\!\left[(r-\tfrac12V_n^+)\Delta t
+                              +\sqrt{V_n^+}\Delta W_n^S\right].
+    \end{aligned}\]
+    \begin{keybox}The stock stays positive. Both updates still approximate
+    Heston dynamics; convergence must be checked by refining \(\Delta t\).\end{keybox}
+    \source{Full truncation: Lord, Koekkoek and van Dijk, \href{https://repub.eur.nl/pub/7738}{A Comparison of Biased Simulation Schemes for Stochastic Volatility Models}.}
+\end{frame}
+
+\begin{frame}{Choose a model against a concrete task}
+
+    \begin{center}\begin{tabular}{L{.33\textwidth}L{.53\textwidth}}
+    \toprule Task & A useful starting point\\\midrule
+    Quote one liquid vanilla & Market price and its implied volatility\\[.5em]
+    Reproduce a clean vanilla surface & Local volatility; verify the surface and numerics\\[.5em]
+    Describe a random variance factor & A calibrated stochastic-volatility model\\[.5em]
+    Price an exotic and manage its risk & Test fit, dynamics, numerics, and hedge instruments\\\bottomrule
+    \end{tabular}\end{center}
+    \begin{watchbox}Additional factors introduce additional assumptions.
+    A richer model needs evidence that the added dynamics matter.\end{watchbox}
+\end{frame}
+
+\begin{frame}{Exit questions: price, state, and hedge}
+
+    \begin{enumerate}
+    \item Does local volatility add an independent Brownian shock?
+    \item Does fitting one ATM price identify all Heston parameters?
+    \item Does fitting today's full vanilla surface determine all exotic prices?
+    \end{enumerate}
+    \begin{answerbox}
+    \begin{enumerate}
+    \item No: the coefficient is a function of time and spot.
+    \item No: one scalar quote cannot generally identify five parameters.
+    \item No: path-dependent claims also depend on joint dynamics.
+    \end{enumerate}\end{answerbox}
+\end{frame}
+
+\begin{frame}{Reading and the next application}
+
+    \small
+    \begin{itemize}
+    \item R. Kohn, \href{https://math.nyu.edu/faculty/kohn/cont-time-finance/section9.pdf}{Continuous Time Finance, Section 9}: smile, density, and Dupire.
+    \item J. Gatheral, \href{https://catalogimages.wiley.com/images/db/pdf/9780471792512.excerpt.pdf}{The Volatility Surface, Chapter 1}: local and stochastic volatility.
+    \item R. Lord, R. Koekkoek and D. van Dijk,
+    \href{https://repub.eur.nl/pub/7738}{simulation schemes for stochastic volatility}.
+    \item S. Heston, \href{https://finance.martinsewell.com/stylized-facts/volatility/Heston1993.pdf}{A Closed-Form Solution for Options with Stochastic Volatility} (1993).
+    \end{itemize}
+    \begin{keybox}Next lecture: change numeraire and introduce fixed-income pricing.
+    Exotic option pricing follows in Lecture 13.\end{keybox}
 \end{frame}
 
 \end{document}

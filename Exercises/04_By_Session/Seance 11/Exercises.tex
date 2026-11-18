@@ -1,0 +1,148 @@
+% Weekly exercise sheet for Lecture 11; also included in the synthesis sheet.
+\ifdefined\ExercisesSynthesis
+\else
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern,microtype}
+\usepackage[margin=0.9in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{enumitem,hyperref,needspace}
+\newcommand{\E}{\mathbb E}
+\newcommand{\Qbb}{\mathbb Q}
+\newcommand{\dd}{\,\mathrm d}
+\newcommand{\Pb}{\mathbb P}\newcommand{\F}{\mathcal F}\newcommand{\Var}{\operatorname{Var}}
+\theoremstyle{definition}
+\newtheorem{exercise}{Exercise}[section]
+\newlist{exparts}{enumerate}{1}
+\setlist[exparts,1]{label=\textbf{(\alph*)},itemsep=0.3em,topsep=0.4em,leftmargin=2em}
+\newcommand{\lecturesummary}[1]{\begin{quote}\small\textbf{Focus.} #1\end{quote}}
+\title{Stochastic Calculus and Option Pricing\\Lecture 11 Exercises}
+\author{}
+\date{}
+\AddToHook{env/exercise/before}{\Needspace{7\baselineskip}}
+\expandafter\newif\csname ifIncludeCore\endcsname\IncludeCoretrue
+\expandafter\newif\csname ifIncludeFurther\endcsname\IncludeFurthertrue
+\begin{document}
+\maketitle
+\vspace{-1.2em}
+\setcounter{section}{10}
+\fi
+
+\section{Week 11 --- Beyond Black--Scholes}
+\lecturesummary{Extend Dupire, distinguish marginal from joint laws, and test Heston pricing, spanning, calibration, and simulation.}
+
+\ifIncludeCore
+
+\lecturesummary{Core workload: about 90 minutes, including 10 minutes to check signs, assumptions, and conclusions. Suggested solving times: 11.1: 25 min; 11.2: 15 min; 11.3: 25 min; 11.4: 15 min. These are planning estimates after studying the lecture.}
+\setcounter{exercise}{0}
+\begin{exercise}[Variation --- Derive Dupire with a continuous dividend yield]
+Replace the no-dividend local-volatility model by
+\[
+\dd S_t=(r-q)S_t\dd t+\sigma_{\rm loc}(t,S_t)S_t\dd W_t^{\Qbb},
+\]
+where \(r,q\) are constant. Assume a smooth density and the same
+integrability and vanishing boundary terms as in the lecture.
+\begin{exparts}
+\item Write the forward density equation. Which coefficient changes, and which discount factor remains in the call expectation?
+\item Repeat the maturity differentiation and integration by parts. Keep the contribution from differentiating the discount factor until the end.
+\item Solve for \(\sigma_{\rm loc}^2(T,K)\). Why does a term proportional to the call price now remain?
+\item Check \(q=0\). At \(K=0\), use \(C(T,0)=S_0e^{-qT}\) to verify consistency of the forward price equation without dividing by its vanishing denominator.
+\end{exparts}
+\end{exercise}
+
+\begin{exercise}[Variation --- Price a linear average-variance payment]
+Under a chosen Heston pricing measure, variance satisfies
+\(\dd V=\kappa(\theta-V)\dd t+\eta\sqrt V\dd W^V\).
+A claim pays \(H=\tau^{-1}\int_t^T V_u\dd u\), where
+\(\tau=T-t>0\). Rates are constant. Use the conditional mean of variance
+from the lecture; assume the required integrability.
+\begin{exparts}
+\item Derive the time-\(t\) price as a function of \(v=V_t\), \(\kappa\), \(\theta\), \(r\), and \(\tau\). Distinguish the expected payment from its discounted price.
+\item Find the limits of the expected payment as \(\tau\downarrow0\) and as \(\tau\to\infty\). For \(v=0.09\), \(\theta=0.04\), \(\kappa=2\), and \(\tau=1\), compute the expected payment.
+\item If \(v=\theta\), does the expected payment depend on \(\kappa\) or \(\eta\)? Does it equal the ATM implied variance in a general Heston model, or determine every option price?
+\item Does stock-and-cash no-arbitrage alone identify the price of this claim before a pricing measure or variance risk premium is specified?
+\end{exparts}
+\end{exercise}
+
+\Needspace{16\baselineskip}
+\begin{exercise}[Practice --- Do two traded options imply the same variance drift?]
+Fix \(t,s,v\) with \(s,v,\eta>0\) and \(|\rho|<1\). For any smooth
+traded option \(f\), define the part of its pricing PDE excluding the
+variance drift:
+\[
+R_f=f_t+rsf_s+\tfrac12vs^2f_{ss}
++\rho\eta svf_{sv}+\tfrac12\eta^2vf_{vv}-rf.
+\]
+Two options \(g,h\) have nonzero variance sensitivities at this state.
+For a numerical check, take \(s=100\), \(h=10\), \(g=8\),
+\(h_s=0.55\), \(h_v=24\), \(g_s=0.60\), \(g_v=40\),
+\(R_g=-1.20\), and \(R_h=-0.72\). These are illustrative state inputs.
+\begin{exparts}
+\item If the pricing variance drift is \(b_{\Qbb}(t,v)\), derive the drift inferred from \(g\) and the consistency condition imposed by \(h\). Check the numerical inputs.
+\item Use holdings in \(h\), \(g\), stock, and cash to cancel both Brownian risks. Express the remaining instantaneous drift in terms of \(R_h,R_g\). Calculate the replicating option, stock, and cash positions for one short \(h\).
+\item Explain why disagreement of the inferred drifts is inconsistent with the same ideal frictionless diffusion. What degenerates if \(g_v=0\)? Would observing only the two price numbers \(h=10,g=8\) identify the variance drift without a model for their derivatives?
+\item If the state is instead parameterized by \(z=\sqrt v\), show how \(f_v\) relates to \(f_z\). Is the hedge ratio changed when both option sensitivities are converted consistently? Why is an arbitrary BS implied-volatility vega a different object?
+\end{exparts}
+\end{exercise}
+
+\begin{exercise}[Practice --- A simulator can get correlation and variance wrong]
+For time step \(h>0\), a proposed simulation sets
+\[
+\Delta W^S=\sqrt h\,Z_1,\qquad
+\Delta W^V=\rho\sqrt h\,Z_1+\sqrt{1-\rho^2}\,hZ_2,
+\]
+with independent standard normal \(Z_1,Z_2\) and \(0<|\rho|<1\).
+\begin{exparts}
+\item Compute the variance of each increment and their covariance. Which variance fails the Brownian scaling check?
+\item Find their correlation and its limit as \(h\downarrow0\). Repair the formula. Why should a validation test check covariance scaling as well as the intended correlation?
+\item Write the full-truncation variance update and log-stock update using the repaired increments, retaining the raw previous variance in the appropriate place.
+\item A developer replaces the entire next variance by its positive part and says the algorithm is unchanged. Assess the claim. Does the continuous Feller condition eliminate the need to compare numerical schemes and refine the time step?
+\end{exparts}
+\end{exercise}
+\fi
+
+\ifIncludeFurther
+\Needspace{10\baselineskip}
+\subsection*{Optional further practice}
+\noindent These problems are supplementary; the core workload is complete after Exercises 11.1--11.4.
+\setcounter{exercise}{4}
+\begin{exercise}[Practice --- Same vanilla marginals, different conditional paths]
+Rates are zero, \(S_0=100\), and \(S_1\) equals 80 or 120 with equal
+probabilities. At date 2, the stock can be 60, 100, or 140. Two candidate
+models use the following conditional transition probabilities; columns are
+ordered as \((60,100,140)\):
+\[
+\begin{array}{c|ccc|ccc}
+&\multicolumn{3}{c|}{\text{Model A}}&\multicolumn{3}{c}{\text{Model B}}\\
+S_1=80&1/2&1/2&0&3/4&0&1/4\\
+S_1=120&1/4&0&3/4&0&1/2&1/2
+\end{array}
+\]
+\begin{exparts}
+\item Check that the discounted stock is a martingale in both models, including the conditional step from date 1 to date 2.
+\item Compute the unconditional distribution of \(S_2\) in each model. What can be said about all time-zero European call prices at dates 1 and 2?
+\item Price the path-dependent payoff \(H=\mathbf1_{\{S_1=120\}}(S_2-100)^+\) under each specified pricing model.
+\item Explain why the different prices do not contradict the vanilla agreement. Which extra information about dynamics would vanilla marginals alone fail to identify?
+\end{exparts}
+\end{exercise}
+
+\begin{exercise}[Variation --- Which pricing parameters fit an affine risk premium?]
+Under the historical measure, \(\kappa_{\Pb}=2\) and
+\(\theta_{\Pb}=0.06\). Use the convention
+\(b_{\Qbb}(v)=b_{\Pb}(v)-\lambda v\).
+Consider pricing candidates \((\kappa_{\Qbb},\theta_{\Qbb})=(3,0.04)\)
+and \((3,0.05)\).
+\begin{exparts}
+\item Derive the constraint that this affine drift adjustment imposes on the product \(\kappa_{\Qbb}\theta_{\Qbb}\). Which candidate satisfies it, and what is its \(\lambda\)?
+\item If the adjustment is generalized to \(\pi(v)=a+bv\), express \(\kappa_{\Qbb}\) and \(\kappa_{\Qbb}\theta_{\Qbb}\). Which additional degree of freedom is introduced?
+\item Could the same equivalent Brownian measure change also replace \(\eta\) or \(\rho\) by arbitrary new values? Justify using quadratic covariation.
+\item Explain why matching the drift algebra does not by itself prove that a valid equivalent pricing measure exists, especially near \(v=0\).
+\end{exparts}
+\end{exercise}
+\fi
+
+\ifdefined\ExercisesSynthesis\else
+\end{document}
+\fi

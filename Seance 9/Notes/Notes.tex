@@ -9,11 +9,11 @@
 \usepackage[margin=0.72in]{geometry}
 \usepackage{amsmath,amssymb,amsthm,mathtools}
 \usepackage{booktabs,array}
-\usepackage{graphicx}
 \usepackage{xcolor}
 \usepackage{enumitem}
 \usepackage[most]{tcolorbox}
 \usepackage{fancyhdr}
+\usepackage{needspace}
 \usepackage[hidelinks]{hyperref}
 
 \definecolor{CourseBlue}{HTML}{1A3C68}
@@ -45,7 +45,6 @@
 \newcommand{\1}{\mathbf 1}
 \newcommand{\cF}{\mathcal F}
 \newcommand{\dd}{\,\mathrm d}
-\newcommand{\Ncdf}{\Phi}
 
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}[section]
@@ -65,7 +64,7 @@
   boxrule=0.55pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
   before skip=0.55em,after skip=0.35em,
   title={Exercise --- #1},fonttitle=\bfseries}
-\newtcolorbox{shortsolution}[1][] {
+\newtcolorbox{shortsolution}[1][]{
   enhanced,breakable,colback=SoftGreen,colframe=CourseGreen,
   boxrule=0.55pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
   before skip=0.25em,after skip=0.6em,
@@ -77,7 +76,7 @@
   title={#1},fonttitle=\bfseries}
 \newtcolorbox{warningbox}[1]{
   enhanced,breakable,colback=SoftRed,colframe=CourseRed,
-  boxrule=0.65pt,arc=1mm,left=1.5mm,right=1mm,top=1mm,bottom=1mm,
+  boxrule=0.65pt,arc=1mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm,
   before skip=0.5em,after skip=0.5em,
   title={#1},fonttitle=\bfseries}
 \newtcolorbox{assumptionbox}[1]{
@@ -86,8 +85,8 @@
   before skip=0.5em,after skip=0.5em,
   title={#1},fonttitle=\bfseries}
 
-\title{\textbf{Vanilla Options in Practice}\\
-\large Lecture 9 Notes --- Payoffs, Black--Scholes Benchmarks, and Static-Arbitrage Diagnostics}
+\title{\textbf{Vanilla Options, Black--Scholes, and the Arbitrage-Free Option Surface}\\
+\large Lecture 9 Notes --- Payoffs, Parity, Greeks, Implied Volatility, and Quote Checks}
 \author{}
 \date{}
 
@@ -96,560 +95,540 @@
 \vspace{-1.4em}
 
 \begin{keyidea}{Goals and logical structure}
-Lecture~8 developed model-free no-arbitrage principles. This lecture applies
-them to the option quotes observed in a market:
+Lecture 8 gave model-free principles for comparing claims. Lecture 9 asks how
+those principles discipline the prices of the options traders quote every day:
 \[
 \begin{aligned}
-\text{option payoffs}
-&\longrightarrow \text{replication and put--call parity}\\
-&\longrightarrow \text{Black--Scholes benchmark prices}\\
-&\longrightarrow \text{model-free bounds and strike-shape checks}\\
-&\longrightarrow \text{explicit arbitrage trades.}
+\text{payoffs of calls, puts, and combinations}
+&\longrightarrow \text{put--call parity and model-free bounds}\\
+&\longrightarrow \text{Black--Scholes prices, Greeks, and implied volatility}\\
+&\longrightarrow \text{the P\&L of a hedge run with the wrong volatility}\\
+&\longrightarrow \text{strike and calendar restrictions on the option surface.}
 \end{aligned}
 \]
-The recurring method is always the same: write the terminal payoff of a
-portfolio, compare it state by state, then translate the comparison into a
-price inequality or a trading strategy.
+Whenever a check fails, the goal is to write the explicit trade, not only the
+violated inequality.
 \end{keyidea}
 
+\begin{assumptionbox}{Conventions used throughout}
+European options on one share; no dividends unless stated otherwise.
+\(\tau=T-t>0\) is in years, \(r\) is constant, \(D=e^{-r\tau}\), and
+volatility is annualized.
+\end{assumptionbox}
+
 % ============================================================
-\section{Payoffs and market language}
+\section{Payoffs and Market Language}
 % ============================================================
 
-\subsection{European calls and puts}
+\subsection{Calls, puts, moneyness, and time value}
 
-\begin{definition}[European vanilla options]
-Let \(S_T\) be the price of an underlying asset at maturity \(T\), and let
-\(K\) be a strike price. A European call gives its holder the right to buy one
-share for \(K\) at \(T\); a European put gives its holder the right to sell
-one share for \(K\) at \(T\). Their terminal payoffs are
+\begin{definition}[Vanilla options]
+A European \emph{call} (resp.\ \emph{put}) with strike \(K\) and maturity
+\(T\) gives the right to buy (resp.\ sell) one share for \(K\) at \(T\).
+Exercise occurs only at \(T\).
 \[
-\boxed{(S_T-K)^+}\qquad\text{and}\qquad\boxed{(K-S_T)^+},
+\begin{array}{c|cc}
+ &\text{Call}&\text{Put}\\ \hline
+\text{Payoff at }T &(S_T-K)^+&(K-S_T)^+\\
+\text{Intrinsic value at }t &(S_t-K)^+&(K-S_t)^+\\
+\text{Time value at }t &C_t-(S_t-K)^+&P_t-(K-S_t)^+
+\end{array}
 \]
-respectively. European means that exercise is possible only at \(T\).
 \end{definition}
 
-The option holder chooses whether to exercise. For a call, paying \(K\) to
-receive a share is useful only when \(S_T>K\); for a put, selling a share for
-\(K\) is useful only when \(S_T<K\). A short position has the negative of the
-corresponding payoff.
+A call is \emph{in the money} (ITM) when \(S_t>K\); a put is ITM when
+\(S_t<K\); an option is \emph{at the money} (ATM) when \(S_t\approx K\).
+Out-of-the-money (OTM) options have zero intrinsic value but may have a
+positive premium. A short position reverses every payoff.
 
-\begin{boardexample}{reading a payoff table}
-For \(K=100\),
-\[
-\begin{array}{c|ccc}
-S_T &80&100&130\\ \hline
-(S_T-100)^+&0&0&30\\
-(100-S_T)^+&20&0&0
-\end{array}
-\]
-The call is upside exposure. The put is downside insurance.
-\end{boardexample}
+\begin{warningbox}{Time value need not be nonnegative}
+At \(r=q=0\), time value is nonnegative and vanishes at expiry. With carry,
+a European premium can be below spot intrinsic value.
+\end{warningbox}
 
-\subsection{Moneyness and time value}
+\subsection{Payoff combinations}
 
-Moneyness compares the current spot price \(S_t\) with the strike \(K\):
-\[
-\begin{array}{c|ccc}
-&\text{in the money}&\text{at the money}&\text{out of the money}\\ \hline
-\text{call}&S_t>K&S_t\approx K&S_t<K\\
-\text{put}&S_t<K&S_t\approx K&S_t>K.
-\end{array}
-\]
-It is a statement about immediate exercise value, not a forecast of whether
-the option will finish in the money at \(T\).
-
-For a call, the intrinsic value is \((S_t-K)^+\); for a put it is
-\((K-S_t)^+\). The remaining part of the market price is its \emph{time
-value}. At-the-money options often have the greatest time value because their
-intrinsic value is near zero while there is still substantial scope for a
-favourable move.
-
-\begin{studentexercise}{which contract is mostly time value?}
-Three calls have the same maturity and current spot \(S_t=100\), but strikes
-\(80\), \(100\), and \(130\). Which call is most naturally interpreted as
-mostly time value?
-\end{studentexercise}
-\begin{shortsolution}
-The call struck at \(100\) is at the money, so its intrinsic value is zero.
-Its price is principally the value of the uncertainty that remains before
-maturity. The \(K=80\) call already has intrinsic value; the \(K=130\) call
-is far out of the money and generally has a small premium.
-\end{shortsolution}
-
-\subsection{Useful payoff combinations}
-
-Payoff algebra is often the quickest way to identify a trading strategy.
+\begin{proposition}[Standard combinations]
+For \(h>0\),
 \[
 \begin{aligned}
-\text{long straddle:}\quad &(S_T-K)^+ +(K-S_T)^+=|S_T-K|,\\
-\text{protective put:}\quad&S_T+(K-S_T)^+=\max(S_T,K),\\
-\text{covered call:}\quad&S_T-(S_T-K)^+=\min(S_T,K).
+\text{Straddle:}\quad &(S_T-K)^++(K-S_T)^+=|S_T-K|,\\
+\text{Protective put:}\quad &S_T+(K-S_T)^+=\max(S_T,K),\\
+\text{Covered call:}\quad &S_T-(S_T-K)^+=\min(S_T,K),\\
+\text{Call minus put:}\quad &(S_T-K)^+-(K-S_T)^+=S_T-K,\\
+\text{Butterfly:}\quad &(S_T-K+h)^+-2(S_T-K)^++(S_T-K-h)^+
+=(h-|S_T-K|)^+\ge0.
 \end{aligned}
-\]
-Thus a straddle benefits from a large move in either direction; a protective
-put retains stock upside while imposing a floor \(K\); a covered call caps
-stock upside at \(K\).
-
-% ============================================================
-\section{Put--call parity}
-% ============================================================
-
-\subsection{Replication identity}
-
-Let \(D_t=e^{-r(T-t)}\) denote the price at time \(t\) of one dollar paid at
-time \(T\), for a constant rate \(r\). Consider a call and a put on the same
-stock, with the same \(K\) and \(T\), and assume that the stock pays no
-dividends.
-
-\begin{proposition}[Put--call parity]
-Their prices \(C_t\) and \(P_t\) satisfy
-\[
-\boxed{C_t+KD_t=P_t+S_t,}
-\qquad\text{or equivalently}\qquad
-\boxed{C_t-P_t=S_t-Ke^{-r(T-t)}.}
 \]
 \end{proposition}
 
-\begin{proof}
-Compare Portfolio A, one call plus cash \(KD_t\), with Portfolio B, one put
-plus one share. At maturity their payoffs are
-\[
-(S_T-K)^++K
-\qquad\text{and}\qquad
-(K-S_T)^++S_T.
-\]
-If \(S_T\le K\), both equal \(K\); if \(S_T>K\), both equal \(S_T\).
-They are therefore the same terminal claim, namely \(\max(S_T,K)\). The law
-of one price equates their values at time \(t\).
-\end{proof}
+The protective put keeps the upside but cannot finish below \(K\); the
+covered call gives up the upside above \(K\) in exchange for the call premium.
+A straddle buys a move without choosing its direction.
 
-\begin{keyidea}{Parity is model-free}
-No distributional assumption, volatility parameter, or Black--Scholes formula
-appears in this proof. Parity follows from replication and a funding account.
-It is therefore one of the first consistency tests to apply to an option
-market.
-\end{keyidea}
-
-\begin{boardexample}{recovering a put price}
-Let \(S_t=100\), \(K=100\), \(T-t=1\), \(r=5\%\), and \(C_t=10.45\). Then
-\[
-KD_t=100e^{-0.05}\approx95.12,
-\qquad
-P_t=C_t-S_t+KD_t\approx10.45-100+95.12=5.57.
-\]
-Knowing three prices in the parity relation determines the fourth.
-\end{boardexample}
-
-\subsection{Arbitrage from a parity violation}
-
-Suppose instead that
-\[
-C_t+KD_t>P_t+S_t.
-\]
-The call-plus-cash portfolio is expensive relative to the put-plus-stock
-portfolio. Sell the expensive portfolio and buy the cheap one. The initial
-receipt is strictly positive, while the net terminal payoff is exactly zero.
-The opposite inequality is handled by reversing the trade.
-
-\begin{studentexercise}{diagnose a parity violation}
-Let \(C_t=12\), \(P_t=5\), \(S_t=100\), and \(KD_t=95.12\). Is parity
-satisfied? If not, give every leg of an arbitrage and its initial receipt.
-\end{studentexercise}
-\begin{shortsolution}
-\[
-C_t+KD_t=107.12>105=P_t+S_t.
-\]
-Sell the call, borrow \(95.12\), buy the put, and buy one share. The receipt
-is \(107.12-105=2.12\) today. The two portfolios replicate the same payoff,
-so the terminal net payoff is zero.
-\end{shortsolution}
-
-\begin{warningbox}{Dividend adjustment}
-With a continuous dividend yield \(q\), the stock leg has prepaid value
-\(S_te^{-q(T-t)}\), and parity becomes
-\[
-C_t-P_t=S_te^{-q(T-t)}-Ke^{-r(T-t)}.
-\]
-Using the no-dividend formula for a dividend-paying stock can manufacture a
-spurious ``arbitrage.''
+\begin{warningbox}{Payoff is not profit}
+Profit also includes premiums and their financing. For a straddle at
+\(r=0\), the break-even prices are \(K\pm(C_t+P_t)\).
 \end{warningbox}
 
 % ============================================================
-\section{Black--Scholes as a pricing benchmark}
+\section{Put--Call Parity and Model-Free Bounds}
 % ============================================================
 
-\subsection{The model and the formulas}
+\subsection{Dominance and parity}
 
-\begin{assumptionbox}{Black--Scholes setting}
-Under the risk-neutral measure \(\Q\), assume no dividends, constant rate
-\(r\), constant volatility \(\sigma>0\), and
+
+\begin{theorem}[Put--call parity]
+For matched European calls and puts (same underlying, \(K\), \(T\), and
+settlement),
 \[
-\frac{\dd S_t}{S_t}=r\dd t+\sigma\dd W_t^{\Q}.
+\boxed{C_t+KD=P_t+S_t,\qquad C_t-P_t=S_t-KD.}
 \]
-For \(\tau=T-t\), the corresponding European call and put prices are
+With a known continuous dividend yield \(q\),
 \[
-\boxed{C_t=S_t\Ncdf(d_1)-Ke^{-r\tau}\Ncdf(d_2)},
+C_t-P_t=S_te^{-q\tau}-Ke^{-r\tau}.
 \]
+\end{theorem}
+\begin{proof}
+The portfolio ``call \(+\) \(KD\) in cash'' and the portfolio
+``put \(+\) one share'' both pay \(\max(S_T,K)\) at \(T\). By the law of one
+price they have the same value at \(t\). With yield \(q\), hold
+\(e^{-q\tau}\) shares, reinvesting dividends, to end with one share.
+\end{proof}
+
+\subsection{No-arbitrage bounds}
+
+\begin{proposition}[Model-free bounds]
 \[
-\boxed{P_t=Ke^{-r\tau}\Ncdf(-d_2)-S_t\Ncdf(-d_1)},
+\boxed{(S_t-KD)^+\le C_t\le S_t,\qquad (KD-S_t)^+\le P_t\le KD.}
 \]
-where
+With continuous yield \(q\), replace \(S_t\) by \(S_te^{-q\tau}\) in these
+bounds.
+\end{proposition}
+\begin{proof}
+Upper bound: one share superhedges the call, \(S_T\ge(S_T-K)^+\). If
+\(C_t>S_t\), selling the call and buying the share earns \(C_t-S_t>0\) today
+with a nonnegative terminal payoff. Lower bound: parity gives
+\(C_t=P_t+S_t-KD\ge S_t-KD\) since \(P_t\ge0\), and \(C_t\ge0\). The put
+bounds follow in the same way.
+\end{proof}
+
+More generally, if liquid strategies satisfy \(Y_T\le H\le X_T\), then
+\(Y_0\le\text{price}(H)\le X_0\). If \(H\) is too expensive, sell it and buy
+the superhedge \(X\); if it is too cheap, buy it and short the subhedge \(Y\).
+
+\begin{keyidea}{Bounds and implied volatility}
+A quote outside its bounds has no nonnegative BS implied volatility.
+A strictly interior quote has a unique finite, positive implied volatility.
+\end{keyidea}
+
+% ============================================================
+\section{Black--Scholes as a Benchmark}
+% ============================================================
+
+\subsection{Model, pricing PDE, and vanilla formulas}
+
+No-arbitrage alone gives relations and bounds, not generally a unique price.
+Black--Scholes adds a model, hence a distribution for \(S_T\).
+
+\begin{assumptionbox}{Black--Scholes model}
+Under \(\Q\), with no dividends and constant \(r\) and \(\sigma>0\),
 \[
-d_1=\frac{\log(S_t/K)+(r+\tfrac12\sigma^2)\tau}{\sigma\sqrt\tau},
-\qquad d_2=d_1-\sigma\sqrt\tau.
+\frac{\dd S_u}{S_u}=r\dd u+\sigma\dd W_u^{\Q},\qquad
+\partial_t v+rs\,\partial_s v+\frac12\sigma^2s^2\partial_{ss}v-rv=0,
+\quad v(T,s)=h(s).
 \]
 \end{assumptionbox}
 
-Here \(\Ncdf\) is the standard normal distribution function. In this model,
-\(\Ncdf(d_2)=\Q(S_T>K\mid\cF_t)\), the risk-neutral probability that the
-call finishes in the money. The two formulas automatically satisfy put--call
-parity, as every arbitrage-free pricing model must.
-
-\begin{boardexample}{an at-the-money one-year call}
-For \(S_t=K=100\), \(r=5\%\), \(\sigma=20\%\), and \(\tau=1\),
+\begin{theorem}[Black--Scholes formulas]
+Let
 \[
-d_1=0.35,\qquad d_2=0.15,
+d_1=\frac{\log(S_t/K)+(r+\tfrac12\sigma^2)\tau}{\sigma\sqrt\tau},
+\qquad d_2=d_1-\sigma\sqrt\tau,
+\qquad \phi(z)=\Phi'(z)=\frac{e^{-z^2/2}}{\sqrt{2\pi}},
 \]
-and, using \(\Ncdf(0.35)\approx0.6368\), \(\Ncdf(0.15)\approx0.5596\),
+where \(\Phi\) is the standard normal CDF. Then
 \[
-C_t=100(0.6368)-100e^{-0.05}(0.5596)\approx10.45.
+\boxed{C_t=S_t\Phi(d_1)-KD\Phi(d_2),\qquad
+P_t=KD\Phi(-d_2)-S_t\Phi(-d_1).}
 \]
-Parity then gives \(P_t\approx5.57\).
-\end{boardexample}
+Moreover \(\Phi(d_2)=\Q(S_T>K\mid\cF_t)\).
+\end{theorem}
 
-\subsection{Greeks and local hedging}
+\subsection{ATM short-maturity limits}
 
-For an option price \(V(S,t)\), the standard sensitivities are
+\begin{proposition}[Square-root rule]
+At \(S_t=K\), define \(a=S_t\sigma\sqrt\tau/\sqrt{2\pi}\). For fixed
+\(r,\sigma\), as \(\tau\downarrow0\),
 \[
-\begin{array}{c|c|l}
-\text{Greek}&\text{notation}&\text{meaning}\\ \hline
-\text{Delta}&\partial_SV&\text{sensitivity to a small stock move}\\
-\text{Gamma}&\partial_{SS}V&\text{how quickly Delta changes}\\
-\text{Vega}&\partial_\sigma V&\text{sensitivity to volatility}\\
-\text{Theta}&\partial_tV&\text{sensitivity to passage of time}\\
-\text{Rho}&\partial_rV&\text{sensitivity to the interest rate.}
-\end{array}
+C_t=a+\frac{rS_t}{2}\tau+O(\tau^{3/2}),\qquad
+P_t=a-\frac{rS_t}{2}\tau+O(\tau^{3/2}).
 \]
-For a no-dividend Black--Scholes call,
+In particular,
 \[
-\Delta_{\mathrm{call}}=\Ncdf(d_1),
-\qquad
-\Gamma=\frac{\Ncdf'(d_1)}{S_t\sigma\sqrt\tau},
-\qquad
-\text{Vega}=S_t\sqrt\tau\,\Ncdf'(d_1).
+\boxed{C_t\sim P_t\sim\frac{S_t\sigma\sqrt\tau}{\sqrt{2\pi}}
+\approx0.4S_t\sigma\sqrt\tau,\qquad
+C_t+P_t\sim\sqrt{\frac2\pi}S_t\sigma\sqrt\tau.}
 \]
-Delta is the number of shares used in a first-order hedge. Gamma means that
-this number changes as the stock moves; a Delta hedge therefore must be
-rebalanced.
+\end{proposition}
+\begin{proof}[Sketch]
+At \(r=0\) and \(S_t=K\), \(C_t=P_t=S_t[2\Phi(\sigma\sqrt\tau/2)-1]\). Use
+\(\Phi(x)=\tfrac12+x/\sqrt{2\pi}+O(x^3)\) as \(x\to0\).
+\end{proof}
 
-\begin{studentexercise}{Delta hedge}
-A call has Delta \(0.64\). What is the first-order price change after a
-\(\$1\) stock rise? How many shares hedge a short position in 100 calls?
-\end{studentexercise}
-\begin{shortsolution}
-The call price rises by approximately \(\$0.64\). The short-call position has
-Delta \(-64\), so buying approximately 64 shares gives a locally
-Delta-neutral position. It is not risk-free: Gamma, volatility changes, and
-discrete rehedging remain.
-\end{shortsolution}
-
-\subsection{Implied volatility: a surface in strike and maturity}
-
-Given a European call quote \(C_t^{\mathrm{mkt}}(K,T)\), its implied
-volatility is the value \(\sigma_{\mathrm{imp},t}(K,T)\) solving
-\[
-C^{\mathrm{BS}}\!\left(S_t,K,\tau,r,\sigma_{\mathrm{imp},t}(K,T)\right)
-=C_t^{\mathrm{mkt}}(K,T),\qquad \tau=T-t.
-\]
-We hold spot, strike, maturity, and the interest rate fixed and invert the
-Black--Scholes formula with respect to \(\sigma\). For \(S_t,K,\tau>0\),
-Black--Scholes Vega is strictly positive, so the solution is unique when
-it exists. A quote strictly between \((S_t-Ke^{-r\tau})^+\) and \(S_t\)
-has a unique positive, finite implied volatility, found numerically, for
-example by bisection. The earlier one-year call price of approximately
-\(10.45\), with \(S_t=K=100\) and \(r=5\%\), gives approximately \(20\%\).
-Traders quote implied volatility because it makes options with different
-strikes and maturities easier to compare than their dollar premiums alone.
-
-\begin{keyidea}{Two variables, at a fixed observation date}
-For a given underlying and a fixed date \(t\), implied volatility is a
-\textbf{function of two variables: strike \(K\) and maturity \(T\)}:
-\[
-\boxed{(K,T)\longmapsto\sigma_{\mathrm{imp},t}(K,T).}
-\]
-This is the \textbf{implied volatility surface}. Equivalently, use strike
-and time to maturity \(\tau=T-t\). Each option quote supplies one point on
-the surface; there is generally no single implied volatility for a stock.
-The subscript \(t\) records when quotes are observed: the surface itself
-evolves as market conditions change.
-\end{keyidea}
-
-There are two natural ways to take a slice of the surface:
-\begin{itemize}
-\item \textbf{Fix \(T\), vary \(K\):} obtain a smile or skew. A smile has
-      higher implied volatilities in both wings than near the money; a
-      downside skew has higher implied volatilities at lower strikes.
-\item \textbf{Fix \(K\), vary \(T\):} obtain a term structure of implied
-      volatility. It can rise, fall, or be nonmonotone. Every volatility is
-      annualized, regardless of the option's maturity.
-\end{itemize}
-Market displays may use moneyness instead of strike. An at-the-money term
-structure defined by \(K=F_{t,T}\), for example, follows the forward at each
-expiry rather than holding the numerical strike fixed.
-
-\begin{boardexample}{reading two directions of the surface}
-At \(S_t=100\), consider the following illustrative annualized quotes:
-\begin{center}
-\begin{tabular}{lccc}
-\toprule
-Time to maturity & \(K=90\) & \(K=100\) & \(K=110\)\\
-\midrule
-3 months & \(28\%\) & \(22\%\) & \(20\%\)\\
-1 year   & \(25\%\) & \(21\%\) & \(20\%\)\\
-2 years  & \(24\%\) & \(22\%\) & \(21\%\)\\
-\bottomrule
-\end{tabular}
-\end{center}
-The first row shows a downside skew at a fixed 3-month maturity. The middle
-column shows a nonmonotone term structure at the fixed strike \(100\).
-Saying ``implied volatility is \(22\%\)'' is incomplete without specifying
-both strike and maturity.
-\end{boardexample}
-
-A single constant-volatility Black--Scholes model predicts the same implied
-volatility across \emph{all strikes and maturities}: a flat surface.
-In equity markets, low-strike out-of-the-money puts often have higher
-implied volatilities than at-the-money options. Demand for crash protection
-can contribute to this downside skew. European calls and puts with the same
-\((K,T)\) have the same implied volatility when their prices satisfy
-put--call parity and the same pricing inputs are used.
-
-\begin{warningbox}{A price quotation, not a guaranteed forecast}
-Implied volatility is extracted from today's option price; historical
-realized volatility is estimated from past returns. Implied volatility is
-not a guaranteed forecast of future realized volatility. A nonflat surface
-shows that constant-volatility Black--Scholes is an imperfect description
-of market prices; a skew is not in itself an arbitrage.
+\begin{warningbox}{An ATM approximation only}
+The square-root rule holds at the money. Away from the money, use the full
+Black--Scholes formula.
 \end{warningbox}
 
-\clearpage
-\subsection{Market figures: downside skew and currency smile}
+\subsection{Greeks and the Delta hedge}
 
-The following published figures use historical market quotes. They show
-annualized implied volatility against strike; each curve has a fixed tenor.
-
-\begin{center}
-\includegraphics[width=0.72\textwidth]{../Figures/spx_skew_2024-08-02_2024-08-05.png}
-\end{center}
-\textbf{S\&P 500 options: downside skew.}
-The two curves correspond to 2 and 5 August 2024, with a 30-day tenor
-interpolated in variance between expiries. Near the money, lower strikes
-carry higher implied volatilities. The right wing eventually rises too:
-skew and smile curvature can coexist.
-
-{\footnotesize Source: Cboe, Edward K.~Tom,
-\href{https://cdn.cboe.com/resources/vix/VIX-Decomposition-2025-08-01.pdf}{\emph{The VIX Index Decomposition}},
-1 August 2025, Exhibit 7, p.~9 (chart reproduced).
-The chart legend and surrounding text date the observations to 2024;
-the source's exhibit heading contains a year typo.\par}
-
-\medskip
-\begin{center}
-\includegraphics[width=0.66\textwidth]{../Figures/eurusd_smile_2025-04-23.png}
-\end{center}
-\textbf{EUR/USD options: an asymmetric smile.}
-For a six-month tenor on 23 April 2025, both wings lie above the trough.
-The strike is measured in USD per EUR. The smile is not symmetric, and
-its minimum need not coincide with the spot or forward.
-
-{\footnotesize Source: Uwe Wystup (MathFinance),
-\href{https://www.mathfinance.com/wp-content/uploads/2025/06/FX-Column_2025-07_Why-digitals-dont-have-percentage-prices.pdf}{\emph{Why Digitals don't Have all Percentage Price Quotes}},
-2025, Figure 2, p.~2; market quotes from ICE Data Services.
-The author uses parabolic interpolation in delta, converts it to strike,
-and fixes the reference spot at 1.1000 for illustration. This is a curve
-constructed from market quotes, not a scatterplot of individual trades.\par}
-
-\clearpage
-% ============================================================
-\section{Model-free bounds}
-% ============================================================
-
-\subsection{Calls and puts lie in known intervals}
-
-\begin{proposition}[Basic no-arbitrage bounds]
-With no dividends and \(D_t=e^{-r(T-t)}\),
+\begin{definition}[Greeks]
+For a price function \(v(t,s)\),
 \[
-\boxed{\max(S_t-KD_t,0)\le C_t\le S_t,}
-\qquad
-\boxed{\max(KD_t-S_t,0)\le P_t\le KD_t.}
+\Delta=\partial_s v,\quad \Gamma=\partial_{ss}v,\quad
+\nu=\partial_\sigma v,\quad \Theta=\partial_t v,\quad \rho=\partial_r v.
+\]
+\end{definition}
+
+\begin{proposition}[Black--Scholes Greeks]
+\[
+\Delta_C=\Phi(d_1),\qquad \Delta_P=\Phi(d_1)-1,\qquad
+\boxed{\Gamma_C=\Gamma_P=\frac{\phi(d_1)}{S_t\sigma\sqrt\tau}>0,}
+\]
+\[
+\boxed{\nu_C=\nu_P=S_t\sqrt\tau\,\phi(d_1)>0,}\qquad
+\rho_C=K\tau D\Phi(d_2),\quad \rho_P=-K\tau D\Phi(-d_2),
+\]
+\[
+\begin{aligned}
+\Theta_C&=-\frac{S_t\sigma\phi(d_1)}{2\sqrt\tau}-rKD\Phi(d_2),\\
+\Theta_P&=-\frac{S_t\sigma\phi(d_1)}{2\sqrt\tau}+rKD\Phi(-d_2).
+\end{aligned}
 \]
 \end{proposition}
 
-\begin{proof}
-For the call upper bound, one share superhedges the call because
-\(S_T\ge(S_T-K)^+\). Thus a call cannot cost more than the share. If it did,
-sell the call, buy the share, and retain the positive difference today.
+Theta uses calendar time \(t\), not time to maturity \(\tau\). At \(r=0\),
+\(\Theta=-\tfrac12\sigma^2S_t^2\Gamma\).
 
-For the lower bound, call positivity gives \(C_t\ge0\), and parity gives
-\(C_t=P_t+S_t-KD_t\ge S_t-KD_t\) because \(P_t\ge0\). Combining them gives
-the stated lower bound. The put bounds follow by the symmetric argument, or
-by applying parity to the call bounds.
-\end{proof}
+\begin{keyidea}{Delta hedging and Gamma}
+Hedge a short option with \(+\Delta\) shares; hedge a long option with
+\(-\Delta\) shares. For a small spot move,
+\[
+\delta v\approx\Delta\,\delta S,\qquad
+\delta\Delta\approx\Gamma\,\delta S.
+\]
+Delta is the first-order hedge ratio; positive Gamma is why that hedge must be
+rebalanced. After a rise in spot, a call's Delta increases: the call seller
+buys more shares, while a long-call hedger sells. Delta-neutral is not
+risk-free: Gamma, volatility, and discrete rehedging still matter.
+\end{keyidea}
 
-\begin{studentexercise}{a fast quote check}
-For \(S_t=K=100\), \(r=5\%\), and \(\tau=1\), classify call quotes \(2\),
-\(10.45\), and \(103\) as impossible or potentially arbitrage-free.
+\begin{proposition}[ATM Greeks near expiry]
+At \(S_t=K\),
+\[
+\Gamma_{\rm ATM}\sim\frac1{S_t\sigma\sqrt{2\pi\tau}},\qquad
+\Delta_C\longrightarrow
+\begin{cases}0&S_t<K,\\ \tfrac12&S_t=K,\\1&S_t>K,\end{cases}
+\]
+where the Delta limits are taken at fixed spot as \(\tau\downarrow0\).
+At \(r=0\), \(\Delta_{\rm ATM}=\Phi(\sigma\sqrt\tau/2)>\tfrac12\) before expiry.
+\end{proposition}
+
+\begin{warningbox}{Pre-expiry limits versus the payoff kink}
+These are pre-expiry limits at fixed spot. At \(S_T=K\), the terminal payoff
+has a kink; its classical Delta and Gamma are undefined. Gamma concentrates
+near the strike as expiry approaches and tends to zero at fixed \(S_t\ne K\).
+\end{warningbox}
+
+\begin{studentexercise}{Gamma and Vega of combinations}
+(a) What are the Gamma and Vega of a matched call-minus-put position?
+(b) Buy a \(K_1\)-strike call and sell a \(K_2\)-strike call, \(K_1<K_2\),
+same expiry. Must the spread's Vega be positive?
 \end{studentexercise}
 \begin{shortsolution}
-The bounds are
-\[
-\max(100-100e^{-0.05},0)\approx4.88\le C_t\le100.
-\]
-Thus \(2\) is too low, \(103\) is too high, and \(10.45\) is inside the
-model-free interval. Being inside the interval is necessary, not sufficient,
-for all cross-strike and cross-maturity consistency checks.
+(a) Parity gives \(C_t-P_t=S_t-KD\), linear in spot and independent of
+volatility: \(\Delta=1\), \(\Gamma=\nu=0\).
+(b) \(\nu_{\rm spread}=\nu(K_1)-\nu(K_2)\) can have either sign. When spot is
+well above both strikes, \(d_1(K_1)>d_1(K_2)>0\), so \(\nu(K_1)<\nu(K_2)\)
+and the spread has negative Vega. A nonnegative payoff does not imply
+positive Vega.
 \end{shortsolution}
 
-\subsection{Superhedges and subhedges}
-
-The option bounds are instances of a general principle. If tradable portfolios
-have terminal values \(Y_T\le H\le X_T\), their initial costs satisfy
-\[
-\boxed{Y_0\le\text{price}(H)\le X_0.}
-\]
-If the claim is more expensive than the superhedge, sell the claim and buy
-the superhedge. If it is cheaper than the subhedge, buy the claim and short
-the subhedge. In both cases the trade pays today and cannot lose at maturity.
-
 % ============================================================
-\section{Strike and maturity consistency}
+\section{Volatility: Historical, Realized, and Implied}
 % ============================================================
 
-\subsection{Monotonicity in the strike}
+\subsection{Historical and realized annualized volatility}
 
-\begin{proposition}[Strike monotonicity]
-For the same underlying and maturity, if \(K_1<K_2\), then
+\begin{definition}[Historical volatility]
+From \(n+1\) observed prices (\(n\ge2\)), define log returns and their sample
+mean and variance:
 \[
-C_t(K_1)\ge C_t(K_2),
-\qquad
-P_t(K_1)\le P_t(K_2).
+R_i=\log\!\left(\frac{S_{t_i}}{S_{t_{i-1}}}\right),\qquad
+\overline R=\frac1n\sum_{i=1}^nR_i,\qquad
+s_R^2=\frac1{n-1}\sum_{i=1}^n(R_i-\overline R)^2.
 \]
-\end{proposition}
+For \(A\) observations per year (\(A=252\) for daily trading returns),
+\[
+\boxed{\widehat\sigma_{\rm hist,ann}=\sqrt A\,s_R.}
+\]
+\end{definition}
 
+The square-root annualization assumes uncorrelated returns with a common mean
+and variance; normality is not required.
+
+\begin{definition}[Realized volatility]
+Over a window \(\Delta T=T-t=n/A\),
+\[
+\boxed{\mathrm{RV}_{\rm ann}=\frac1{\Delta T}\sum_{i=1}^nR_i^2,\qquad
+\widehat\sigma_{\rm real,ann}=\sqrt{\mathrm{RV}_{\rm ann}}.}
+\]
+\end{definition}
+
+Realized variance uses uncentered squared returns. For a continuous diffusion,
+as sampling becomes finer,
+\[
+\sum_iR_i^2\xrightarrow{\Pp}\int_t^T\sigma_u^2\dd u,
+\qquad \sigma_{\rm real,ann}^2=\frac1{T-t}\int_t^T\sigma_u^2\dd u.
+\]
+
+\subsection{Implied volatility and the surface}
+
+\begin{definition}[Implied volatility]
+The implied volatility \(\sigma_{{\rm imp},t}(K,T)\) solves
+\[
+\boxed{C^{\rm BS}(S_t,K,\tau,r,\sigma_{{\rm imp},t}(K,T))=C_t^{\rm mkt}(K,T).}
+\]
+At a fixed observation date \(t\), the map
+\((K,T)\mapsto\sigma_{{\rm imp},t}(K,T)\) is the implied volatility surface.
+\end{definition}
+
+Strike slices form a smile or skew; expiry slices form a term structure.
+Constant-volatility BS gives a flat implied surface.
+
+\begin{warningbox}{A price, not a forecast}
+Implied volatility is a price expressed in BS volatility units. It is neither
+historical realized volatility nor a guaranteed forecast of future realized
+volatility.
+\end{warningbox}
+
+\begin{studentexercise}{a put instead of a call}
+You quoted a European call in implied volatility. The client wants the put
+with the same \(K,T\). Should the volatility change? And what do traders mean
+when they say that ``puts trade at higher vol''?
+\end{studentexercise}
+\begin{shortsolution}
+No: matched, parity-consistent calls and puts have the same implied
+volatility, because the BS formulas satisfy parity at every common
+volatility, in or out of the money. The trader's statement compares
+low-strike OTM puts with high-strike OTM calls, i.e.\ \emph{different
+strikes}: a downside skew, which is consistent with parity.
+\end{shortsolution}
+
+% ============================================================
+\section{Replication with the Wrong Volatility}
+% ============================================================
+
+\begin{assumptionbox}{Setting: seller's convention}
+No dividends, constant \(r\), continuous and costless rebalancing. Actual
+dynamics and a fixed-volatility model price:
+\[
+\frac{\dd S_u}{S_u}=\mu_u\dd u+\sigma_u\dd W_u^{\Pp},\qquad
+v(u,s)=C^{\rm BS}(s,K,T-u,r,\widehat\sigma),\quad \widehat\sigma>0.
+\]
+Use model Greeks \(\Delta_u=v_s(u,S_u)\), \(\Gamma_u=v_{ss}(u,S_u)\),
+evaluated with \(\widehat\sigma\). Sell the call and run
+\[
+V_0=v(0,S_0),\qquad
+\dd V_u=\Delta_u\dd S_u+r(V_u-\Delta_uS_u)\dd u,\qquad
+\Pi_u=V_u-v(u,S_u).
+\]
+\end{assumptionbox}
+
+\begin{theorem}[Gamma-weighted P\&L]
+\[
+\boxed{\dd\Pi_u=r\Pi_u\dd u+
+\frac12(\widehat\sigma^2-\sigma_u^2)S_u^2\Gamma_u\dd u,\quad \Pi_0=0,}
+\]
+and therefore
+\[
+\boxed{\Pi_T=V_T-(S_T-K)^+
+=\frac12\int_0^T e^{r(T-u)}S_u^2\Gamma_u
+          (\widehat\sigma^2-\sigma_u^2)\dd u.}
+\]
+\end{theorem}
 \begin{proof}
-For every terminal stock price,
+By It\^o's formula under the actual dynamics,
+\(\dd v=v_t\dd u+\Delta_u\dd S_u+\tfrac12\sigma_u^2S_u^2\Gamma_u\dd u\).
+The model price solves the BS PDE with \(\widehat\sigma\):
+\(v_t=rv-rS_u\Delta_u-\tfrac12\widehat\sigma^2S_u^2\Gamma_u\). Subtracting
+from \(\dd V_u\), the \(\dd S_u\) terms cancel and
 \[
-(S_T-K_1)^+\ge(S_T-K_2)^+.
+\dd\Pi_u=r(V_u-v)\dd u+\tfrac12(\widehat\sigma^2-\sigma_u^2)S_u^2\Gamma_u\dd u.
 \]
-The lower-strike call dominates the higher-strike call, so it cannot be
-cheaper. The put comparison reverses because the right to sell at a higher
-price is more valuable.
+Then \(\dd(e^{-ru}\Pi_u)=\tfrac12e^{-ru}(\widehat\sigma^2-\sigma_u^2)
+S_u^2\Gamma_u\dd u\); integrate from \(0\) to \(T\) and use
+\(v(T,S_T)=(S_T-K)^+\).
 \end{proof}
 
-\begin{boardexample}{monotonicity arbitrage}
-Suppose \(K_1=90<K_2=110\), but \(C_t(90)=8<C_t(110)=10\). Buy the
-lower-strike call and sell the higher-strike call. The initial receipt is
-\(2\), while the terminal payoff
+\begin{keyidea}{Reading the formula}
+An initial premium mismatch adds \(e^{rT}\Pi_0\). The long-option hedge
+reverses the sign. For calls and puts, \(\Gamma_u>0\): pointwise
+overestimating volatility benefits the seller.
+\end{keyidea}
+
+\begin{warningbox}{Realized volatility alone does not decide the P\&L}
+An unweighted realized variance does not determine this Gamma-weighted P\&L.
+Discrete rehedging and costs add further effects.
+\end{warningbox}
+
+\begin{studentexercise}{realized above implied}
+You buy a call at implied volatility \(\widehat\sigma\) and Delta-hedge it
+daily. Realized volatility over the life of the option exceeds
+\(\widehat\sigma\). Must you have made money?
+\end{studentexercise}
+\begin{shortsolution}
+No. At \(r=0\), in the continuous costless benchmark,
+\(\Pi_T^{\rm long}=\tfrac12\int_0^TS_t^2\Gamma_t(\sigma_t^2-\widehat\sigma^2)\dd t\).
+The weights \(S_t^2\Gamma_t\) are absent from realized volatility; high
+volatility far from the strike earns little. Daily rehedging and costs add
+further differences.
+\end{shortsolution}
+
+% ============================================================
+\section{Strike Restrictions at a Fixed Expiry}
+% ============================================================
+
+\begin{proposition}[Monotonicity, slope, and convexity in strike]
+For \(K_1<K_2\), with \(D=e^{-r\tau}\),
 \[
-(S_T-90)^+-(S_T-110)^+\ge0
+\boxed{0\le C_t(K_1)-C_t(K_2)\le D(K_2-K_1),\qquad
+0\le P_t(K_2)-P_t(K_1)\le D(K_2-K_1).}
 \]
-in every state.
-\end{boardexample}
-
-\subsection{Convexity and butterfly spreads}
-
-\begin{proposition}[Strike convexity]
-For equally spaced strikes \(K-h<K<K+h\), an arbitrage-free call curve
-satisfies
+For equally spaced strikes,
 \[
 \boxed{C_t(K-h)-2C_t(K)+C_t(K+h)\ge0.}
 \]
-Equivalently, \(K\mapsto C_t(K)\) is convex.
+If prices are smooth, \(-D\le\partial_K C\le0\), \(0\le\partial_KP\le D\),
+and \(\partial_{KK}C=\partial_{KK}P\ge0\).
 \end{proposition}
-
 \begin{proof}
-The butterfly payoff is
-\[
-(S_T-K+h)^+-2(S_T-K)^++(S_T-K-h)^+.
-\]
-It is zero outside \([K-h,K+h]\), increases linearly from zero to \(h\),
-then decreases linearly to zero. It is therefore nonnegative in every state,
-so its price must be nonnegative.
+The call spread pays \((S_T-K_1)^+-(S_T-K_2)^+\in[0,K_2-K_1]\); price the two
+bounds by dominance. The butterfly payoff \((h-|S_T-K|)^+\) is nonnegative,
+so its price is nonnegative. Puts follow by parity.
 \end{proof}
 
-\begin{studentexercise}{a butterfly quote check}
-At equally spaced strikes \(90,100,110\), calls are quoted at
-\(14,12,7\). Check monotonicity and convexity. If necessary, construct the
-arbitrage.
-\end{studentexercise}
-\begin{shortsolution}
-Monotonicity holds: \(14>12>7\). Convexity requires
+\begin{warningbox}{What this implies for the smile}
+For implied quotes \(I_i=\sigma_{{\rm imp},t}(K_i,T)\), apply these
+restrictions to
 \[
-C_t(100)\le\tfrac12\big(C_t(90)+C_t(110)\big)=10.5,
+C_i=C^{\rm BS}(S_t,K_i,\tau,r,I_i).
 \]
-but the quote is \(12\). Buy the \(90\) and \(110\) calls and sell two
-\(100\) calls. The initial cost is
-\[
-14+7-2(12)=-3,
-\]
-a receipt of \(3\), while the terminal butterfly payoff is nonnegative.
-\end{shortsolution}
-
-\subsection{A qualified maturity comparison}
-
-If rates and dividends are zero and \(T_1<T_2\), calls with the same strike
-satisfy
-\[
-C_t(K,T_2)\ge C_t(K,T_1).
-\]
-If this failed, buy the longer option and sell the shorter option. At
-\(T_1\), the remaining longer option is worth at least the intrinsic value
-needed to settle the short call. This is the calendar-spread argument.
-
-\begin{warningbox}{Do not overstate calendar monotonicity}
-Positive rates and dividends change the comparison across maturities. The
-simple inequality above is a useful clean case, not a universal replacement
-for the full calendar-arbitrage conditions used to construct option surfaces.
+They constrain the \(I_i\) jointly; implied volatility itself need not
+decrease or be convex in strike.
 \end{warningbox}
 
 % ============================================================
-\section{Synthesis and practice}
+\section{Calendar Restrictions}
 % ============================================================
 
-\begin{keyidea}{A practical order for quote diagnostics}
+\subsection{Calendar spread at zero rates and dividends}
+
+For the same strike and \(t<T_1<T_2\), buy the \(T_2\) call and sell the
+\(T_1\) call. Close at \(T_1\) by selling the remaining long call and
+settling the short:
+\[
+B_t=C_t(K,T_2)-C_t(K,T_1),\qquad
+B_{T_1}=C_{T_1}(K,T_2)-(S_{T_1}-K)^+,\qquad
+\boxed{\Pi_{T_1}=B_{T_1}-B_t.}
+\]
+
+\begin{proposition}[Calendar monotonicity]
+At \(r=q=0\), \(B_{T_1}\ge0\), and hence
+\[
+\boxed{B_t=C_t(K,T_2)-C_t(K,T_1)\ge0.}
+\]
+\end{proposition}
+\begin{proof}
+The intrinsic-value lower bound at \(T_1\) gives
+\(C_{T_1}(K,T_2)\ge(S_{T_1}-K)^+\); equivalently, since \(S\) is a
+\(\Q\)-martingale, conditional Jensen yields
+\(\E^\Q[(S_{T_2}-K)^+\mid\cF_{T_1}]\ge(S_{T_1}-K)^+\). If \(B_t<0\), selling
+the short-dated call and buying the long-dated one earns \(-B_t>0\) today
+with a nonnegative closing cashflow \(B_{T_1}\).
+\end{proof}
+
+\begin{warningbox}{No arbitrage is not a guaranteed profit}
+A negative initial spread price is an arbitrage; a nonnegative initial price
+does not guarantee a profit.
+\end{warningbox}
+
+\subsection{Calendar condition in implied-volatility units}
+
+\begin{proposition}[Total implied variance increases]
+At \(r=q=0\), fixed spot and strike, let \(\tau_i=T_i-t\),
+\(I_i=\sigma_{{\rm imp},t}(K,T_i)\), and \(w_i=\tau_iI_i^2\). Then
+\[
+\boxed{C_t(K,T_2)\ge C_t(K,T_1)
+\iff \tau_2I_2^2\ge\tau_1I_1^2
+\iff I_2\ge I_1\sqrt{\frac{\tau_1}{\tau_2}}.}
+\]
+\end{proposition}
+\begin{proof}
+At \(r=q=0\), the BS call depends on \(\sigma\) and \(\tau\) only through
+\(\sigma\sqrt\tau=\sqrt w\), and it is strictly increasing in it since
+\(\nu>0\).
+\end{proof}
+
+\subsection{Deterministic carry: fix forward moneyness}
+
+For known constant \(r,q\), define
+\[
+D(\tau)=e^{-r\tau},\quad F(\tau)=S_te^{(r-q)\tau},\quad
+x=\frac K{F(\tau)},\quad
+c(x,\tau)=\frac{C_t(xF(\tau),t+\tau)}{D(\tau)F(\tau)}.
+\]
+
+\begin{proposition}[Calendar condition with carry]
+With \(w(x,\tau)=\tau\sigma_{{\rm imp},t}(xF(\tau),t+\tau)^2\),
+\[
+\boxed{c(x,\tau_2)\ge c(x,\tau_1)\iff w(x,\tau_2)\ge w(x,\tau_1).}
+\]
+\end{proposition}
+
+\begin{warningbox}{Different strikes across expiries}
+The comparison holds at fixed \(x\), generally with different strikes
+\(K_i=xF(\tau_i)\) across expiries. Each maturity slice must also satisfy the
+strike constraints of Section~6.
+\end{warningbox}
+
+\Needspace{16\baselineskip}
+% ============================================================
+\section{Synthesis: Diagnose Before You Price}
+% ============================================================
+
+\begin{keyidea}{A disciplined order for checking an option quote}
 \begin{enumerate}
-  \item Match the contract specifications: underlying, \(K\), \(T\), and dividends.
+  \item Identify the exact contract: underlying, strike, maturity, dividends.
   \item Check positivity and the basic upper and lower bounds.
-  \item Check put--call parity for calls and puts with the same \(K,T\).
+  \item Pair calls and puts with the same \(K,T\) to check parity.
   \item Across strikes, check monotonicity and convexity.
-  \item Across maturities, use calendar checks with their stated assumptions.
-  \item When an inequality fails, write the portfolio and its cashflows before
-        labelling the opportunity an arbitrage.
+  \item Across maturities, apply calendar checks only with the right
+        assumptions.
+  \item If a check fails, write the portfolio before calling it an arbitrage.
 \end{enumerate}
 \end{keyidea}
 
-\begin{studentexercise}{final diagnostic}
-Assume no dividends. Given \(S_t=100\), \(K=100\), \(r=5\%\), \(\tau=1\),
-\(C_t=12\), and \(P_t=5\), identify the inconsistency and construct the
-trade.
-\end{studentexercise}
-\begin{shortsolution}
-Since \(100e^{-0.05}=95.12\),
-\[
-C_t+KD_t=107.12>105=P_t+S_t.
-\]
-Sell the call, borrow \(95.12\), buy the put, and buy one share. The trade
-receives \(2.12\) initially and has zero terminal net payoff by put--call
-parity.
-\end{shortsolution}
-
 \begin{keyidea}{Final synthesis}
 \[
-\text{option payoff geometry}
+\boxed{\text{option payoff geometry}
 \quad\Longrightarrow\quad
-\text{arbitrage-free prices and hedges}.
+\text{arbitrage-free prices and hedges}.}
 \]
+Replication gives parity; dominance gives bounds; strike convexity gives
+butterfly tests. Black--Scholes gives prices, Greeks, and implied
+volatilities, but never replaces model-free consistency checks. A wrong
+volatility creates a variance error weighted by \(S_u^2\Gamma_u\).
 \end{keyidea}
-
 \end{document}

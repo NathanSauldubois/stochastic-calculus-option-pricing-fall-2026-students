@@ -1,5 +1,5 @@
 % !TEX program = pdflatex
-\documentclass[10pt,aspectratio=169]{beamer}
+\documentclass[handout,10pt,aspectratio=169]{beamer}
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -155,7 +155,7 @@ Z>0,\qquad \E^\Pp[Z]=1,\qquad
 Compute \(Z\), identify which states are upweighted, and check
 \(\E^\Pp[Z]=1\).
 \end{pausebox}
-\pause
+
 \[
 \boxed{Z(\omega_1)=\tfrac12,\quad
 Z(\omega_2)=\tfrac32,\quad Z(\omega_3)=\tfrac32.}
@@ -167,7 +167,7 @@ In the previous model, let \(Y=(-2,1,4)\).
 \begin{pausebox}
 Compute \(\E^\Q[Y]\) directly, then as \(\E^\Pp[ZY]\).
 \end{pausebox}
-\pause
+
 \[
 \E^\Q[Y]=-\frac12+\frac12+1=1,
 \]
@@ -216,7 +216,7 @@ X=\frac{\E^\Pp[ZY\mid\mathcal G]}
 For \(A\in\mathcal G\), show that
 \(\E^\Q[\1_AX]=\E^\Q[\1_AY]\).
 \end{pausebox}
-\pause
+
 \[
 \E^\Pp[\1_AX\E^\Pp[Z\mid\mathcal G]]
 =\E^\Pp[\1_A\E^\Pp[ZY\mid\mathcal G]]
@@ -254,7 +254,7 @@ The moment-generating function (MGF) is
 \begin{pausebox}
 For \(\theta>0\), does \(Z\) favor positive or negative \(X\)?
 \end{pausebox}
-\pause
+
 It favors negative values because the weight contains \(e^{-\theta X}\).
 \end{frame}
 
@@ -277,7 +277,7 @@ Suppose \(X\sim\Nlaw(0,\sigma^2)\) under \(\Pp\).
 \begin{pausebox}
 Find \(Z=e^{aX+b}\) that makes \(X\sim\Nlaw(m,\sigma^2)\) under \(\Q\).
 \end{pausebox}
-\pause
+
 \[
 \boxed{
 a=\frac{m}{\sigma^2},
@@ -299,7 +299,7 @@ With \(Z=e^{-\theta X-\theta^2/2}\),
 Which equality is the definition of \(\Q\), and which equality uses the
 Gaussian law?
 \end{pausebox}
-\pause
+
 The first is change of measure; the second is a distributional consequence.
 \end{frame}
 
@@ -418,7 +418,7 @@ Suppose \(B_t=e^{rt}\) and
 \begin{pausebox}
 Compute the dynamics of \(\bar S_t=S_t/B_t\). Which term must disappear?
 \end{pausebox}
-\pause
+
 \[
 \boxed{\frac{\dd\bar S_t}{\bar S_t}
 =(\mu-r)\dd t+\sigma\dd W_t.}
@@ -442,7 +442,7 @@ Set \(v=\int_0^T h_s^2\dd s\). The Gaussian MGF says
 Find a unit-mean exponential weight built from \(X\), and write it as a
 density for reweighting Brownian paths.
 \end{pausebox}
-\pause
+
 The normalizing correction is \(-v/2\), so the path density is
 \[
 \boxed{
@@ -479,7 +479,7 @@ Z_T=e^{\theta W_T-\theta^2T/2},
 \begin{pausebox}
 What is the law of \(W_T\) under \(\Q\)?
 \end{pausebox}
-\pause
+
 Since \(W_T=B_T+\theta T\),
 \[
 \boxed{W_T\sim\Nlaw(\theta T,T)\text{ under }\Q.}
@@ -545,7 +545,7 @@ Applying It\^o to \(Z_t=e^{Y_t}\),
 \begin{pausebox}
 Does zero drift already prove that \(Z\) is a true martingale?
 \end{pausebox}
-\pause
+
 No. It first gives a local martingale; integrability is still required.
 \end{frame}
 
@@ -577,7 +577,7 @@ and
 \begin{pausebox}
 Does finite energy almost surely imply Novikov automatically?
 \end{pausebox}
-\pause
+
 No. Almost-sure finiteness does not control an exponential expectation.
 \end{frame}
 
@@ -596,7 +596,7 @@ e^{\int_0^T\psi_s\dd W_s-\frac12\int_0^T\psi_s^2\dd s}
 \begin{pausebox}
 Which can immediately define a new probability measure? Justify.
 \end{pausebox}
-\pause
+
 The first is Gaussian, the second satisfies Novikov, and the third needs
 more information.
 \end{frame}
@@ -667,7 +667,7 @@ Let \(a_t\ne0\) in
 \begin{pausebox}
 Choose \(\phi_t\) so that \(X\) has zero drift under \(\Q\).
 \end{pausebox}
-\pause
+
 \[
 \boxed{\phi_t=-\frac{b_t}{a_t}.}
 \]
@@ -704,7 +704,7 @@ Z_T=e^{-\lambda W_T-\lambda^2T/2}.
 \begin{pausebox}
 Find the \(\Q\)-Brownian motion and the law of \(W_T\) under \(\Q\).
 \end{pausebox}
-\pause
+
 Here \(\phi=-\lambda\), so
 \[
 W_t^\Q=W_t+\lambda t,\qquad W_T=W_T^\Q-\lambda T,
@@ -746,7 +746,7 @@ but now we want drift \(\nu\), not necessarily zero.
 \begin{pausebox}
 Which Brownian shift produces \(\dd X_t=\nu\dd t+\sigma\dd W_t^\Q\)?
 \end{pausebox}
-\pause
+
 Choose
 \[
 \lambda=\frac{\mu-\nu}{\sigma},
@@ -840,7 +840,7 @@ the historical measure.
 \begin{pausebox}
 Which step remains unresolved if Novikov is unavailable?
 \end{pausebox}
-\pause
+
 Only validity; the algebraic drift candidate still exists.
 \end{frame}
 
@@ -876,7 +876,7 @@ Then
 Should the density contain \(+\int\lambda\dd W\) or
 \(-\int\lambda\dd W\) to eliminate the drift?
 \end{pausebox}
-\pause
+
 It must use the negative sign.
 \end{frame}
 
@@ -1015,7 +1015,7 @@ the discounted strike tail.
 As maturity approaches, what should delta do when the call is deeply
 in the money? Deeply out of the money? Near the strike?
 \end{pausebox}
-\pause
+
 \[
 \Delta_t\longrightarrow
 \begin{cases}

@@ -1,0 +1,427 @@
+% !TEX program = pdflatex
+\documentclass[10pt,letterpaper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=0.64in,includeheadfoot,headheight=13pt,headsep=10pt,footskip=22pt]{geometry}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{microtype,xcolor,enumitem,booktabs,tabularx,listings,fancyhdr,lastpage,hyperref}
+\definecolor{ink}{HTML}{193B56}
+\definecolor{muted}{HTML}{52616C}
+\definecolor{codebg}{HTML}{F3F6F8}
+\hypersetup{colorlinks=true,urlcolor=ink,linkcolor=ink,
+  pdftitle={Essentials to Master - Math and Code - Lectures 1-11},
+  pdfauthor={Nathan Sauldubois},
+  pdfsubject={Stochastic calculus, Black-Scholes, replication, American options and simulation}}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{ink}\textbf{STOCHASTIC CALCULUS \& OPTION PRICING}}
+\fancyhead[R]{\small\color{muted}NYU Tandon | Fall 2026}
+\fancyfoot[L]{\small\color{muted}Essentials to master | Lectures 1--11}
+\fancyfoot[R]{\small\color{muted}\thepage\,/\,\pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.35pt}
+\renewcommand{\footrulewidth}{0pt}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{3pt}
+\setlength{\abovedisplayskip}{5pt plus 1pt minus 1pt}
+\setlength{\belowdisplayskip}{5pt plus 1pt minus 1pt}
+\setlength{\abovedisplayshortskip}{3pt}
+\setlength{\belowdisplayshortskip}{4pt}
+\setlist{leftmargin=1.35em,itemsep=2pt,topsep=3pt,parsep=0pt}
+\lstset{language=Python,basicstyle=\fontsize{9.2}{10.6}\ttfamily,
+  keywordstyle=\color{ink}\bfseries,commentstyle=\color{muted},
+  stringstyle=\color{ink},backgroundcolor=\color{codebg},
+  frame=none,xleftmargin=5pt,xrightmargin=5pt,framexleftmargin=5pt,
+  aboveskip=4pt,belowskip=4pt,showstringspaces=false,keepspaces=true,
+  columns=fullflexible,upquote=true,breaklines=false}
+\newcommand{\dd}{\,\mathrm{d}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\Pbb}{\mathbb{P}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\key}[1]{\par\vspace{4pt}\noindent{\color{ink}\bfseries #1}\par\nobreak}
+\newcommand{\pageheading}[2]{%
+  {\color{ink}\Large\bfseries #1\par}
+  \vspace{3pt}{\color{muted}#2\par}\vspace{3pt}}
+\newcommand{\esssup}{\operatorname*{ess\,sup}}
+\begin{document}
+\fontsize{10.2}{12.1}\selectfont
+
+\pageheading{1\quad Stochastic calculus}{Write the dynamics, compute covariations, then apply It\^o.}
+Time is in years; trading is frictionless. Unless stated otherwise, the stock pays no dividends.
+\begingroup
+\setlength{\parskip}{2pt}
+\setlength{\abovedisplayskip}{4pt}
+\setlength{\belowdisplayskip}{4pt}
+
+\key{Brownian motion, integrals and the multiplication table}
+$W_t-W_s\sim N(0,t-s)$ independently of $\F_s$ for $s<t$.
+For $\dd\langle W^1,W^2\rangle_t=\rho_t\dd t$, the products are:
+
+\noindent\begin{minipage}[c]{0.37\linewidth}
+\centering
+\renewcommand{\arraystretch}{1.05}
+\begin{tabular}{@{}c|ccc@{}}
+$\times$ & $\dd t$ & $\dd W^1_t$ & $\dd W^2_t$\\\hline
+$\dd t$ & $0$ & $0$ & $0$\\
+$\dd W^1_t$ & $0$ & $\dd t$ & $\rho_t\dd t$\\
+$\dd W^2_t$ & $0$ & $\rho_t\dd t$ & $\dd t$
+\end{tabular}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.61\linewidth}
+For predictable $H$ with $\E\int_0^T H_u^2\dd u<\infty$,
+\[
+\begin{gathered}
+ \E\!\left[\int_0^T H_u\dd W_u\right]=0,\\[-1pt]
+ \E\!\left[\left(\int_0^T H_u\dd W_u\right)^2\right]
+ =\E\!\int_0^T H_u^2\dd u.
+\end{gathered}
+\]
+\end{minipage}
+
+Approximate $\int H\dd W$ by left-point sums $\sum_n H_{t_n}(W_{t_{n+1}}-W_{t_n})$.
+
+\key{One state: first the differentials, then the coefficients}
+For $f\in C^{1,2}$ and $\dd X=a\dd t+b\dd W$, use $(\dd X)^2=b^2\dd t$:
+\[
+ \boxed{\dd f=f_t\dd t+f_x\dd X+\tfrac12f_{xx}(\dd X)^2
+ =\left(f_t+af_x+\tfrac12b^2f_{xx}\right)\dd t+bf_x\dd W.}
+\]
+
+\key{Two states: retain the mixed quadratic term}
+For $f=f(t,X_t,Y_t)$, the differential form is
+\[
+ \boxed{\dd f=f_t\dd t+f_x\dd X+f_y\dd Y
+ +\tfrac12f_{xx}(\dd X)^2+f_{xy}\dd X\dd Y+\tfrac12f_{yy}(\dd Y)^2.}
+\]
+If $\dd X=a_X\dd t+b_X\dd W^1$ and $\dd Y=a_Y\dd t+b_Y\dd W^2$, then
+$(\dd X)^2=b_X^2\dd t$, $(\dd Y)^2=b_Y^2\dd t$, $\dd X\dd Y=\rho b_Xb_Y\dd t$, giving
+\[
+ \begin{aligned}
+ \dd f={}&\left(f_t+a_Xf_x+a_Yf_y+\tfrac12b_X^2f_{xx}
+       +\rho b_Xb_Yf_{xy}+\tfrac12b_Y^2f_{yy}\right)\dd t\\
+ &+b_Xf_x\dd W^1+b_Yf_y\dd W^2.
+ \end{aligned}
+\]
+Evaluate derivatives at the current state. The mixed coefficient is $1$;
+$\dd(XY)=X\dd Y+Y\dd X+\dd\langle X,Y\rangle$.
+
+\key{Independent extension: develop intuition for three states}
+Try deriving It\^o for $f(t,S_t,V_t,R_t)$ with stochastic variance $V_t$ and short rate $R_t$.
+Identify three variance and three mixed terms. For $\dd X=a\dd t+A\dd W$ with independent Brownian drivers,
+\[
+ \dd f=\left(f_t+a^\top\nabla f+
+ \tfrac12\operatorname{tr}(AA^\top D^2f)\right)\dd t+\nabla f^\top A\dd W.
+\]
+\key{Martingale representation: identify the risk exposures}
+In the augmented filtration of a $d$-dimensional Brownian motion $W^{\Q}$,
+every $\xi\in L^2(\F_T,\Q)$ admits a predictable integrand $\psi$ such that
+\[
+ \boxed{\E^{\Q}[\xi\mid\F_t]
+ =\E^{\Q}[\xi]+\int_0^t\psi_u^\top\dd W_u^{\Q},
+ \qquad \E^{\Q}\!\int_0^T\|\psi_u\|^2\dd u<\infty.}
+\]
+$\psi$ is unique up to $\dd t\otimes\dd\Q$ null sets. Trading must still span these exposures to hedge them.
+
+\key{Girsanov: density, Brownian shift and drift change}
+For predictable $\lambda$, Novikov's sufficient condition is
+$\E^{\Pbb}\!\exp(\frac12\int_0^T\lambda_u^2\dd u)<\infty$. Then
+\[
+ \boxed{\begin{aligned}
+ Z_t&=\exp\!\left(-\int_0^t\lambda_u\dd W_u^{\Pbb}
+                 -\tfrac12\int_0^t\lambda_u^2\dd u\right),
+ &\frac{\dd\Q}{\dd\Pbb}\bigg|_{\F_T}&=Z_T,\\
+ W_t^{\Q}&=W_t^{\Pbb}+\int_0^t\lambda_u\dd u,
+ &\dd W_t^{\Pbb}&=\dd W_t^{\Q}-\lambda_t\dd t.
+ \end{aligned}}
+\]
+$Z$ is a true martingale and $W^{\Q}$ is Brownian under $\Q$.
+Thus $\dd X=a\dd t+b\dd W^{\Pbb}=(a-b\lambda)\dd t+b\dd W^{\Q}$; quadratic covariation is unchanged.
+\endgroup
+\newpage
+\pageheading{2\quad Black--Scholes and local volatility}{Know the model, the pricing equation, the formulas and their units.}
+Here $r$ and $\sigma>0$ are constant, $\tau=T-t$, $D=e^{-r\tau}$,
+and $\Phi,\varphi$ are the standard normal CDF and density.
+
+\key{Model, exact solution and pricing PDE}
+\[
+ \frac{\dd S_t}{S_t}=\mu\dd t+\sigma\dd W_t^{\Pbb}
+ \quad\xrightarrow{\text{pricing measure }\Q}\quad
+ \frac{\dd S_t}{S_t}=r\dd t+\sigma\dd W_t^{\Q},
+ \qquad B_t=e^{rt}.
+\]
+\[
+ S_T=S_t\exp\!\left[(r-\tfrac12\sigma^2)\tau+\sigma\sqrt\tau Z\right],
+ \qquad Z\sim N(0,1)\text{ independently of }\F_t\text{ under }\Q.
+\]
+For a European payoff $g(S_T)$, the price $u(t,s)$ satisfies
+\[
+ \boxed{u_t+rsu_s+\tfrac12\sigma^2s^2u_{ss}-ru=0,
+ \qquad u(T,s)=g(s).}
+\]
+Specify spatial boundary/growth conditions as well as the terminal payoff when solving numerically.
+
+\key{European call, put and put--call parity}
+\[
+ d_1=\frac{\log(s/K)+(r+\sigma^2/2)\tau}{\sigma\sqrt\tau},
+ \qquad d_2=d_1-\sigma\sqrt\tau.
+\]
+\[
+ \boxed{\begin{aligned}
+ C&=s\Phi(d_1)-KD\Phi(d_2),&
+ P&=KD\Phi(-d_2)-s\Phi(-d_1),\\
+ C-P&=s-KD,&
+ (s-KD)^+&\leq C\leq s.
+ \end{aligned}}
+\]
+
+\key{Greeks: differentiate the price, keeping the other inputs fixed}
+\[
+ \begin{aligned}
+ \Delta_C&=\Phi(d_1),& \Delta_P&=\Phi(d_1)-1,&
+ \Gamma_C=\Gamma_P&=\frac{\varphi(d_1)}{s\sigma\sqrt\tau},\\
+ \mathrm{Vega}_C=\mathrm{Vega}_P&=s\varphi(d_1)\sqrt\tau
+      =s^2\sigma\tau\Gamma,&
+ \rho_C&=K\tau D\Phi(d_2),& \rho_P&=\rho_C-K\tau D,\\
+ \Theta_C&=-\frac{s\sigma\varphi(d_1)}{2\sqrt\tau}-rKD\Phi(d_2),&
+ \Theta_P&=\Theta_C+rKD.&&
+ \end{aligned}
+\]
+$\Delta=\partial_s u$, $\Gamma=\partial_{ss}u$, $\mathrm{Vega}=\partial_\sigma u$,
+$\rho=\partial_r u$, and \textbf{calendar theta} $\Theta=\partial_tu=-\partial_\tau u$.
+Volatility and rates are decimals. Multiply vega or rho by $0.01$ for a one-percentage-point move;
+theta above is per year.
+
+\key{Short maturity, at the money: know the square-root scales}
+At spot ATM ($K=s$), with $r=0$,
+$C=P=s[2\Phi(\sigma\sqrt\tau/2)-1]$. As $\tau\downarrow0$,
+\[
+ \boxed{\begin{aligned}
+ C=P&\sim\frac{s\sigma\sqrt\tau}{\sqrt{2\pi}},&
+ C+P&\sim\frac{2s\sigma\sqrt\tau}{\sqrt{2\pi}},&
+ \Delta_C&\longrightarrow\tfrac12,\\
+ \Gamma&\sim\frac{1}{s\sigma\sqrt{2\pi\tau}},&
+ \mathrm{Vega}&\sim\frac{s\sqrt\tau}{\sqrt{2\pi}},&
+ \Theta&\sim-\frac{s\sigma}{2\sqrt{2\pi\tau}}.
+ \end{aligned}}
+\]
+These leading orders also hold at spot ATM for fixed finite $r$; the exact equality $C=P$ uses $r=0$.
+
+\key{Local volatility: one state-dependent diffusion coefficient}
+Under $\Q$, $\dd S_t=rS_t\dd t+\sigma_{\rm loc}(t,S_t)S_t\dd W_t$.
+Replace $\sigma^2$ by $\sigma_{\rm loc}^2(t,s)$ in the backward PDE.
+For a smooth call surface $C(T,K)$ observed at time $0$, with $C_{KK}>0$,
+\[
+ \sigma_{\rm loc}^2(T,K)
+ =\frac{2[C_T(T,K)+rK C_K(T,K)]}{K^2C_{KK}(T,K)}.
+\]
+Implied volatility is the BS input reproducing one quote; local volatility is a coefficient of the SDE.
+Check an arbitrage-free surface and stable derivatives before using this Dupire quotient.
+
+\newpage
+\pageheading{3\quad Replication and martingale pricing}{Two routes to the same price when an admissible replication exists.}
+
+\key{No-arbitrage comparisons: same maturity, same financing convention}
+If $H_A\geq H_B$ state by state, their prices must satisfy $V_t(H_A)\geq V_t(H_B)$.
+Equal payoffs have equal prices. For European calls and puts, with $D=e^{-r(T-t)}$,
+\[
+ \boxed{(s-KD)^+\leq C\leq s,\qquad (KD-s)^+\leq P\leq KD,
+ \qquad C-P=s-KD.}
+\]
+At fixed maturity, for $K_1<K_2<K_3$,
+\[
+ \begin{aligned}
+ 0&\leq C(K_1)-C(K_2)\leq D(K_2-K_1),\\
+ C(K_2)&\leq wC(K_1)+(1-w)C(K_3),
+ \qquad w=\frac{K_3-K_2}{K_3-K_1}.
+ \end{aligned}
+\]
+Smooth prices satisfy $-D\leq C_K\leq0$ and $C_{KK}\geq0$.
+At fixed log-forward moneyness $k=\log[K/(s e^{r(T-t)})]$,
+\[
+ C_T+rKC_K\geq0
+ \quad\text{if the discounted stock is a true martingale.}
+\]
+To exhibit an arbitrage, specify purchases, sales, financing and the nonnegative terminal payoff.
+With bid--ask quotes, buy at ask and sell at bid.
+
+\key{Replication: the reasoning to reproduce}
+\begin{enumerate}
+ \item \textbf{Inspect the instruments and risks.}
+ List the traded assets and independent risk drivers. With dividends, use total gains.
+ \item \textbf{Specify the claim and its state variables.}
+ Write the payoff, value function and terminal/boundary conditions.
+ \item \textbf{Build a self-financing portfolio.}
+ For stock and cash,
+ \[
+ V_t=\Delta_tS_t+\beta_tB_t,
+ \qquad \dd V_t=\Delta_t\dd S_t+\beta_t\dd B_t.
+ \]
+ The gains equation imposes self-financing: all rebalancing is funded within the portfolio.
+ \item \textbf{Apply It\^o; match shocks, then drifts.}
+ In BS, Brownian exposures give $\Delta=u_s$ and $\beta=(u-su_s)/B$.
+ Match the drift of $\dd u$ with $rV+(\mu-r)\Delta s$ to obtain the PDE (page 2): $\mu$ cancels.
+ \item \textbf{Verify the hedge.}
+ Check the terminal payoff, admissibility and instrument availability.
+ No arbitrage prices the claim at its replication cost.
+\end{enumerate}
+
+\key{Martingale route: choose the pricing measure, then discount}
+In BS, take $\lambda=(\mu-r)/\sigma$ in Girsanov (page 1) to obtain
+$\dd S/S=r\dd t+\sigma\dd W^{\Q}$.
+Discounted non-dividend-paying traded prices are $\Q$-local martingales. For a claim $H$ whose discounted
+replicating wealth is a true martingale,
+\[
+ \boxed{V_t=B_t\E^{\Q}[H/B_T\mid\F_t]
+       =e^{-r(T-t)}\E^{\Q}[H\mid\F_t].}
+\]
+Use the risk-neutral drift in pricing simulations. Historical scenarios use $\Pbb$ dynamics.
+
+
+\key{Discrete hedge: carry the old holdings before rebalancing}
+With $b_n$ a \emph{cash amount}, start from $b_0=u_0-\Delta_0S_0$ and update
+\[
+ V_{n+1}=\Delta_nS_{n+1}+b_ne^{rh},\qquad
+ b_{n+1}=V_{n+1}-\Delta_{n+1}S_{n+1}.
+\]
+Seller's terminal hedge P\&L is $V_N-H$. Discrete rebalancing creates error even in BS.
+
+\newpage
+\pageheading{4\quad American exercise}{Optimize an adapted exercise rule, in discrete time or continuous time.}
+Let $g(s)$ be the exercise payoff; $g(s)=(K-s)^+$ for a put.
+Use a complete-market pricing benchmark here.
+
+\key{Discrete exercise dates: the Snell envelope}
+For dates $t_0<\cdots<t_N=T$, let $G_n=g(S_{t_n})$, $B_n=e^{rt_n}$ and $Z_n=V_n/B_n$.
+Work backward:
+\[
+ \boxed{Z_N=G_N/B_N,\qquad
+ Z_n=\max\{G_n/B_n,\ \E^{\Q}[Z_{n+1}\mid\F_{t_n}]\}.}
+\]
+$Z$ is the least supermartingale dominating the discounted exercise payoff.
+Exercise at the first contact $V_n=G_n$; the continuation value is a \emph{conditional expectation}.
+
+\key{Binomial implementation: terminal payoff, then backward induction}
+For step $h$, stock multipliers $d<u$ and $R=e^{rh}$,
+\[
+ d<R<u,\qquad p=\frac{R-d}{u-d},\qquad
+ V_{n,j}=\max\!\left\{g(S_{n,j}),\frac{pV_{n+1,j+1}+(1-p)V_{n+1,j}}{R}\right\}.
+\]
+Here $S_{n,j}=s\,u^jd^{n-j}$. For a CRR approximation to BS,
+$u=e^{\sigma\sqrt h}$, $d=1/u$; check $0<p<1$ for the chosen step.
+With NumPy imported, and $\texttt{payoff(x)}$ returning $g(x)$:
+\begin{lstlisting}
+j = np.arange(N + 1)
+V = payoff(s * u**j * d**(N-j))
+for n in range(N-1, -1, -1):
+    j = np.arange(n + 1)
+    continuation = (p*V[1:] + (1-p)*V[:-1]) / R
+    exercise = payoff(s * u**j * d**(n-j))
+    V = np.maximum(exercise, continuation)
+price = V[0]
+\end{lstlisting}
+Removing the maximum and keeping continuation prices a European claim on the same tree.
+
+\key{Continuous exercise: optimal stopping and the obstacle equation}
+Let $\mathcal T_{t,T}$ be stopping times in $[t,T]$ and
+$\mathcal Lu=rsu_s+\tfrac12\sigma^2s^2u_{ss}$. Then
+\[
+ \boxed{\begin{aligned}
+ u(t,S_t)&=\esssup_{\tau\in\mathcal T_{t,T}}
+ \E^{\Q}[e^{-r(\tau-t)}g(S_\tau)\mid\F_t],\\[2pt]
+ \max\{g-u,\ u_t+\mathcal Lu-ru\}&=0,
+ \qquad u(T,s)=g(s).
+ \end{aligned}}
+\]
+Continuation: $u>g$ and the PDE holds. Exercise: $u=g$ and $u_t+\mathcal Lu-ru\leq0$.
+For a regular put boundary $b(t)$, value matching and smooth fit give
+\[
+ u(t,b(t))=K-b(t),\qquad u_s(t,b(t))=-1.
+\]
+For a put with $r\geq0$, $u(t,0)=K$ and $u(t,s)\to0$ as $s\to\infty$.
+A non-dividend-paying call with $r\geq0$ has no early-exercise advantage:
+$C^{\rm Am}=C^{\rm Eur}$. Dividends or negative rates require rechecking the argument.
+
+\key{Numerical decisions that must be correct}
+\begin{itemize}
+ \item \textbf{Exercise grid.} Finite dates give a Bermudan problem. Enrich nested grids
+ to approach continuous exercise; stock discretization is a separate approximation.
+ \item \textbf{Longstaff--Schwartz.} Regress already selected later discounted cash flows on
+ current-state functions. Compare intrinsic value with fitted continuation;
+ evaluate the frozen policy on independent paths.
+ \item \textbf{Finite differences.} Start at $T$, step backward, impose the spatial boundaries
+ and the obstacle. For an explicit continuation step, check stability and nonnegative weights;
+ projecting onto $u\geq g$ does not repair an unstable step.
+\end{itemize}
+Pathwise maximization $\max_n e^{-rt_n}g(S_{t_n})$ uses future information:
+it is not an admissible exercise rule.
+
+\newpage
+\pageheading{5\quad Numerical essentials in Python}{Generate increments, respect the time order, price and quantify error.}
+
+\key{Brownian paths: independent $N(0,h)$ increments, cumulative sums along time}
+Rows are independent paths; columns are dates. $W_0=0$ must be included.
+\begin{lstlisting}
+import numpy as np
+rng = np.random.default_rng(2026)
+M, N = 10000, 128
+T, s0, K, r, sigma = 1.0, 100.0, 100.0, 0.03, 0.20
+h = T / N
+t = np.arange(N + 1) * h
+dW = np.sqrt(h) * rng.standard_normal((M, N))
+W = np.column_stack((np.zeros(M), np.cumsum(dW, axis=1)))
+\end{lstlisting}
+Check $\E[W_T]=0$, $\operatorname{Var}(W_T)=T$; use $\sqrt h$, not $h$, on the normal draws.
+
+\key{An SDE: Euler uses the old state, not the new state}
+For $\dd X=a(t,X)\dd t+b(t,X)\dd W$,
+$X_{n+1}=X_n+a(t_n,X_n)h+b(t_n,X_n)\Delta W_n$.
+\begin{lstlisting}
+def euler_terminal(x0, a, b, dW, h):
+    x = np.full(dW.shape[0], x0, dtype=float)
+    for n in range(dW.shape[1]):
+        x = x + a(n*h, x)*h + b(n*h, x)*dW[:, n]
+    return x
+\end{lstlisting}
+For BS pricing, use $a(t,x)=rx$, $b(t,x)=\sigma x$. Generic Euler need not preserve positivity.
+
+\key{Exact GBM on the grid; European Monte Carlo price and standard error}
+\begin{lstlisting}
+S = s0 * np.exp((r - 0.5*sigma**2)*t[None, :] + sigma*W)
+Y = np.exp(-r*T) * np.maximum(S[:, -1] - K, 0.0)
+price = Y.mean()
+se = Y.std(ddof=1) / np.sqrt(M)
+ci95 = (price - 1.96*se, price + 1.96*se)
+\end{lstlisting}
+For independent discounted payoffs $Y_m$, $\widehat V=M^{-1}\sum_mY_m$ and
+$\widehat{\rm SE}=s_Y/\sqrt M$; \texttt{ci95} is an approximate CLT interval.
+This GBM simulation is exact at grid dates; Euler and discretely monitored payoffs can still be biased.
+
+\key{Two correlated drivers; Heston with full truncation and a log stock step}
+Under $\Q$, $\dd S=rS\dd t+\sqrt V S\dd W^S$,
+$\dd V=\kappa(\theta-V)\dd t+\eta\sqrt V\dd W^V$,
+$\dd\langle W^S,W^V\rangle=\rho\dd t$.
+For independent normals $Z_1,Z_2$, use
+$\Delta W^S=\sqrt h Z_1$ and $\Delta W^V=\sqrt h(\rho Z_1+\sqrt{1-\rho^2}Z_2)$.
+For vector states \texttt{s, v}, call this once per time step with $|\rho|\leq1$:
+\begin{lstlisting}
+def heston_step(s, v, r, kappa, theta, eta, rho, h, rng):
+    z1, z2 = rng.standard_normal((2,) + np.shape(s))
+    dwS = np.sqrt(h) * z1
+    dwV = np.sqrt(h) * (rho*z1 + np.sqrt(1-rho**2)*z2)
+    vp = np.maximum(v, 0.0)
+    sn = s * np.exp((r-0.5*vp)*h + np.sqrt(vp)*dwS)
+    vn = v + kappa*(theta-vp)*h + eta*np.sqrt(vp)*dwV
+    return sn, vn
+\end{lstlisting}
+Both updates use the old $v^+$. Keep raw $v$ in the first term of \texttt{vn}; it may be negative.
+The continuous-model Feller condition $2\kappa\theta\geq\eta^2$ does not keep a naive Euler step nonnegative.
+
+\key{Validate the quantity being computed}
+Check $\operatorname{Cov}(\Delta W^S,\Delta W^V)\approx\rho h$ and,
+in BS, $e^{-rT}\overline S_T\approx s_0$ within sampling error.
+Compare a vanilla MC price with its BS formula. Increase $M$ to reduce sampling error
+($\mathrm{SE}\propto M^{-1/2}$); refine $h$ separately to assess time bias.
+Seed the generator once. Never use future states in an integrand, hedge or exercise decision.
+
+\end{document}

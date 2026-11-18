@@ -1,3 +1,4 @@
+% !TEX program = pdflatex
 \documentclass[11pt]{article}
 
 % ============================================================
@@ -10,7 +11,10 @@
 \usepackage{xcolor}
 \usepackage{microtype}
 \usepackage{booktabs}
+\usepackage{array,needspace}
 \usepackage{cleveref}
+\allowdisplaybreaks
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 
 % ============================================================
 % Hyperref setup
@@ -19,7 +23,10 @@
   colorlinks=true,
   linkcolor=blue!60!black,
   citecolor=blue!60!black,
-  urlcolor=blue!60!black
+  urlcolor=blue!60!black,
+  pdftitle={Stochastic Calculus and Option Pricing - Synthesis, Lectures 1-11},
+  pdfauthor={Nathan Sauldubois},
+  pdfsubject={Probability, stochastic calculus, pricing, American options, Dupire, and Heston}
 }
 
 % ============================================================
@@ -78,18 +85,25 @@
 % ============================================================
 % Title
 % ============================================================
-\title{Stochastic Calculus \& Option Pricing --- Synthesis (Weeks 1--7)}
+\title{Stochastic Calculus \& Option Pricing --- Synthesis (Weeks 1--11)}
 \author{Nathan Sauldubois}
-\date{\today}
+\date{November 12, 2026}
 
 \begin{document}
 \maketitle
 \vspace{-0.8em}
 
-\noindent\textbf{How to use these notes (Weeks 1--7).}
+\noindent\textbf{How to use these notes (Weeks 1--11).}
+This synthesis and the linked exercise booklets cover Lectures 1--11 only.
+Lectures 12--14 add no chapters or assigned exercises to this revision set.
+The introductory numeraire identity and state augmentation already taught
+in Lecture 7 remain part of that lecture; later fixed-income applications
+and the dedicated exotic-pricing session are outside this set.
 \begin{itemize}[leftmargin=1.4em, itemsep=0.2em]
   \item These are \emph{synthetic} lecture notes: definitions, key results, and the computations you actually use.
   \item Each lecture ends with a short checklist: ``what you must be able to do''.
+  \item Lectures 8--11 follow the current course progression: no-arbitrage, vanilla options, American exercise, and local and stochastic volatility.
+  \item The core exercise path contains four problems per lecture, targeting about 90 minutes including review. Further practice is in a separate optional booklet; the final revision guide uses the updated numbering.
   \item Notation: all processes are defined on a filtered probability space $(\Omega,\F,(\F_t)_{t\ge 0},\Pbb)$ satisfying the usual conditions.
 \end{itemize}
 
@@ -1380,5 +1394,8 @@ You should be able to:
 
 % Lectures 5--7 follow the current slide decks and course notes.
 \input{weeks_5_7.tex}
+
+% Lectures 8--11 and the revision guide follow the current course materials.
+\input{weeks_8_11.tex}
 
 \end{document}

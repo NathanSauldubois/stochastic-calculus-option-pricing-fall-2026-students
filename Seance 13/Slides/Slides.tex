@@ -1,18 +1,15 @@
 % !TEX program = pdflatex
-\documentclass[10pt,aspectratio=169]{beamer}
-
+% Revised November 17, 2026: concise wording, formulas and derivations, no code slides.
+\documentclass[handout,10pt,t,aspectratio=169]{beamer}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[english]{babel}
-\usepackage{lmodern}
-\usepackage{microtype}
-\usepackage{amsmath,amssymb,bm,mathtools}
-\usepackage{booktabs,array}
-
+\usepackage{lmodern,microtype,amsmath,amssymb,mathtools,booktabs,array}
+\usepackage{tikz,pgfplots}
+\usetikzlibrary{arrows.meta,positioning,calc}
+\pgfplotsset{compat=1.18}
 \usetheme[numbering=fraction,progressbar=frametitle]{metropolis}
-\setbeamertemplate{frame numbering}[fraction]
 \setbeamertemplate{navigation symbols}{}
-
 \definecolor{CourseBlue}{HTML}{1A3C68}
 \definecolor{CourseGreen}{HTML}{216E39}
 \definecolor{CourseGold}{HTML}{B8860B}
@@ -20,19 +17,15 @@
 \definecolor{SoftBlue}{HTML}{F2F6FA}
 \definecolor{SoftGreen}{HTML}{F1F8F3}
 \definecolor{SoftRed}{HTML}{FFF3F3}
-
 \setbeamercolor{normal text}{fg=black,bg=white}
 \setbeamercolor{structure}{fg=CourseBlue}
 \setbeamercolor{title}{fg=CourseBlue}
 \setbeamerfont{title}{size=\Large,series=\bfseries}
 \setbeamercolor{frametitle}{bg=CourseBlue,fg=white}
 \setbeamerfont{frametitle}{series=\bfseries,size=\large}
-\setbeamertemplate{frametitle}{
-  \nointerlineskip
-  \begin{beamercolorbox}[wd=\paperwidth,ht=3.2ex,dp=1.4ex,leftskip=1em,rightskip=1em]{frametitle}
-    \usebeamerfont{frametitle}\insertframetitle
-  \end{beamercolorbox}
-}
+\setbeamertemplate{frametitle}{\nointerlineskip
+ \begin{beamercolorbox}[wd=\paperwidth,ht=3.2ex,dp=1.4ex,leftskip=1em,rightskip=1em]{frametitle}
+ \usebeamerfont{frametitle}\insertframetitle\end{beamercolorbox}}
 \setbeamercolor{block title}{bg=CourseBlue,fg=white}
 \setbeamercolor{block body}{bg=SoftBlue,fg=black}
 \setbeamercolor{block title example}{bg=CourseGreen,fg=white}
@@ -40,527 +33,1381 @@
 \setbeamercolor{block title alerted}{bg=CourseRed,fg=white}
 \setbeamercolor{block body alerted}{bg=SoftRed,fg=black}
 \setbeamertemplate{blocks}[rounded][shadow=false]
-
-\newenvironment{modelbox}{\begin{beamercolorbox}[rounded=true,sep=0.7em,wd=\textwidth]{block body}
-  \textbf{\color{CourseBlue}MODEL}\quad}{\end{beamercolorbox}}
-\newenvironment{marketbox}{\begin{beamercolorbox}[rounded=true,sep=0.7em,wd=\textwidth]{block body example}
-  \textbf{\color{CourseGreen}NO-ARBITRAGE}\quad}{\end{beamercolorbox}}
-\newenvironment{simplificationbox}{\begin{beamercolorbox}[rounded=true,sep=0.7em,wd=\textwidth]{block body alerted}
-  \textbf{\color{CourseRed}WATCH OUT}\quad}{\end{beamercolorbox}}
-\newenvironment{pausebox}{\begin{beamercolorbox}[rounded=true,sep=0.8em,wd=\textwidth]{block body}
-  \textbf{\color{CourseGold}YOUR TURN}\quad}{\end{beamercolorbox}}
-
+\newenvironment{pausebox}{\begin{block}{Your turn}}{\end{block}}
+\newenvironment{answerbox}{\begin{exampleblock}{Answer}}{\end{exampleblock}}
+\newenvironment{keybox}{\begin{exampleblock}{Key point}}{\end{exampleblock}}
+\newenvironment{watchbox}{\begin{alertblock}{Note}}{\end{alertblock}}
 \newcommand{\E}{\mathbb E}
 \newcommand{\Q}{\mathbb Q}
+\newcommand{\Pp}{\mathbb P}
 \newcommand{\F}{\mathcal F}
 \newcommand{\dd}{\,\mathrm d}
-\newcommand{\Ncdf}{\Phi}
+\newcommand{\ind}{\mathbf 1}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 
-\AtBeginSection[]{
-  \begin{frame}[plain]\vfill
-    {\Large\bfseries\color{CourseBlue}\insertsectionhead\par}
-    \medskip{\color{CourseBlue}\rule{0.92\textwidth}{0.8pt}}\vfill
-  \end{frame}
-}
+\newcommand{\compactslide}{\small
+ \setlength{\abovedisplayskip}{3pt}\setlength{\belowdisplayskip}{3pt}
+ \setlength{\abovedisplayshortskip}{2pt}\setlength{\belowdisplayshortskip}{2pt}
+ \setlength{\parskip}{2pt}}
+\newcommand{\source}[1]{\vfill{\scriptsize\color{gray}#1\par}}
+\pgfplotsset{courseaxis/.style={width=.92\textwidth,height=4.3cm,
+ axis lines=left,tick label style={font=\scriptsize},label style={font=\small},
+ legend style={font=\scriptsize,draw=none,fill=white},grid=major,
+ grid style={gray!15},every axis plot/.append style={thick}}}
+\AtBeginSection[]{\begin{frame}[plain]\vfill
+ {\Large\bfseries\color{CourseBlue}\parbox{.95\textwidth}{\raggedright\insertsectionhead}\par}
+ \medskip{\color{CourseGold}\rule{.92\textwidth}{.8pt}}\vfill\end{frame}}
 
-\title{Pricing, Hedging, and Model Risk}
-\subtitle{Vanilla claims, path dependence, and stochastic discounting}
-\author{}
-\date{Lecture 13}
 
+\AtBeginSubsection[]{}
+
+\title{Exotic Option Pricing}
+\subtitle{Numerical foundations and four path-dependent contracts}
+\author{}\date{Lecture 13}
 \begin{document}
 
-\begin{frame}[plain]
-  \vfill
-  {\LARGE\bfseries\color{CourseBlue}Pricing, Hedging, and Model Risk\par}
-  \medskip{\large Vanilla claims, path dependence, and stochastic discounting\par}
-  \medskip{\color{CourseGold}\rule{0.94\textwidth}{0.8pt}}
-  \medskip{Lecture 13\par}\vfill
+\begin{frame}[plain]\vfill
+{\LARGE\bfseries\color{CourseBlue}Exotic Option Pricing\par}
+\medskip{\large Asian, barrier and lookback options; correlation swaps\par}
+\medskip{\color{CourseGold}\rule{.94\textwidth}{.8pt}}
+\medskip Payoffs, hedges, PDEs and numerical pricing\par
+\medskip Lecture 13 --- Stochastic Calculus and Option Pricing\vfill
 \end{frame}
 
-\begin{frame}{A price is only half of a model}
-\begin{block}{The question}
-A model assigns a price, but it also prescribes a hedge. How should we judge
-the hedge when the market evolves differently from the model?
-\end{block}
+\begin{frame}{Pricing a path-dependent option}
+\small
 \begin{enumerate}
-  \item Start with a vanilla call and the Black--Scholes replication benchmark.
-  \item Change the model while keeping the contract fixed.
-  \item Change the contract while keeping the market model simple.
-  \item Add stochastic rates and ask which traded assets span the risks.
+\item Write the payoff and the observation dates.
+\item Choose the state variables: stock price, average, maximum, or past returns.
+\item Derive the hedge and PDE, then write the risk-neutral expectation.
 \end{enumerate}
-\begin{marketbox}
-A pricing model should be assessed both by the prices it fits and by the
-hedging P\&L it generates outside the model.
-\end{marketbox}
+We use constant interest rates. Asians, barriers and lookbacks are priced
+in Black--Scholes. Correlation swaps use a two-stock model.
+
+\medskip
+The VIX material is in the appendix.
 \end{frame}
 
-\section{A vanilla option: the hedge depends on the model}
+\section{1. Numerical methods}
 
-\begin{frame}{For a European call, Black--Scholes links price and replication}
-The payoff is
+
+\begin{frame}{Simulating Brownian motion}
+\small
+On a time grid, let \(h_j=t_{j+1}-t_j\). Draw independent \(Z_j\sim N(0,1)\):
 \[
-(S_T-K)^+.
+ \Delta W_j=\sqrt{h_j}Z_j,\qquad W_{t_{j+1}}=W_{t_j}+\Delta W_j.
 \]
-Under the risk-neutral Black--Scholes model,
+The increment has mean zero and variance \(h_j\).
+
+\medskip
+For two Brownian motions with correlation \(\rho\), draw independent
+\(Z_1,Z_2\sim N(0,1)\) and use
 \[
-\frac{\dd S_t}{S_t}=r\dd t+\sigma\dd W_t^\Q,
+ \Delta W^1=\sqrt h Z_1,\qquad
+ \Delta W^2=\sqrt h(\rho Z_1+\sqrt{1-\rho^2}Z_2).
 \]
-the option price is
+\begin{pausebox}How do we compare a coarse and a fine time grid on the same path?\end{pausebox}
+\begin{answerbox}Add the fine Brownian increments to obtain each coarse increment.\end{answerbox}
+\end{frame}
+
+\begin{frame}{Euler--Maruyama}
+\small
+For \(\dd X_t=a(t,X_t)\dd t+b(t,X_t)\dd W_t\), use
 \[
-u(t,s)=\E^\Q\!\left[e^{-r(T-t)}(S_T-K)^+\mid S_t=s\right].
+ \boxed{X_{j+1}=X_j+a(t_j,X_j)h+b(t_j,X_j)\sqrt h Z_j.}
 \]
-\begin{block}{The replication target}
-A self-financing portfolio of stock and cash must satisfy
+With regular coefficients, the usual error estimates are
 \[
-\Pi_t=u(t,S_t),\qquad \Pi_T=(S_T-K)^+.
+ \E[|X_T-X_N^h|^2]^{1/2}=O(h^{1/2}),
 \]
+\[
+ |\E[f(X_T)]-\E[f(X_N^h)]|=O(h)
+\]
+for smooth \(f\).
+
+The first estimate compares paths driven by the same Brownian motion.
+The second compares expectations. Barrier payoffs need a separate error analysis.
+\end{frame}
+
+\begin{frame}{Exact Black--Scholes simulation}
+\small
+Under \(\Q\), \(\dd S_t=rS_t\dd t+\sigma S_t\dd W_t\). Over one step,
+\[
+ \boxed{S_{j+1}=S_j\exp\!\left[(r-\tfrac12\sigma^2)h+\sigma\sqrt h Z_j\right].}
+\]
+Compare this with Euler:
+\[
+ S_{j+1}^{\rm Euler}=S_j(1+rh+\sigma\sqrt h Z_j).
+\]
+\begin{itemize}
+\item The exponential step has the exact BS distribution and stays positive.
+\item Euler can produce negative prices.
+\item Neither formula tells us what happened between the two dates:
+a barrier may have been hit, or a new maximum reached.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Monte Carlo: price and error}
+\small
+Let \(Y_\ell^h\) be the discounted payoff on simulated path \(\ell\).
+For \(M\) independent paths,
+\[
+ \widehat p_{M,h}=\frac1M\sum_{\ell=1}^M Y_\ell^h,
+ \qquad {\rm SE}=\frac{s_Y}{\sqrt M}.
+\]
+Here \(s_Y\) is the sample standard deviation. An approximate 95\% interval is
+\(\widehat p_{M,h}\pm1.96\,{\rm SE}\).
+\[
+ \widehat p_{M,h}-p=
+ \underbrace{\widehat p_{M,h}-\E[Y^h]}_{\text{sampling error}}
+ +\underbrace{\E[Y^h]-p}_{\text{discretization bias}}.
+\]
+\begin{itemize}
+\item More paths reduce sampling error.
+\item Smaller time steps reduce discretization bias, if the scheme converges.
+\item The confidence interval measures sampling error only.
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Finite differences in log price}
+\small
+Set \(x=\log s\), \(v(t,x)=u(t,e^x)\), and \(a=r-\sigma^2/2\).
+The BS PDE becomes
+\[
+ v_t+av_x+\tfrac12\sigma^2v_{xx}-rv=0.
+\]
+On a uniform grid of spacing \(\Delta x\),
+\[
+ v_x\simeq\frac{V_{i+1}-V_{i-1}}{2\Delta x},\qquad
+ v_{xx}\simeq\frac{V_{i+1}-2V_i+V_{i-1}}{\Delta x^2}.
+\]
+These formulas give a tridiagonal matrix \(L_h\) for
+\(a\partial_x+\tfrac12\sigma^2\partial_{xx}\).
+
+\medskip
+Start from the payoff at expiry and work backward. Set the boundary
+values from the contract: for example, zero at a knockout barrier.
+\end{frame}
+
+\begin{frame}{Explicit and implicit time steps}
+\small
+Let \(A=L_h-rI\), \(t_{j+1}-t_j=h\), and \(U^N=g\), the payoff on the grid.
+\[
+ \begin{array}{ll}
+ \text{Explicit Euler:}&U^j=(I+hA)U^{j+1},\\[.8em]
+ \text{Implicit Euler:}&(I-hA)U^j=U^{j+1}.
+ \end{array}
+\]
+\begin{itemize}
+\item Explicit: multiply by the matrix. The diffusion restriction is typically
+\(h=O(\Delta x^2)\).
+\item Implicit: solve a tridiagonal system at each step.
+With nonnegative transition rates and \(r\geq0\), no such time-step restriction is needed.
+\end{itemize}
+Check the answer with smaller time steps, a finer price grid, and more distant boundaries.
+\end{frame}
+
+\begin{frame}{Nonnegative grid weights}
+\small
+Centered differences give
+\[
+ q^+=\frac{\sigma^2}{2\Delta x^2}+\frac a{2\Delta x},\qquad
+ q^-=\frac{\sigma^2}{2\Delta x^2}-\frac a{2\Delta x}.
+\]
+If either rate is negative, use a one-sided difference for the drift:
+\[
+ q^+=\frac{\sigma^2}{2\Delta x^2}+\frac{\max(a,0)}{\Delta x},\qquad
+ q^-=\frac{\sigma^2}{2\Delta x^2}+\frac{\max(-a,0)}{\Delta x}.
+\]
+Then
+\[
+ (L_hV)_i=q^+(V_{i+1}-V_i)+q^-(V_{i-1}-V_i).
+\]
+For explicit Euler with \(r\geq0\), require \(h(q^++q^-+r)\leq1\).
+\end{frame}
+
+\begin{frame}{Variance reduction}
+\small
+For a discounted payoff \(X\), the price is \(p=\E[X]\) and
+\[
+ \Var(\widehat p)=\frac{\Var(X)}M.
+\]
+To halve the standard error, we can simulate four times as many paths.
+Alternatively, replace \(X\) by an estimator with the same mean and smaller variance:
+\begin{itemize}
+\item Antithetic variables: average payoffs from opposite normal draws.
+\item Control variates: subtract a correlated payoff whose mean is known.
+\item Conditional Monte Carlo: replace part of the simulation by an exact conditional mean.
+\end{itemize}
+\end{frame}
+\begin{frame}{Antithetic variables}
+\small
+Let \(F(\xi)\) be the payoff computed from a vector of normal draws.
+Since \(\xi\) and \(-\xi\) have the same law,
+\[
+ A=\frac{F(\xi)+F(-\xi)}2,\qquad \E[A]=p.
+\]
+\[
+ \Var(A)=\frac12\left[\Var(F(\xi))+\Cov(F(\xi),F(-\xi))\right].
+\]
+At the cost of two paths, this helps when the covariance is negative.
+For example, opposite stock moves tend to produce opposite changes in an Asian call payoff.
+
+\medskip
+With \(M\) independent pairs, compute the standard error from the \(M\)
+pair averages. The \(2M\) individual payoffs are dependent within each pair.
+\end{frame}
+\begin{frame}{Control variates}
+\small
+Let \(X\) be the payoff to price and \(Z\) a correlated payoff with known mean \(m_Z\).
+\[
+ X^\beta=X-\beta(Z-m_Z),\qquad \E[X^\beta]=\E[X].
+\]
+\[
+ \Var(X^\beta)=\Var(X)-2\beta\Cov(X,Z)+\beta^2\Var(Z).
+\]
+For \(\Var(Z)>0\), the best coefficient is
+\[
+ \boxed{\beta^*=\frac{\Cov(X,Z)}{\Var(Z)}.}
+\]
+Estimate \(\beta\) on a separate sample, then use it on the pricing paths.
+Compute the standard error from the corrected payoffs.
+\end{frame}
+\begin{frame}{Conditional Monte Carlo}
+\small
+If part of the payoff can be averaged exactly, use
+\[
+ C=\E[X\mid\mathcal G].
+\]
+Then
+\[
+ \E[C]=\E[X],\qquad
+ \Var(X)=\Var(C)+\E[\Var(X\mid\mathcal G)]\geq\Var(C).
+\]
+\begin{block}{Barrier example}
+Given simulated stock prices, compute the probability of surviving between
+the dates. Multiply the terminal payoff by that probability instead of
+drawing another variable to decide whether the barrier was hit.
 \end{block}
 \end{frame}
 
-\begin{frame}{Matching the Brownian exposure determines the delta}
-Let \(\Pi_t=\Delta_tS_t+\beta_tB_t\). The self-financing portfolio has
-diffusion term
-\[
-\Delta_t\sigma S_t\dd W_t.
-\]
-It\^o's formula gives the option diffusion term
-\[
-\sigma S_tu_s(t,S_t)\dd W_t.
-\]
-Matching them yields
-\[
-\boxed{\Delta_t=u_s(t,S_t).}
-\]
-For a Black--Scholes call,
-\[
-\boxed{\Delta_t^{\mathrm{BS}}=\Ncdf(d_1(t,S_t)).}
-\]
-\begin{marketbox}
-The PDE enforces the drift; delta neutralizes the random stock exposure.
-Pricing and hedging are two consequences of the same model.
-\end{marketbox}
+
+\section{2. Contracts and pricing}
+
+\begin{frame}{Same final price, different payoffs}
+
+    \begin{center}\begin{tikzpicture}\begin{axis}[courseaxis,
+    xlabel={Observation date},ylabel={Stock price},xmin=0,xmax=3,
+    ymin=80,ymax=132,xtick={0,1,2,3},legend pos=north west]
+    \addplot[CourseBlue,mark=*] coordinates {(0,100)(1,125)(2,85)(3,110)};
+    \addlegendentry{Path A}
+    \addplot[CourseGreen,mark=square*] coordinates {(0,100)(1,90)(2,100)(3,110)};
+    \addlegendentry{Path B}
+    \addplot[CourseRed,dashed] coordinates {(0,120)(3,120)};
+    \addlegendentry{Upper barrier 120}
+    \end{axis}\end{tikzpicture}\end{center}
+    \begin{pausebox}Both finish at 110. With strike 100, compare a vanilla,
+    an Asian, a lookback, and an up-and-out call.\end{pausebox}
+    \source{Barrier and observations checked at the displayed dates.}
+\end{frame}
+\begin{frame}{Payoffs on the two paths}
+
+    Average the three future observations; include date 0 in the maximum.
+    The upper barrier is checked at the displayed dates, with no rebate.
+    \begin{center}\begin{tabular}{L{.47\textwidth}cc}
+    \toprule Payoff, strike \(K=100\) & Path A & Path B\\\midrule
+    Vanilla: \((S_T-K)^+\) & 10 & 10\\[.5em]
+    Asian: \((\tfrac13(S_1+S_2+S_3)-K)^+\) & 6.67 & 0\\[.5em]
+    Fixed-strike lookback: \((M_T-K)^+\) & 25 & 10\\[.5em]
+    Up-and-out: \((S_T-K)^+\ind_{\{M_T<120\}}\) & 0 & 10\\\bottomrule
+    \end{tabular}\end{center}
+    The vanilla uses only the final price. The other payoffs use the average,
+    the maximum, or whether the barrier was hit.
+\end{frame}
+\begin{frame}{Contract details}
+\small
+Before writing a price, check:
+\begin{itemize}
+\item Which dates enter the average or maximum? Is time zero included?
+\item Is the barrier checked continuously or only on given dates?
+\item Does touching the barrier cancel the option? Is a rebate paid?
+\item Is exercise allowed before expiry?
+\end{itemize}
+These choices change the payoff and therefore the price.
 \end{frame}
 
-\begin{frame}{A delta hedge must be rebalanced}
-For a call, delta moves between \(0\) and \(1\):
+\begin{frame}{The Black--Scholes hedge}
+\small
+Trade the stock and bank account, with no dividends:
 \[
-\Delta^{\mathrm{BS}}\approx0\quad\text{deep OTM},\qquad
-\Delta^{\mathrm{BS}}\approx1\quad\text{deep ITM}.
+ \dd S_t=\mu S_t\dd t+\sigma S_t\dd W_t^\Pp,\qquad
+ \dd B_t=rB_t\dd t.
 \]
-\begin{pausebox}
-A call has \(S_0=100\), \(K=100\), \(r=0\), \(\sigma=20\%\), and \(T=1\).
-At inception, \(d_1=0.10\), so \(\Delta_0=\Phi(0.10)\approx0.54\).
-What position neutralizes the stock exposure of a short call?
-\end{pausebox}
-\pause
-\begin{exampleblock}{Answer}
-Hold approximately \(0.54\) shares per short call, and finance the residual
-position with cash. Rebalance after the stock, time, or model inputs change.
-\end{exampleblock}
-\end{frame}
-
-\begin{frame}{The same call has a different delta under local volatility}
-Under local volatility,
+A self-financing portfolio satisfies
 \[
-\frac{\dd S_t}{S_t}=r\dd t+\sigma_{\mathrm{loc}}(t,S_t)\dd W_t^\Q.
+ V_t=\Delta_tS_t+\beta_tB_t,\qquad
+ \dd V_t=\Delta_t\dd S_t+\beta_t\dd B_t.
 \]
-The price still solves a one-factor PDE, but with
-\[
-\tfrac12\sigma^2s^2u_{ss}
-\quad\longrightarrow\quad
-\tfrac12\sigma_{\mathrm{loc}}(t,s)^2s^2u_{ss}.
-\]
-The hedge remains formally
-\[
-\boxed{\Delta_t^{\mathrm{LV}}=u_s^{\mathrm{LV}}(t,S_t),}
-\]
-but generally
-\[
-\Delta_t^{\mathrm{LV}}\neq\Delta_t^{\mathrm{BS}}.
-\]
-\begin{simplificationbox}
-The payoff did not change. The price function changed, so the hedge changed.
-A delta is never model-free.
-\end{simplificationbox}
-\end{frame}
-
-\begin{frame}{A market quote does not eliminate the need for a model}
-A liquid vanilla call already has an observable market price. Why use a local
-volatility model for it?
-\begin{columns}[T,onlytextwidth]
-\column{0.48\textwidth}
-\begin{block}{What the market quote gives}
-Today's value of the option.
-\end{block}
-\column{0.48\textwidth}
-\begin{exampleblock}{What the model gives}
-A dynamic law, a price surface between quotes, and a hedge consistent with
-the observed smile.
-\end{exampleblock}
-\end{columns}
-\begin{marketbox}
-Local volatility calibrates the current vanilla surface; its delta reflects
-the smile information ignored by a flat-volatility Black--Scholes delta.
-\end{marketbox}
-\end{frame}
-
-\begin{frame}{Hedging P\&L is the test performed outside the model}
-Suppose an option is sold and hedged dynamically. At maturity,
-\[
-\boxed{\mathrm{P\&L}=\Pi_T-(S_T-K)^+.}
-\]
-\begin{center}
-\begin{tabular}{c|l}
-\toprule
-Source of nonzero P\&L & Why it remains\\
-\midrule
-Discrete trading & Rebalancing is not continuous\\
-Numerics and costs & Greeks are approximated; trading is not frictionless\\
-Model mismatch & The market does not follow the hedging model\\
-\bottomrule
-\end{tabular}
-\end{center}
-\begin{pausebox}
-Does a nonzero terminal P\&L prove that the delta formula was wrong?
-\end{pausebox}
-\pause
-\begin{exampleblock}{Answer}
-No. Discrete trading and model mismatch create P\&L even with a correct
-model delta.
-\end{exampleblock}
-\end{frame}
-
-\begin{frame}{Model risk becomes visible under stochastic volatility}
-Imagine the market follows a Heston-type model,
-\[
-\frac{\dd S_t}{S_t}=r\dd t+\sqrt{V_t}\dd W_t^{(1)},\qquad
-\dd V_t=\kappa(\theta-V_t)\dd t+\eta\sqrt{V_t}\dd W_t^{(2)}.
-\]
-A Black--Scholes hedge ignores both smile and random variance. A
-local-volatility hedge incorporates today's smile, but still makes variance
-a deterministic function of time and spot.
-\begin{block}{What a simulation experiment compares}
-Simulate the same market paths, rebalance each hedge, then compare the
-distributions of their terminal P\&L: mean, dispersion, and tail losses.
-\end{block}
-\begin{marketbox}
-A more market-consistent model may improve hedging, but no model dominates
-for every contract, parameter set, or rebalancing frequency.
-\end{marketbox}
-\end{frame}
-
-\section{A lookback option: the path becomes a state variable}
-
-\begin{frame}{A lookback call remembers the highest stock level}
-A fixed-strike lookback call pays
-\[
-\boxed{(M_T-K)^+,\qquad M_T=\max_{0\leq u\leq T}S_u.}
-\]
-\begin{columns}[T,onlytextwidth]
-\column{0.48\textwidth}
-\begin{block}{Vanilla call}
-\[
-(S_T-K)^+.
-\]
-Only the terminal stock price matters.
-\end{block}
-\column{0.48\textwidth}
-\begin{exampleblock}{Lookback call}
-\[
-(M_T-K)^+.
-\]
-The whole price path matters through its running maximum.
-\end{exampleblock}
-\end{columns}
-\end{frame}
-
-\begin{frame}{Same terminal stock, different path, different payoff}
-Take \(K=100\). Two paths both finish at \(S_T=100\):
-\[
-\begin{array}{c|c|c}
-\toprule
-\text{Path} & M_T & \text{Lookback payoff}\\
-\midrule
-A & 120 & (120-100)^+=20\\
-B & 105 & (105-100)^+=5\\
-\bottomrule
-\end{array}
-\]
-\begin{pausebox}
-Which piece of information is missing if we know only \(S_T=100\)?
-\end{pausebox}
-\pause
-\begin{exampleblock}{Answer}
-The running maximum. The current or terminal spot alone cannot summarize a
-path-dependent payoff.
-\end{exampleblock}
-\end{frame}
-
-\begin{frame}{State augmentation makes the path-dependent problem Markov}
-At time \(t\), define
-\[
-M_t=\max_{0\leq u\leq t}S_u.
-\]
-The correct state is
-\[
-\boxed{(t,S_t,M_t),\qquad S_t\leq M_t.}
-\]
-The pricing function becomes
-\[
-\boxed{
-u(t,s,m)=\E^\Q\!\left[
-e^{-r(T-t)}(M_T-K)^+\mid S_t=s,\ M_t=m
-\right].}
-\]
-\begin{marketbox}
-The full past is not stored. We retain only the smallest path statistic that
-matters for the future payoff.
-\end{marketbox}
-\end{frame}
-
-\begin{frame}{The running maximum changes only at a new record}
-\begin{center}
-\begin{tabular}{c|c|c}
-\toprule
-Current state & Next stock move & What happens to \(M\)?\\
-\midrule
-\(S_t<M_t\) & small move below \(M_t\) & \(M\) stays fixed\\
-\(S_t=M_t\) & stock moves down & \(M\) stays fixed\\
-\(S_t=M_t\) & stock moves up & \(M\) increases with the stock\\
-\bottomrule
-\end{tabular}
-\end{center}
-\begin{block}{Why this complicates a PDE}
-The state domain is \(s\leq m\), and the diagonal \(s=m\) carries a special
-boundary condition. The extra variable is not an independent Brownian factor;
-it is a constrained path functional.
-\end{block}
-\end{frame}
-
-\begin{frame}{Path dependence makes model choice more consequential}
-\begin{columns}[T,onlytextwidth]
-\column{0.48\textwidth}
-\begin{block}{Vanilla option}
-The payoff depends mainly on the terminal distribution of \(S_T\). Liquid
-vanillas constrain that distribution directly.
-\end{block}
-\column{0.48\textwidth}
-\begin{alertblock}{Lookback option}
-The payoff depends on hitting high levels along the way. Different models can
-fit vanillas today yet assign different probabilities to those path events.
-\end{alertblock}
-\end{columns}
-\begin{marketbox}
-For exotics, model risk is not merely a question of the current smile. It is
-a question about future path dynamics.
-\end{marketbox}
-\end{frame}
-
-\begin{frame}{Pricing a lookback option requires richer numerical state}
-\begin{columns}[T,onlytextwidth]
-\column{0.48\textwidth}
-\begin{block}{Monte Carlo}
-Simulate \(S\) path by path, update
-\[
-M_{t_{n+1}}=\max\{M_{t_n},S_{t_{n+1}}\},
-\]
-then discount the terminal payoff.
-\end{block}
-\column{0.48\textwidth}
-\begin{exampleblock}{PDE approach}
-Solve for \(u(t,s,m)\) on the constrained domain \(s\leq m\), with a
-special condition on the record boundary \(s=m\).
-\end{exampleblock}
-\end{columns}
-\begin{simplificationbox}
-A monitoring grid can miss extrema between dates. For a lookback, this
-discretization choice directly affects the payoff and hedge.
-\end{simplificationbox}
-\end{frame}
-
-\begin{frame}{The lookback delta depends on history as well as spot}
-The hedge is still a sensitivity to the tradable stock:
-\[
-\Delta_t^{\mathrm{LB}}=u_s(t,S_t,M_t).
-\]
-\begin{pausebox}
-Two contracts have the same \(t\) and \(S_t=105\). Contract A has
-\(M_t=120\), contract B has \(M_t=108\). Should their deltas generally be
-identical?
-\end{pausebox}
-\pause
-\begin{exampleblock}{Answer}
-No. The established maximum changes the remaining payoff opportunity. The
-delta must reflect both spot and the historical record \(M_t\).
-\end{exampleblock}
-\end{frame}
-
-\begin{frame}{Exotics turn model error into hedging error faster}
-For a lookback hedge, terminal P\&L reflects the usual sources of error plus
-path-specific ones:
-\[
-\begin{array}{c|l}
-\toprule
-\text{Risk} & \text{Effect}\\
-\midrule
-Smile dynamics & changes probabilities of future records\\
-Volatility dynamics & changes the frequency of extreme moves\\
-Monitoring frequency & can miss a short-lived maximum\\
-Delta interpolation & is needed on the enlarged state grid\\
-\bottomrule
-\end{array}
-\]
-\begin{marketbox}
-The model used for an exotic should be stress-tested against the scenarios
-that drive its path functional, not only against vanilla prices.
-\end{marketbox}
-\end{frame}
-
-\section{Stochastic rates add a hedging factor}
-
-\begin{frame}{Random rates make discounting and the state variable random}
-Let \(r_t\) be a stochastic short rate. Even for a payoff \(g(S_T)\),
-\[
-\boxed{
-u(t,s,r)=\E^\Q\!\left[
-e^{-\int_t^T r_u\dd u}g(S_T)\mid S_t=s,\ r_t=r
-\right].}
-\]
-\begin{block}{What changed?}
-The state is now \((t,S_t,r_t)\). Rates affect the discount factor, the
-risk-neutral drift of the stock, and potentially the correlation structure.
-\end{block}
-\end{frame}
-
-\begin{frame}{Stock delta alone does not span an independent rate shock}
-Suppose the market has two Brownian sources: one stock-related and one
-rate-related.
-\begin{center}
-\begin{tabular}{c|c|c}
-\toprule
-Traded position & Stock risk & Rate risk\\
-\midrule
-Stock & yes & possibly partial\\
-Cash account & no diffusion exposure & no diffusion exposure\\
-Zero-coupon bond & rate sensitivity & yes\\
-\bottomrule
-\end{tabular}
-\end{center}
-\begin{pausebox}
-Can stock plus cash perfectly hedge an option exposed to an independent rate
-factor?
-\end{pausebox}
-\pause
-\begin{alertblock}{No}
-Cash does not add a new Brownian exposure. A rate-sensitive risky instrument,
-such as a bond or swap, is needed to hedge an independent rate factor.
-\end{alertblock}
-\end{frame}
-
-\begin{frame}{The natural two-factor hedge is stock plus bond plus cash}
-Choose a zero-coupon bond \(P(t,T^\star)\) and form
-\[
-\Pi_t=\phi_tS_t+\psi_tP(t,T^\star)+\beta_tB_t.
-\]
-If stock and bond exposures span the two Brownian directions, choose
-\(\phi_t,\psi_t\) to solve
-\[
-\begin{pmatrix}
-\Gamma_S^{(1)} & \Gamma_P^{(1)}\\
-\Gamma_S^{(2)} & \Gamma_P^{(2)}
-\end{pmatrix}
-\begin{pmatrix}\phi_t\\ \psi_t\end{pmatrix}
-=
-\begin{pmatrix}\Gamma_u^{(1)}\\ \Gamma_u^{(2)}\end{pmatrix}.
-\]
-\begin{marketbox}
-Exact local replication is possible when this exposure matrix has full rank.
-The cash account then matches the value and drift.
-\end{marketbox}
-\end{frame}
-
-\begin{frame}{Stochastic rates do not automatically imply incompleteness}
-\begin{columns}[T,onlytextwidth]
-\column{0.48\textwidth}
-\begin{exampleblock}{Complete case}
-Every relevant Brownian risk is spanned by traded assets, for example stock
-and a sufficiently sensitive bond in a two-factor setting.
-\end{exampleblock}
-\column{0.48\textwidth}
-\begin{alertblock}{Incomplete case}
-There are more risk factors than independent traded exposures, for example
-stock plus cash but an independent short-rate factor.
-\end{alertblock}
-\end{columns}
-\begin{pausebox}
-What determines completeness: whether rates are random, or whether tradable
-assets span the risk factors?
-\end{pausebox}
-\pause
-\begin{exampleblock}{Answer}
-Spanning. Random rates enlarge the hedging problem, but they do not by
-themselves prevent exact replication.
-\end{exampleblock}
-\end{frame}
-
-\begin{frame}{In an incomplete market, hedging is risk management}
-When perfect replication is unavailable, the objective becomes:
+To replicate an option:
 \begin{enumerate}
-  \item hedge stock sensitivity with the stock;
-  \item hedge rate sensitivity with bonds, swaps, or futures;
-  \item monitor and limit the residual, unspanned P\&L.
+\item Apply It\^o to its price function.
+\item Choose \(\Delta\) to match the Brownian term.
+\item Use \(\beta B=V-\Delta S\), then match the drifts.
 \end{enumerate}
-\begin{block}{A useful distinction}
+An average or maximum can enter the price function without being a traded asset.
+\end{frame}
+
+\begin{frame}{Risk-neutral pricing}
+\small
+Under \(\Q\),
 \[
-\text{complete market: replication determines price}
+ \dd S_t=rS_t\dd t+\sigma S_t\dd W_t^\Q.
+\]
+For a payment \(g(X_T)\) at \(T\),
+\[
+ \boxed{u(t,X_t)=e^{-r(T-t)}\E^\Q[g(X_T)\mid\F_t].}
+\]
+\(X_t\) contains the information needed to price the payoff: for example,
+\((S_t,I_t)\) for an Asian or \((S_t,M_t)\) for a lookback.
+
+\medskip
+In BS, this expectation and the replicating hedge give the same price,
+under the usual smoothness and integrability assumptions.
+\end{frame}
+
+\section{3. Asian options}
+\subsection{Hedge and PDE}
+
+\begin{frame}{Asian call: payoff}
+\small
+A continuously averaged arithmetic call pays
+\[
+ H_A=\left(\frac1T\int_0^T S_u\dd u-K\right)^+.
+\]
+For observation dates \(0<t_1<\cdots<t_m=T\), the discrete version pays
+\[
+ H_A^{(m)}=\left(\frac1m\sum_{k=1}^m S_{t_k}-K\right)^+.
+\]
+At a later valuation date, keep all past observations in the average.
+The denominator remains \(T\) or \(m\).
+\end{frame}
+
+\begin{frame}{Asian call: hedge}
+\small
+Set \(I_t=\int_0^tS_u\dd u\), so \(\dd I_t=S_t\dd t\).
+For a price \(u(t,S_t,I_t)\), It\^o gives
+\[
+ \dd u=(u_t+\mu s u_s+s u_i+\tfrac12\sigma^2s^2u_{ss})\dd t
+       +\sigma s u_s\dd W^\Pp.
+\]
+Match the Brownian term and the portfolio value:
+\[
+ \boxed{\Delta=u_s,\qquad\beta B=u-su_s.}
+\]
+Self-financing requires the drift to equal
+\[
+ \mu s u_s+r(u-su_s).
+\]
+The running integral has no Brownian term, so it adds no extra risk to hedge.
+\end{frame}
+
+\begin{frame}{Asian call: PDE}
+\small
+Cancel \(\mu s u_s\) in the two drift expressions:
+\[
+ \boxed{u_t+rsu_s+s u_i+\tfrac12\sigma^2s^2u_{ss}-ru=0.}
+\]
+The terminal condition is
+\[
+ u(T,s,i)=(i/T-K)^+.
+\]
+At zero stock price, no further amount is added to the integral:
+\[
+ u(t,0,i)=e^{-r(T-t)}(i/T-K)^+.
+\]
+The state has two coordinates \((s,i)\), but there is only one Brownian risk.
+\end{frame}
+
+\begin{frame}{Asian call: discrete observations}
+\small
+Let \(a\) be the sum of stock prices already observed.
+Between observation dates, this sum stays fixed:
+\[
+ v_t+rsv_s+\tfrac12\sigma^2s^2v_{ss}-rv=0.
+\]
+At date \(t_k\), add the new stock price to the sum:
+\[
+ \boxed{v(t_k^-,s,a)=v(t_k^+,s,a+s).}
+\]
+After the last observation,
+\[
+ v(T^+,s,a)=(a/m-K)^+.
+\]
+In a backward calculation, apply the update at each observation date.
+\end{frame}
+
+\subsection{Risk-neutral expectation}
+
+\begin{frame}{Asian call: expectation}
+\small
+At time \(t\), \(S_t=s\) and \(I_t=i\) are known.
+\[
+ \boxed{u(t,s,i)=e^{-r(T-t)}\E^\Q\!\left[
+ \left(\frac{i+\int_t^T S_u\dd u}{T}-K\right)^+
+ \middle|S_t=s\right].}
+\]
+To estimate this price:
+\begin{enumerate}
+\item Simulate future BS stock prices, starting from \(s\).
+\item Approximate the future integral, then add \(i\).
+\item Discount the payoff and average over the paths.
+\end{enumerate}
+For a discrete Asian, use the contractual observation dates and sum the prices.
+\end{frame}
+
+
+\section{4. Barrier options}
+\subsection{Hedge and PDE}
+
+\begin{frame}{Down-and-out call: payoff}
+\small
+Let \(b<S_0\) be the lower barrier and
+\[
+ \tau_b=\inf\{u\geq0:S_u\leq b\}.
+\]
+The continuously monitored call, with no rebate, pays
+\[
+ \boxed{H_{\rm DO}=(S_T-K)^+\ind_{\{\tau_b>T\}}.}
+\]
+Touching \(b\) cancels the option permanently. Before that happens,
+the price depends on time and current spot. Afterward it is zero.
+\end{frame}
+
+\begin{frame}{Down-and-out call: PDE}
+\small
+While \(s>b\), the BS hedge gives
+\[
+ \Delta=u_s,\qquad\beta B=u-su_s,
 \]
 \[
-\text{incomplete market: model and risk criterion select a hedge}
+ u_t+rsu_s+\tfrac12\sigma^2s^2u_{ss}-ru=0.
 \]
-\end{block}
-\begin{marketbox}
-The complete-market benchmark remains valuable: it identifies which missing
-instruments or risk factors create the residual error.
-\end{marketbox}
+The payoff and barrier give
+\[
+ \boxed{u(T,s)=(s-K)^+\quad(s>b),\qquad u(t,b)=0.}
+\]
+Use the usual BS finite differences on \([b,S_{\max}]\), with zero value at \(b\).
+With continuous paths, the replicating portfolio reaches zero at the touch.
 \end{frame}
 
-\section{Takeaways}
-
-\begin{frame}{Three case studies, one common lesson}
-\begin{center}
-\begin{tabular}{p{0.24\textwidth}|p{0.30\textwidth}|p{0.29\textwidth}}
-\toprule
-Case & New source of complexity & Consequence for hedging\\
-\midrule
-Vanilla call & model choice & delta is model dependent\\
-Lookback option & path dependence & state and delta include the running maximum\\
-Stochastic rates & extra rate factor & stock hedge must be complemented by bonds\\
-\bottomrule
-\end{tabular}
-\end{center}
-\begin{marketbox}
-As contracts or models add state variables, the hedge must account for the
-new sources of risk or accept residual P\&L.
-\end{marketbox}
+\begin{frame}{In--out parity}
+\small
+The down-and-in pays only if the barrier was hit:
+\[
+ H_{\rm DI}=(S_T-K)^+\ind_{\{\tau_b\leq T\}}.
+\]
+Path by path,
+\[
+ H_{\rm DO}+H_{\rm DI}=(S_T-K)^+.
+\]
+Therefore
+\[
+ \boxed{C_{\rm DI}=C_{\rm vanilla}-C_{\rm DO}.}
+\]
+Use the same strike, expiry, monitoring and rebate rules for both options.
 \end{frame}
 
-\begin{frame}{Final check: judge the hedge where it will be used}
-\begin{pausebox}
-A desk calibrates a model perfectly to today's vanilla smile, then hedges a
-one-year lookback option daily. Which additional questions should it ask
-before trusting a small model price error?
-\end{pausebox}
-\pause
-\begin{exampleblock}{Answer}
-Does the model generate plausible future smile and path dynamics? How large
-are P\&L tails under alternative models and monitoring grids? Can the
-required Greeks be hedged with liquid instruments?
-\end{exampleblock}
-\vfill
-\begin{center}
-{\large\color{CourseBlue}\bfseries A model price is a starting point; hedging P\&L is the operational test.}
-\end{center}
+\subsection{Risk-neutral expectation}
+
+\begin{frame}{Down-and-out call: expectation}
+\small
+If the option is still alive at \(t\), with \(\tau=T-t\),
+\[
+ u(t,s)=e^{-r\tau}\E^\Q\!\left[
+ (S_T-K)^+\ind_{\{\min_{t\leq u\leq T}S_u>b\}}
+ \middle|S_t=s\right].
+\]
+The whole future path must stay above \(b\).
+Checking only \(S_T>b\) misses paths that hit the barrier and then recover.
 \end{frame}
+
+\begin{frame}{Reflection principle}
+\small
+Let \(W\) be standard Brownian motion starting at zero and let \(a>0\).
+Reflect the path after its first hit of \(a\).
+For \(z<a\), reflection pairs paths that hit \(a\) and finish at \(z\)
+with paths that finish at \(2a-z\).
+\[
+ \Pr\!\left(\max_{0\leq u\leq\tau}W_u\geq a,\ W_\tau<a\right)
+ =\Pr(W_\tau>a).
+\]
+Adding the paths that finish above \(a\),
+\[
+ \boxed{\Pr\!\left(\max_{0\leq u\leq\tau}W_u\geq a\right)
+ =2\Pr(W_\tau\geq a)=2\Phi(-a/\sqrt\tau).}
+\]
+\(\Phi\) denotes the standard normal CDF; \(\phi\) will denote its density.
+\end{frame}
+
+\begin{frame}{Reflection at a lower barrier}
+\small
+Start with a driftless log price \(X_u=x+\sigma W_u^0\), \(x>0\),
+under a reference measure \(\Q^0\). The barrier is zero.
+
+For an endpoint \(y>0\), the density of all paths is
+\[
+ p_\tau^0(y\mid x)=\frac1{\sigma\sqrt\tau}
+ \phi\!\left(\frac{y-x}{\sigma\sqrt\tau}\right).
+\]
+Reflect paths that touched zero. Their endpoint density equals that
+of a path starting at \(-x\). Subtract:
+\[
+ \boxed{q_\tau^0(y\mid x)=\frac1{\sigma\sqrt\tau}
+ \left[\phi\!\left(\frac{y-x}{\sigma\sqrt\tau}\right)
+ -\phi\!\left(\frac{y+x}{\sigma\sqrt\tau}\right)\right].}
+\]
+\(q_\tau^0(y\mid x)\dd y\) counts paths that stay above zero and end near \(y\).
+\end{frame}
+
+\begin{frame}{Add the BS drift with Girsanov}
+\small
+For the barrier problem, set
+\[
+ x=\log(s/b),\qquad \alpha=r-\sigma^2/2,\qquad\tau=T-t.
+\]
+On the reference path \(X_u=x+\sigma W_u^0\), define
+\[
+ \left.\frac{\dd\Q}{\dd\Q^0}\right|_{\mathcal F_\tau}
+ =\exp\!\left(\frac\alpha\sigma W_\tau^0
+             -\frac{\alpha^2}{2\sigma^2}\tau\right).
+\]
+Under \(\Q\), \(W_u^\Q=W_u^0-\alpha u/\sigma\) is Brownian, hence
+\[
+ X_u=x+\alpha u+\sigma W_u^\Q.
+\]
+At endpoint \(X_\tau=y\), the density multiplier is
+\[
+ \boxed{\exp\!\left(\frac{\alpha(y-x)}{\sigma^2}
+                    -\frac{\alpha^2\tau}{2\sigma^2}\right).}
+\]
+\end{frame}
+
+\begin{frame}{Down-and-out call: density and price}
+\small
+Multiply both terms of \(q_\tau^0\) by the Girsanov density.
+Completing the squares gives
+\[
+ \begin{aligned}
+ -\frac{(y-x)^2}{2\sigma^2\tau}+\frac{\alpha(y-x)}{\sigma^2}
+ -\frac{\alpha^2\tau}{2\sigma^2}
+ &=-\frac{(y-x-\alpha\tau)^2}{2\sigma^2\tau},\\
+ -\frac{(y+x)^2}{2\sigma^2\tau}+\frac{\alpha(y-x)}{\sigma^2}
+ -\frac{\alpha^2\tau}{2\sigma^2}
+ &=-\frac{(y+x-\alpha\tau)^2}{2\sigma^2\tau}-\frac{2\alpha x}{\sigma^2}.
+ \end{aligned}
+\]
+Thus, for \(y>0\),
+\[
+ q_\tau(y\mid x)=\frac1{\sigma\sqrt\tau}
+ \left[\phi\!\left(\frac{y-x-\alpha\tau}{\sigma\sqrt\tau}\right)
+ -e^{-2\alpha x/\sigma^2}\phi\!\left(\frac{y+x-\alpha\tau}{\sigma\sqrt\tau}\right)\right].
+\]
+Since \(S_T=be^y\), the price is
+\[
+ \boxed{u(t,s)=e^{-r\tau}\int_0^\infty(be^y-K)^+q_\tau(y\mid x)\dd y.}
+\]
+\end{frame}
+
+\subsection{Numerical pricing}
+
+
+\begin{frame}{A barrier hit between two dates}
+
+    \begin{center}\begin{tikzpicture}\begin{axis}[courseaxis,
+    xlabel={Time within one step},ylabel={Stock price},xmin=0,xmax=1,
+    ymin=85,ymax=100,legend pos=north east]
+    \addplot[CourseBlue,smooth] coordinates {(0,95)(.2,93)(.4,87)(.6,89)(.8,94)(1,96)};
+    \addlegendentry{Illustrative continuous path}
+    \addplot[only marks,mark=*,CourseGreen,mark size=3pt] coordinates {(0,95)(1,96)};
+    \addlegendentry{Observed grid endpoints}
+    \addplot[CourseRed,dashed] coordinates {(0,90)(1,90)};\addlegendentry{Barrier}
+    \end{axis}\end{tikzpicture}\end{center}
+    \begin{pausebox}Would checking only the endpoints detect this knockout?\end{pausebox}
+    \source{Illustration: both observed prices are above the barrier, but the path crosses it.}
+\end{frame}
+
+\begin{frame}{Between two simulated dates}
+\small
+Given log prices \(x,y\) a time \(h\) apart, the BS log path has conditional law
+\[
+ X_u=x+\frac uh(y-x)+\sigma\mathcal B_u,
+ \qquad \mathcal B_u=B_u-\frac uh B_h,\quad 0\leq u\leq h.
+\]
+Here \(B\) is standard Brownian motion, and
+\[
+ \mathcal B_0=\mathcal B_h=0,\qquad
+ \Var(\mathcal B_u)=u(1-u/h).
+\]
+The endpoints are fixed, but the path between them is still random.
+The constant drift disappears after conditioning.
+
+\medskip
+This bridge lets us account for a barrier hit or maximum reached between dates.
+\end{frame}
+
+
+\section{5. Lookback options}
+\subsection{Hedge and PDE}
+
+\begin{frame}{Lookback call: payoff}
+\small
+Let \(M_t=\max_{0\leq u\leq t}S_u\), including \(S_0\).
+The fixed-strike lookback call pays
+\[
+ \boxed{H_L=(M_T-K)^+.}
+\]
+At time \(t\), the price depends on current spot \(S_t\) and the highest
+price already observed, \(M_t\).
+
+\medskip
+Even if the stock falls before expiry, the payoff keeps the earlier maximum.
+\end{frame}
+
+\begin{frame}{Lookback call: hedge at a new maximum}
+\small
+The running maximum can increase only when \(S_t=M_t\).
+For \(u(t,S_t,M_t)\), It\^o gives
+\[
+ \dd u=(u_t+\mu s u_s+\tfrac12\sigma^2s^2u_{ss})\dd t
+       +\sigma s u_s\dd W^\Pp+u_m\dd M.
+\]
+As before, choose \(\Delta=u_s\) and \(\beta B=u-su_s\).
+The hedge has no separate gain in \(\dd M\), so require
+\[
+ \boxed{u_m(t,m,m)=0,\qquad t<T.}
+\]
+When \(s<m\), \(M\) stays fixed. At \(s=m\), this condition cancels
+the extra term in It\^o's formula. It is a derivative in \(m\), with spot held fixed.
+\end{frame}
+
+
+\begin{frame}{Lookback call: PDE}
+\small
+For \(0<s<m\),
+\[
+ u_t+rsu_s+\tfrac12\sigma^2s^2u_{ss}-ru=0.
+\]
+The terminal and diagonal conditions are
+\[
+ \boxed{u(T,s,m)=(m-K)^+,\qquad u_m(t,m,m)=0\quad(t<T).}
+\]
+At zero spot,
+\[
+ u(t,0,m)=e^{-r(T-t)}(m-K)^+.
+\]
+The diagonal condition is \(u_m=0\), not \(u_s=0\).
+It need not agree with the terminal derivative at the expiry corner.
+\end{frame}
+
+\subsection{Risk-neutral expectation}
+
+\begin{frame}{Past and future maxima}
+\small
+At time \(t\), let \(S_t=s\), \(M_t=m\), and \(\tau=T-t\).
+For future elapsed time \(v\),
+\[
+ S_{t+v}=s e^{\alpha v+\sigma\widetilde W_v},\qquad
+ \alpha=r-\sigma^2/2,\quad \widetilde W_v=W^\Q_{t+v}-W^\Q_t.
+\]
+\begin{center}\begin{tabular}{ll}
+\toprule Quantity & Meaning\\\midrule
+\(m\) & maximum already observed, known at \(t\)\\[.4em]
+\(L_\tau=\max_{0\leq v\leq\tau}(\alpha v+\sigma\widetilde W_v)\)
+& maximum future log return\\[.4em]
+\(\overline S_\tau=s e^{L_\tau}\) & highest stock price over \([t,T]\)\\[.4em]
+\(M_T=\max(m,\overline S_\tau)\) & maximum used in the payoff\\\bottomrule
+\end{tabular}\end{center}
+\end{frame}
+
+\begin{frame}{Lookback call: expectation}
+\small
+The price is
+\[
+ u(t,s,m)=e^{-r\tau}\E^\Q[(\max(m,\overline S_\tau)-K)^+].
+\]
+Separate the amount already guaranteed by the past maximum:
+\[
+ (\max(m,z)-K)^+=(m-K)^++(z-\max(m,K))^+.
+\]
+Using \((z-a)^+=\int_a^\infty\ind_{\{z>y\}}\dd y\),
+\[
+ \boxed{u(t,s,m)=e^{-r\tau}\left[(m-K)^+
+ +\int_{\max(m,K)}^\infty\Q(\overline S_\tau>y)\dd y\right].}
+\]
+The integral prices future maxima above both the old maximum and the strike.
+\end{frame}
+
+\begin{frame}{Law of the Brownian maximum}
+\small
+For \(a\geq0\), reflection gives
+\[
+ \Pr\!\left(\max_{0\leq v\leq\tau}\sigma W_v\geq a\right)
+ =2\Phi\!\left(-\frac a{\sigma\sqrt\tau}\right).
+\]
+With drift \(\alpha\), the same Girsanov change gives
+\[
+ \Pr\!\left(\max_{0\leq v\leq\tau}(\alpha v+\sigma W_v)\geq a\right)
+ =\Phi\!\left(\frac{\alpha\tau-a}{\sigma\sqrt\tau}\right)
+ +e^{2\alpha a/\sigma^2}\Phi\!\left(\frac{-\alpha\tau-a}{\sigma\sqrt\tau}\right).
+\]
+For the future stock maximum, take \(a=\log(z/s)\):
+\[
+ \overline S_\tau\geq z
+ \quad\Longleftrightarrow\quad L_\tau\geq\log(z/s),\qquad z\geq s.
+\]
+\end{frame}
+
+\subsection{Numerical pricing}
+
+
+\begin{frame}{Maximum between two dates}
+\small
+Given log prices \(x=\log S_j\), \(y=\log S_{j+1}\), let \(L\) be the
+largest log price during a step of length \(h\). For \(\ell\geq\max(x,y)\),
+\[
+ \Pr(L>\ell\mid x,y)=\exp\!\left[-\frac{2(\ell-x)(\ell-y)}{\sigma^2h}\right].
+\]
+Draw \(U\sim{\rm Uniform}(0,1)\) and equate the right side to \(U\):
+\[
+ (\ell-x)(\ell-y)=-\tfrac12\sigma^2h\log U.
+\]
+Taking the larger root gives a sample of the log maximum:
+\[
+ \boxed{\ell=\frac{x+y+\sqrt{(x-y)^2-2\sigma^2h\log U}}2.}
+\]
+\end{frame}
+
+\begin{frame}{Lookback call: Monte Carlo}
+\small
+Start from current spot \(s\) and the past maximum \(m\).
+\begin{enumerate}
+\item Simulate exact BS stock prices on a time grid.
+\item For each interval, sample its log maximum \(\ell_j\) from the previous formula.
+Use independent uniform draws across intervals.
+\item Update \(M_{j+1}=\max(M_j,e^{\ell_j})\).
+\item Average \(e^{-r(T-t)}(M_N-K)^+\) over independent paths.
+\end{enumerate}
+In constant-volatility BS, this samples the continuous maximum exactly.
+Using only \(\max_j S_{t_j}\) misses maxima between dates and gives a lower price.
+\end{frame}
+
+
+\section{6. Correlation swaps}
+\subsection{Hedge and PDE}
+
+\begin{frame}{Realized variance and covariance}
+\small
+For log returns \(\Delta X_k^i=\log(S^i_{t_k}/S^i_{t_{k-1}})\),
+refining the observation grid gives, in probability,
+\[
+ \sum_k(\Delta X_k^i)^2\longrightarrow A_t^i=[\log S^i]_t,
+\]
+\[
+ \sum_k\Delta X_k^1\Delta X_k^2\longrightarrow C_t=[\log S^1,\log S^2]_t.
+\]
+For continuous diffusions with volatilities \(\sigma_i\) and correlation \(\rho\),
+\[
+ A_t^i=\int_0^t\sigma_i(u)^2\dd u,\qquad
+ C_t=\int_0^t\rho(u)\sigma_1(u)\sigma_2(u)\dd u.
+\]
+These sums measure variation in returns; the drift terms disappear in the limit.
+\end{frame}
+
+\begin{frame}{Correlation swap: payoff}
+\small
+Define realized correlation by
+\[
+ R_T=\frac{C_T}{\sqrt{A_T^1A_T^2}},\qquad A_T^1A_T^2>0.
+\]
+The holder receives realized correlation and pays a fixed strike:
+\[
+ \boxed{H_\rho=N_\rho(R_T-K_\rho).}
+\]
+\(N_\rho\) is the cash notional per unit of correlation.
+If \(R_T>K_\rho\), the holder receives money; otherwise the holder pays.
+Cauchy--Schwarz gives \(|R_T|\leq1\).
+
+\medskip
+We first use continuous observation. A contract based on daily returns
+uses a different realized statistic.
+\source{Continuous observation: Salvi and Swishchuk, Section 3.2,
+\href{https://arxiv.org/abs/1205.5565}{arXiv:1205.5565}.}
+\end{frame}
+
+
+\begin{frame}{Correlation swap: two-stock model}
+\small
+Under \(\Q\), take
+\[
+ \frac{\dd S_t^i}{S_t^i}=r\dd t+\sigma_i(t,S_t^1,S_t^2)\dd W_t^i,
+ \quad i=1,2,
+\]
+\[
+ \dd\langle W^1,W^2\rangle_t=\rho(t,S_t^1,S_t^2)\dd t.
+\]
+Assume \(\sigma_i>0\) and \(|\rho|<1\). The accumulated quantities satisfy
+\[
+ \dd A_t^1=\sigma_1^2\dd t,\quad
+ \dd A_t^2=\sigma_2^2\dd t,\quad
+ \dd C_t=\rho\sigma_1\sigma_2\dd t.
+\]
+There are two Brownian risks, hedged by the two stocks.
+The three accumulated quantities have finite variation.
+\end{frame}
+
+\begin{frame}{Correlation swap: hedge}
+\small
+Write the price as \(u(t,s_1,s_2,a_1,a_2,c)\).
+Matching the two stock risks gives
+\[
+ \boxed{\Delta_1=u_{s_1},\qquad\Delta_2=u_{s_2},\qquad
+ \beta B=u-s_1u_{s_1}-s_2u_{s_2}.}
+\]
+The hedge works because \(\sigma_1\sigma_2\sqrt{1-\rho^2}\ne0\).
+There is no extra Brownian term from \(A^1,A^2,C\).
+
+\medskip
+Adding a separate stochastic volatility or correlation factor would
+usually require another traded hedging instrument.
+\end{frame}
+
+\begin{frame}{Correlation swap: It\^o and self-financing}
+\small
+Under \(\Pp\), let the stock drifts be \(\mu_1,\mu_2\). It\^o gives drift
+\[
+ \begin{aligned}
+ \mathcal D^\Pp u={}&u_t+\mu_1s_1u_{s_1}+\mu_2s_2u_{s_2}\\
+ &+\tfrac12\sigma_1^2s_1^2u_{s_1s_1}
+ +\tfrac12\sigma_2^2s_2^2u_{s_2s_2}
+ +\rho\sigma_1\sigma_2s_1s_2u_{s_1s_2}\\
+ &+\sigma_1^2u_{a_1}+\sigma_2^2u_{a_2}+\rho\sigma_1\sigma_2u_c.
+ \end{aligned}
+\]
+The diffusion is
+\(\sigma_1s_1u_{s_1}\dd W^1+\sigma_2s_2u_{s_2}\dd W^2\).
+With \(\Delta_i=u_{s_i}\), self-financing requires
+\[
+ \mathcal D^\Pp u=\mu_1s_1u_{s_1}+\mu_2s_2u_{s_2}
+ +r(u-s_1u_{s_1}-s_2u_{s_2}).
+\]
+Canceling the historical drifts gives the PDE.
+\end{frame}
+
+\begin{frame}{Correlation swap: PDE}
+\small
+Let
+\[
+ \mathcal L_Su=r(s_1u_{s_1}+s_2u_{s_2})
+ +\tfrac12\sigma_1^2s_1^2u_{s_1s_1}
+ +\tfrac12\sigma_2^2s_2^2u_{s_2s_2}
+ +\rho\sigma_1\sigma_2s_1s_2u_{s_1s_2}.
+\]
+Then
+\[
+ \boxed{u_t+\mathcal L_Su+\sigma_1^2u_{a_1}+\sigma_2^2u_{a_2}
+ +\rho\sigma_1\sigma_2u_c-ru=0.}
+\]
+At expiry,
+\[
+ u(T,s_1,s_2,a_1,a_2,c)=N_\rho\left(\frac c{\sqrt{a_1a_2}}-K_\rho\right).
+\]
+The accumulated states satisfy \(a_1,a_2\geq0\), \(c^2\leq a_1a_2\).
+The terminal ratio requires \(a_1a_2>0\).
+\end{frame}
+
+\subsection{Risk-neutral expectation}
+
+\begin{frame}{Correlation swap: price and fair strike}
+\small
+Condition on current prices and accumulated variances/covariance.
+For \(\tau=T-t\),
+\[
+ u_t=N_\rho e^{-r\tau}\left(\E_t^\Q[R_T]-K_\rho\right).
+\]
+A new contract has zero value when
+\[
+ \boxed{K_\rho^{\rm fair}(t)=\E_t^\Q\!\left[
+ \frac{C_T}{\sqrt{A_T^1A_T^2}}\right].}
+\]
+In general,
+\[
+ \E_t\!\left[\frac{C_T}{\sqrt{A_T^1A_T^2}}\right]
+ \ne\frac{\E_t[C_T]}{\sqrt{\E_t[A_T^1]\E_t[A_T^2]}}.
+\]
+Compute the ratio on each path, then average it.
+\end{frame}
+
+\begin{frame}{Constant volatility and correlation}
+\small
+If \(\sigma_1,\sigma_2,\rho\) are constant over \([0,T]\),
+\[
+ A_T^1=\sigma_1^2T,\qquad A_T^2=\sigma_2^2T,\qquad
+ C_T=\rho\sigma_1\sigma_2T.
+\]
+Therefore
+\[
+ \boxed{R_T=\rho,\qquad K_\rho^{\rm fair}=\rho.}
+\]
+This result uses continuous observation.
+With a finite number of sampled returns, realized correlation is random
+even with constant coefficients.
+\end{frame}
+
+\begin{frame}{Time-varying volatilities}
+\small
+Keep \(\rho\) constant, but let the volatilities vary deterministically:
+\[
+ R_T=\rho\,
+ \frac{\int_0^T\sigma_1(u)\sigma_2(u)\dd u}
+ {\sqrt{\int_0^T\sigma_1(u)^2\dd u\int_0^T\sigma_2(u)^2\dd u}}.
+\]
+The fraction is at most one by Cauchy--Schwarz.
+It equals one when the two volatility profiles are proportional.
+
+\medskip
+If the stocks are most volatile at different times, \(|R_T|\) is smaller
+than \(|\rho|\). Thus a constant instantaneous correlation need not equal
+the correlation realized over the whole period.
+\end{frame}
+
+\subsection{Numerical pricing}
+
+
+\begin{frame}{Correlation swap: Monte Carlo}
+\small
+At each step, evaluate \(\sigma_1,\sigma_2,\rho\) at current time and prices.
+For independent \(Z_1,Z_2\sim N(0,1)\), set
+\(\widetilde Z_2=\rho Z_1+\sqrt{1-\rho^2}Z_2\) and update
+\[
+ \begin{aligned}
+ S_1'&=s_1e^{(r-\sigma_1^2/2)h+\sigma_1\sqrt h Z_1},\\
+ S_2'&=s_2e^{(r-\sigma_2^2/2)h+\sigma_2\sqrt h\widetilde Z_2},\\
+ a_1'&=a_1+\sigma_1^2h,\qquad a_2'=a_2+\sigma_2^2h,\\
+ c'&=c+\rho\sigma_1\sigma_2h.
+ \end{aligned}
+\]
+At expiry, compute \(R_T=c_T/\sqrt{a_{1,T}a_{2,T}}\) on each path and average.
+Check the result with smaller \(h\) and more paths.
+\end{frame}
+
+
+\begin{frame}{Correlation from sampled returns}
+\small
+For \(m\) observed log returns \(r_{i,k}=\log(S^i_{t_k}/S^i_{t_{k-1}})\),
+set
+\[
+ L_i=\sum_k r_{i,k},\qquad Q_i=\sum_k r_{i,k}^2,\qquad
+ Q_{12}=\sum_k r_{1,k}r_{2,k}.
+\]
+The centered sample correlation is
+\[
+ R^{\rm sample}=\frac{Q_{12}-L_1L_2/m}
+ {\sqrt{(Q_1-L_1^2/m)(Q_2-L_2^2/m)}}.
+\]
+Use the contract's observation dates, even if the simulation has finer steps.
+The denominator must be positive; specify a rule for zero sample variance.
+\end{frame}
+
+
+\subsection{Choice of model}
+
+\begin{frame}{Choice of model}
+\small
+\begin{center}\begin{tabular}{L{.25\textwidth}L{.58\textwidth}}
+\toprule Model & Assumptions\\\midrule
+Black--Scholes & Constant volatility and correlation.\\[.8em]
+Local volatility / correlation & Coefficients depend on time and current stock prices.\\[.8em]
+Stochastic volatility / correlation & Extra random factors can add risks that the stocks do not hedge.\\\bottomrule
+\end{tabular}\end{center}
+An average or maximum adds a variable to remember.
+An independent volatility shock adds a risk to hedge.
+\end{frame}
+
+\begin{frame}{What do vanilla prices determine?}
+\small
+Calls and puts on each stock constrain that stock's risk-neutral
+terminal distribution at each expiry.
+\begin{itemize}
+\item They do not determine how the two stocks move together.
+\item Basket options give additional information about dependence.
+\item A correlation swap also depends on how variances and covariance
+accumulate over time.
+\end{itemize}
+\begin{pausebox}Two models fit the same individual vanilla prices.
+Must they give the same correlation-swap price?\end{pausebox}
+\begin{answerbox}No. Their joint stock dynamics can differ.\end{answerbox}
+\end{frame}
+
+
+\section{7. Review}
+
+\begin{frame}{State variables and hedges}
+\small
+\begin{center}\begin{tabular}{L{.28\textwidth}L{.36\textwidth}L{.21\textwidth}}
+\toprule Contract & State & Hedge assets\\\midrule
+Asian, BS & \(S,I\) & Stock and cash\\[.8em]
+Down-and-out, BS & \(S\), alive or cancelled & Stock and cash\\[.8em]
+Lookback, BS & \(S,M\) & Stock and cash\\[.8em]
+Correlation swap, two-stock local model & \(S^1,S^2,A^1,A^2,C\) & Both stocks and cash\\\bottomrule
+\end{tabular}\end{center}
+More state variables do not necessarily mean more Brownian risks.
+\end{frame}
+
+\begin{frame}{Questions}
+\small
+\begin{enumerate}
+\item Does the Asian integral require another traded hedge asset in BS?
+\item Can stock prices on a grid miss a barrier hit or a maximum?
+\item Which derivative vanishes at the lookback boundary \(s=m\)?
+\item When pricing a correlation swap, do we average before or after dividing?
+\end{enumerate}
+\begin{answerbox}
+\begin{enumerate}
+\item No: the integral has finite variation.
+\item Yes: the path between dates matters.
+\item \(u_m=0\), with spot fixed.
+\item Compute each path's realized correlation, then average.
+\end{enumerate}
+\end{answerbox}
+\end{frame}
+
+\begin{frame}{References}
+\small
+\begin{itemize}
+\item Shreve, \emph{Stochastic Calculus for Finance II}; Glasserman,
+\emph{Monte Carlo Methods in Financial Engineering}: variance reduction, path dependence,
+reflection and simulation.
+\item \href{https://business.columbia.edu/sites/default/files-efs/pubfiles/4311/one-step_survival.pdf}
+{Glasserman and Staum (2001)}: conditional barrier simulation.
+\item \href{https://arxiv.org/abs/1205.5565}{Salvi and Swishchuk}:
+continuous covariance/correlation swap conventions.
+\item \href{https://arxiv.org/abs/1004.0125}{Jacquier and Slaoui}:
+dispersion exposure and correlation swaps.
+\item VIX appendix: \href{https://cdn.cboe.com/resources/vix/VIX_Methodology.pdf}{Cboe VIX methodology}
+and \href{https://www.cboe.com/tradable-products/vix/vix-futures/specifications/}
+{VX futures specifications}; \href{https://arxiv.org/abs/1611.00464}{Guo and Loeper}:
+conditional forward variance and VIX pricing.
+\end{itemize}
+\begin{keybox}Lecture 14 and the final review remain limited to Lectures 1--11.
+Lectures 12--13 are excluded from the final review.
+\end{keybox}
+\end{frame}
+
+\appendix
+
+\section{Appendix: VIX futures}
+\subsection{Hedge and PDE}
+
+\begin{frame}{VIX futures: settlement}
+\small
+A VIX future settles at \(T\). Its quotation is \(F_t^{\rm VIX}(T)\).
+A position with multiplier \(N_V\) earns
+\[
+ N_V\bigl(F_{t_{j+1}}^{\rm VIX}-F_{t_j}^{\rm VIX}\bigr)
+\]
+at each daily settlement.
+
+The final quotation is the exchange's special opening value \({\rm VRO}_T\),
+computed from SPX options. It can differ from displayed spot VIX.
+
+\medskip
+Below, we use constant rates and approximate the settlement by a
+continuous-diffusion model of VIX.
+\source{\href{https://www.cboe.com/tradable-products/vix/vix-futures/specifications/}
+{Cboe VX futures specifications};
+\href{https://cdn.cboe.com/resources/vix/VIX_Methodology.pdf}{VIX methodology}.}
+\end{frame}
+
+\begin{frame}{A model for VIX}
+\small
+Let \(v_u\) be instantaneous annual variance. For a forward window
+\(\delta=30/365\) years, define
+\[
+ \mathcal W_t=\frac1\delta\E^\Q\!\left[
+ \int_t^{t+\delta}v_u\dd u\middle|\F_t\right],
+ \qquad \mathcal V_t=100\sqrt{\mathcal W_t}.
+\]
+\begin{itemize}
+\item \(\mathcal W_t\): expected variance over the next 30 days, annualized.
+\item \(\mathcal V_t\): corresponding volatility in percentage points.
+\end{itemize}
+Our model future settles at \(\mathcal V_T\).
+This approximates the exchange's option-based settlement.
+\source{\href{https://arxiv.org/abs/1611.00464}{Guo and Loeper, Pricing Bounds for VIX Derivatives}.}
+\end{frame}
+
+
+\begin{frame}{Heston variance dynamics}
+\small
+Under the pricing measure,
+\[
+ \dd S_t/S_t=r\dd t+\sqrt{v_t}\dd W_t^S,\qquad
+ \dd v_t=\kappa(\theta-v_t)\dd t+\eta\sqrt{v_t}\dd W_t^v,
+\]
+with \(\dd\langle W^S,W^v\rangle_t=\rho_{Sv}\dd t\).
+\begin{center}\begin{tabular}{ll}
+\toprule Parameter & Meaning\\\midrule
+\(\kappa>0\) & Speed of variance mean reversion\\
+\(\theta>0\) & Long-run variance\\
+\(\eta>0\) & Size of variance shocks\\
+\(|\rho_{Sv}|<1\) & Stock--variance correlation\\\bottomrule
+\end{tabular}\end{center}
+Variance stays nonnegative. If \(2\kappa\theta\geq\eta^2\) and \(v_0>0\), it does not hit zero.
+Stock and cash alone do not determine the variance-risk premium.
+\end{frame}
+
+\begin{frame}{VIX in the Heston model}
+\small
+The conditional mean of variance is
+\[
+ \E^\Q[v_{T+u}\mid\F_T]=\theta+(v_T-\theta)e^{-\kappa u}.
+\]
+Integrate over the 30-day window:
+\[
+ \mathcal W_T=\theta+(v_T-\theta)
+ \underbrace{\frac{1-e^{-\kappa\delta}}{\kappa\delta}}_{b_\delta}.
+\]
+Let \(a_\delta=\theta(1-b_\delta)\). The settlement is
+\[
+ \boxed{\mathcal V_T=h(v_T)=100\sqrt{a_\delta+b_\delta v_T}.}
+\]
+We can compute \(h\) exactly; the remaining random quantity is \(v_T\).
+\end{frame}
+
+\begin{frame}{Hedging a payment linked to variance}
+\small
+Let \(C(t,S_t,v_t)\) be the price of a claim paying \(h(v_T)\).
+Trade a stock, cash, and an option \(G(t,S_t,v_t)\) with \(G_v\ne0\):
+\[
+ C=\Delta S+\psi G+\beta B,\qquad
+ \dd C=\Delta\dd S+\psi\dd G+\beta\dd B.
+\]
+Matching the two Brownian coefficients gives
+\[
+ \boxed{\psi=\frac{C_v}{G_v},\qquad\Delta=C_s-\psi G_s,\qquad
+ \beta B=C-\Delta S-\psi G.}
+\]
+The option hedges variance risk; the stock adjusts the remaining spot exposure.
+Without a second risky instrument, this claim is generally not replicable.
+\end{frame}
+
+\begin{frame}{Payment price and futures quotation}
+\small
+Let \(\mathcal L_v=\kappa(\theta-v)\partial_v+\tfrac12\eta^2v\partial_{vv}\).
+The price of a payment \(h(v_T)\) solves
+\[
+ C_t+\mathcal L_vC-rC=0,\qquad C(T,v)=h(v).
+\]
+For constant rates, the futures quotation satisfies \(C=e^{-r(T-t)}f\).
+Substitute into the PDE:
+\[
+ \boxed{f_t+\mathcal L_vf=0,\qquad f(T,v)=h(v).}
+\]
+The futures PDE has no discount term because gains and losses are settled daily.
+\end{frame}
+
+\subsection{Risk-neutral expectation}
+
+\begin{frame}{VIX future: expectation}
+\small
+With constant rates,
+\[
+ \boxed{f(t,v)=100\,\E^\Q[\sqrt{a_\delta+b_\delta v_T}\mid v_t=v].}
+\]
+Jensen's inequality gives
+\[
+ f(t,v)\leq100\sqrt{a_\delta+b_\delta
+ [\theta+(v-\theta)e^{-\kappa(T-t)}]}.
+\]
+The upper bound replaces \(v_T\) by its mean.
+The actual price takes the square root on each future variance outcome,
+then averages. Do not discount this futures quotation.
+\end{frame}
+
+\begin{frame}{Exact distribution of future variance}
+\small
+For \(\tau=T-t>0\), let
+\[
+ c_\tau=\frac{\eta^2(1-e^{-\kappa\tau})}{4\kappa},\qquad
+ d=\frac{4\kappa\theta}{\eta^2},\qquad
+ \lambda=\frac{e^{-\kappa\tau}v}{c_\tau}.
+\]
+Then \(v_T=c_\tau X\), where \(X\sim\chi'^2_d(\lambda)\) is
+noncentral chi-squared. If \(p_{d,\lambda}\) is its density,
+\[
+ f(t,v)=100\int_0^\infty\sqrt{a_\delta+b_\delta c_\tau x}\,
+ p_{d,\lambda}(x)\dd x.
+\]
+Evaluate the integral numerically, or draw independent \(X\) values and
+average \(100\sqrt{a_\delta+b_\delta c_\tau X}\).
+\end{frame}
+
+\subsection{Numerical pricing}
+
+\begin{frame}{VIX future: finite differences}
+\small
+On variance nodes \(v_i=i\Delta v\), set \(\mu_i=\kappa(\theta-v_i)\) and
+\[
+ q_i^+=\frac{\eta^2v_i}{2\Delta v^2}+\frac{\max(\mu_i,0)}{\Delta v},\qquad
+ q_i^-=\frac{\eta^2v_i}{2\Delta v^2}+\frac{\max(-\mu_i,0)}{\Delta v}.
+\]
+Use
+\[
+ (L_hf)_i=q_i^+(f_{i+1}-f_i)+q_i^-(f_{i-1}-f_i),
+ \qquad (I-hL_h)f^j=f^{j+1}.
+\]
+Start from \(f_i^N=h(v_i)\). At \(v=0\), retain the drift
+\(\kappa\theta\partial_v f\). Place the upper boundary far away and check it
+by enlarging the grid.
+\end{frame}
+
+
+\begin{frame}{VIX future: limiting cases}
+\small
+At expiry,
+\[
+ f(T,v)=h(v).
+\]
+If variance shocks vanish, \(\eta\to0\), then
+\[
+ f(t,v)\to100\sqrt{a_\delta+b_\delta
+ [\theta+(v-\theta)e^{-\kappa(T-t)}]}.
+\]
+\begin{itemize}
+\item A stochastic-variance price must respect the Jensen upper bound.
+\item The result is quoted in volatility percentage points.
+\item Compare the finite-difference price with exact-distribution Monte Carlo.
+\end{itemize}
+\end{frame}
+
+
+\section{Appendix: geometric Asian call}
+
+\begin{frame}{Geometric Asian: Gaussian log average}
+
+    For \(t_j=jT/m\), \(j=1,\ldots,m\), excluding \(S_0\),
+    \[\log G_m=\frac1m\sum_{j=1}^m\log S_{t_j}\sim N(\mu_G,\nu_G^2),\]
+    \[\mu_G=\log S_0+(r-\tfrac12\sigma^2)\frac{T(m+1)}{2m},\qquad
+      \nu_G^2=\sigma^2T\frac{(m+1)(2m+1)}{6m^2}.\]
+    \begin{block}{Where the variance comes from}
+    \[\Var\!\left(\frac\sigma m\sum_jW_{t_j}\right)
+      =\frac{\sigma^2}{m^2}\sum_{i,j}\min(t_i,t_j).\]
+    \end{block}
+\end{frame}
+
+\begin{frame}{Geometric Asian: exact call price}
+
+    For \(\log G_m\sim N(\mu_G,\nu_G^2)\), define
+    \[d_2=\frac{\mu_G-\log K}{\nu_G},\qquad d_1=d_2+\nu_G.\]
+    Completing the square in the Gaussian integral yields
+    \[\boxed{C_G=e^{-rT}\left[e^{\mu_G+\nu_G^2/2}\Phi(d_1)-K\Phi(d_2)\right].}\]
+    For a continuous geometric average, the limiting variance is \(\sigma^2T/3\).
+    Use the discrete formula for a discrete-average control.
+\end{frame}
+
+
+\section{Appendix: numerical examples}
+\begin{frame}{Numerical examples: parameters}
+\small
+Unless stated otherwise, use
+\[
+ S_0=100,\qquad K=100,\qquad T=1,\qquad r=2\%,\qquad q=0.
+\]
+We compare estimates using different numbers of paths or time steps.
+The observation dates of the contract stay fixed.
+\source{Simulated examples, not market data. Source: Workshop/numerical\_lab.py (NumPy).}
+\end{frame}
+\begin{frame}{Asian example: 64 observation dates}
+
+    Use \(\sigma=20\%\), \(N=64\) equally spaced future fixing dates,
+    \(t_j=j/64\), excluding \(S_0\):
+    \[H=\left(\frac1{64}\sum_{j=1}^{64}S_{t_j}-100\right)^+.\]
+    \begin{pausebox}We increase \(M\), keeping these same 64 fixing dates.
+    Which error should shrink? What has not changed?\end{pausebox}
+    \begin{answerbox}Sampling error falls at order \(M^{-1/2}\).
+    The contract still has the same 64 observation dates.\end{answerbox}
+\end{frame}
+\begin{frame}{Asian example: increasing the number of paths}
+
+    \begin{center}\begin{tabular}{rrrr}
+    \toprule Paths \(M\) & Estimate & Standard error & Approx. 95\% interval\\\midrule
+    512 & 5.3754 & 0.3559 & [4.6777, 6.0730]\\
+2,048 & 5.1263 & 0.1765 & [4.7804, 5.4722]\\
+8,192 & 4.9855 & 0.0844 & [4.8202, 5.1509]\\
+32,768 & 5.0432 & 0.0423 & [4.9603, 5.1261]\\
+    \bottomrule\end{tabular}\end{center}
+    \begin{pausebox}Should the point estimates converge monotonically as
+    we add more paths?\end{pausebox}
+    \begin{answerbox}No. The sample mean fluctuates.
+    Its standard error measures uncertainty about the fixed contract price.
+    \end{answerbox}
+    \source{BS exact grid transitions; nested sample prefixes; seed 20261113.}
+\end{frame}
+\begin{frame}{Asian example: control variate}
+
+    For each main path, compute discounted arithmetic and geometric payoffs \(Y,Z\).
+    \[\widehat C_{\rm cv}=\overline Y-\widehat\beta_{\rm pilot}
+      (\overline Z-C_G^{\rm exact}).\]
+    Here a separate 4,096-path pilot gives \(\widehat\beta=1.0349\),
+    and the matching discrete geometric formula gives \(C_G^{\rm exact}=4.9247\).
+    \begin{pausebox}Why use an independent pilot?\end{pausebox}
+    \begin{answerbox}The coefficient is then fixed independently of the pricing paths.
+    The corrected estimator keeps the right mean.\end{answerbox}
+\end{frame}
+\begin{frame}{Asian example: standard errors}
+
+    \begin{center}\begin{tabular}{lrr}
+    \toprule & Raw Monte Carlo & Geometric control\\\midrule
+    Estimate & 5.0432 & 5.1115\\[.5em]
+    Standard error & 0.04230 & 0.00114\\[.5em]
+    Main paths & 32,768 & 32,768\\\bottomrule\end{tabular}\end{center}
+    \begin{keybox}The standard error falls by a factor of about
+    37. The payoff and its expectation have not changed.
+    \end{keybox}
+    \source{Pilot seed 202611130; main seed 20261113. Intervals cover sampling uncertainty only.}
+\end{frame}
+\begin{frame}{Barrier example: grid monitoring and bridge correction}
+
+    Price a continuously monitored down-and-out call with \(H=90\), no rebate,
+    \(\sigma=20\%\).
+    \begin{pausebox}
+    Compare 16, 64, 256, and 1,024 time steps using:
+    \begin{enumerate}
+    \item knockout checks at grid dates only;
+    \item exact conditional BS bridge-survival weights.
+    \end{enumerate}
+    What should happen to the two estimates?
+    \end{pausebox}
+    \begin{answerbox}Checking only grid dates overprices the continuously monitored option.
+    Bridge weighting corrects the missed hits; sampling error remains.\end{answerbox}
+\end{frame}
+\begin{frame}{Barrier example: increasing the number of time steps}
+
+    \begin{center}\begin{tabular}{rrr}
+    \toprule Steps \(N\) & Grid-only estimate & Bridge-weighted estimate\\\midrule
+    16 & 8.1234 & 7.3862\\
+64 & 7.7975 & 7.3977\\
+256 & 7.6127 & 7.3957\\
+1024 & 7.5075 & 7.3935\\
+    \bottomrule\end{tabular}\end{center}
+    \begin{keybox}The grids use the same Brownian paths. Adding observation dates detects
+    more barrier hits, so each grid-only payoff can only decrease.\end{keybox}
+    \source{32,768 independent paths; seed 20261112. Standard errors are about 0.08 per estimate.
+    Columns and refinements are correlated because paths are shared.}
+\end{frame}
+
 
 \end{document}

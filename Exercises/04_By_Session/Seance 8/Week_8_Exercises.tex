@@ -1,0 +1,108 @@
+% Week 8 section of the synthesis exercise sheet, included by Exercises.tex.
+\section{Week 8 --- No-Arbitrage Principles and the Fundamental Theorems of Asset Pricing}
+
+Throughout, \(B_t=e^{rt}\) denotes the money-market account under a constant
+short rate \(r\), and \(P_t(T)\) denotes the time-\(t\) price of a
+zero-coupon bond paying \(1\) at \(T\). In one-period examples, \(R\) denotes
+the bond's gross return over the period.
+
+\ifIncludeCore
+
+\lecturesummary{Core workload: about 90 minutes, including 10 minutes to check signs, assumptions, and conclusions. Suggested solving times: 8.1: 10 min; 8.2: 30 min; 8.3: 20 min; 8.4: 20 min. These are planning estimates after studying the lecture.}
+\setcounter{exercise}{0}
+\begin{exercise}[Easy --- Turning a paid-to-enter trade into a free-and-sometimes-profitable one]
+A one-period market has two states \(\omega_1,\omega_2\) and a bond with
+price \(S_0^0=1\) and payoff \(R=1.08\) in both states. A strategy
+\(\theta\) has
+\[
+V_0(\theta)=-4,
+\qquad
+V_T(\theta,\omega_1)=2,
+\qquad
+V_T(\theta,\omega_2)=0.
+\]
+\begin{exparts}
+  \item Check that \(\theta\) is a type-(ii) arbitrage in the sense used in
+  lecture.
+  \item Augment \(\theta\) with the correct number of units of the bond so
+  that the new strategy costs exactly \(0\) today. Compute its terminal
+  value in each state and confirm it is a type-(i) arbitrage.
+  \item Explain, in one sentence and without redoing the arithmetic, why the
+  same construction works for \emph{any} strategy with \(V_0(\theta)<0\) and
+  \(V_T(\theta,\cdot)\geq0\).
+\end{exparts}
+\end{exercise}
+
+\begin{exercise}[Medium --- Completing a four-state market may take two new assets]
+One period, four states. A bond pays \(1\) in every state. A stock with
+\(S_0=100\) pays \((70,90,110,130)\) across the four states. A call struck at
+\(K=105\) pays \((0,0,5,25)\).
+\begin{exparts}
+  \item Explain, without any computation, why three traded assets can never
+  span four states.
+  \item Using the states with payoffs \((70,90,130)\) --- i.e., omitting the
+  third state --- form the \(3\times3\) matrix of bond, stock, and call
+  payoffs and compute its determinant. Conclude that the three assets are
+  linearly independent.
+  \item A second call, struck at \(K=115\), pays \((0,0,0,15)\). Form the
+  \(4\times4\) payoff matrix of all four states and all four assets
+  (bond, stock, call at \(105\), call at \(115\)), and compute its
+  determinant.
+  \item Conclude whether the market is complete once the second call is
+  added, and relate your answer to the Second Fundamental Theorem.
+\end{exparts}
+\end{exercise}
+
+\begin{exercise}[Easy to medium --- Bounding a worst-of-two-stocks claim]
+Let \(H=\min(S_T^1,S_T^2)\), the mirror image of the best-of-two-stocks claim
+from lecture.
+\begin{exparts}
+  \item Show \(\min(a,b)\leq a\) and \(\min(a,b)\leq b\) for \(a,b\geq0\).
+  Conclude that holding either stock alone \emph{superhedges} \(H\), and
+  state the resulting upper bound on \(V_t(H)\).
+  \item Explain why holding cash alone (\(Y_T\equiv0\)) is a valid but very
+  loose subhedge. Why does a materially tighter lower bound generally
+  require a claim on the \emph{spread} \(S_T^1-S_T^2\), rather than a
+  position in the two stocks alone?
+  \item \emph{Numerical.} With \(S_t^1=100\) and \(S_t^2=95\), state the
+  resulting price corridor for \(H\).
+\end{exparts}
+\end{exercise}
+
+\begin{exercise}[Practice --- Tradable quotes are bid and ask, not midpoints]
+Claims \(A\) and \(B\) have exactly the same terminal payoff.
+Their quotes are \([b_A,a_A]\) and \([b_B,a_B]\), where a long
+position is bought at ask and a short position is sold at bid. Assume
+unrestricted short sales, no other costs, and \(b_i\leq a_i\).
+\begin{exparts}
+\item Construct an arbitrage if \(b_B>a_A\). State the analogous restriction obtained by exchanging \(A\) and \(B\).
+\item Show that excluding these two zero-payoff round trips is equivalent to overlap of the two quote intervals. Is this a sufficient check for arbitrage against all other traded assets?
+\item Compare \(A:[9.70,10.50]\), \(B:[10.20,10.80]\). Are different midpoints alone evidence of an executable arbitrage? Now replace \(B\) by \([10.60,10.80]\).
+\item If instead \(H_A\leq H_B\) state by state, derive the necessary dominance restriction involving \(b_A\) and \(a_B\). Recover the frictionless law of one price when spreads vanish and payoffs agree.
+\end{exparts}
+\end{exercise}
+\fi
+
+\ifIncludeFurther
+\Needspace{10\baselineskip}
+\subsection*{Optional further practice}
+\noindent These problems are supplementary; the core workload is complete after Exercises 8.1--8.4.
+\setcounter{exercise}{4}
+\begin{exercise}[Easy to medium --- Marking an existing forward to market]
+A forward contract on a non-dividend-paying stock was entered at some past
+date with a fixed delivery price \(K\) --- not necessarily the fair forward
+price at inception. The contract still pays \(S_T-K\) at maturity \(T\).
+\begin{exparts}
+  \item Build the static replicating portfolio for this payoff at a current
+  time \(t<T\), and use the law of one price to find its current value
+  \(V_t\) in terms of \(S_t\), \(K\), \(r\), and \(T-t\).
+  \item Check that your formula gives \(V_t=0\) when \(K\) equals the fair
+  forward price \(K_t=S_te^{r(T-t)}\) quoted for a \emph{new} contract entered
+  at \(t\).
+  \item \emph{Numerical.} A long forward was entered when \(S_{t_0}=100\),
+  \(r=4\%\), with six months to maturity and delivery price \(K=102\).
+  Three months later, with three months left to maturity, the stock trades
+  at \(S_t=105\). Find the current value of the long forward position.
+\end{exparts}
+\end{exercise}
+\fi

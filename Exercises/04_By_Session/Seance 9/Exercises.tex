@@ -1,0 +1,119 @@
+% Weekly exercise sheet for Lecture 9; also included in the synthesis sheet.
+\ifdefined\ExercisesSynthesis
+\else
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern,microtype}
+\usepackage[margin=0.9in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{enumitem,hyperref,needspace}
+\newcommand{\E}{\mathbb E}
+\newcommand{\Qbb}{\mathbb Q}
+\newcommand{\dd}{\,\mathrm d}
+\newcommand{\Pb}{\mathbb P}\newcommand{\F}{\mathcal F}\newcommand{\Var}{\operatorname{Var}}
+\theoremstyle{definition}
+\newtheorem{exercise}{Exercise}[section]
+\newlist{exparts}{enumerate}{1}
+\setlist[exparts,1]{label=\textbf{(\alph*)},itemsep=0.3em,topsep=0.4em,leftmargin=2em}
+\newcommand{\lecturesummary}[1]{\begin{quote}\small\textbf{Focus.} #1\end{quote}}
+\title{Stochastic Calculus and Option Pricing\\Lecture 9 Exercises}
+\author{}
+\date{}
+\AddToHook{env/exercise/before}{\Needspace{7\baselineskip}}
+\expandafter\newif\csname ifIncludeCore\endcsname\IncludeCoretrue
+\expandafter\newif\csname ifIncludeFurther\endcsname\IncludeFurthertrue
+\begin{document}
+\maketitle
+\vspace{-1.2em}
+\setcounter{section}{8}
+\fi
+
+\section{Week 9 --- Vanilla Options in Practice}
+\lecturesummary{Check contract units, sensitivity signs, gamma-weighted hedging outcomes, and executable surface-arbitrage tests.}
+
+\ifIncludeCore
+
+\lecturesummary{Core workload: about 90 minutes, including 10 minutes to check signs, assumptions, and conclusions. Suggested solving times: 9.1: 20 min; 9.2: 20 min; 9.3: 20 min; 9.4: 20 min. These are planning estimates after studying the lecture.}
+\setcounter{exercise}{0}
+\begin{exercise}[Variation --- A nonnegative call spread can have negative vega]
+In Black--Scholes with no dividends, let
+\(V=C(K_1)-C(K_2)\), where \(K_1<K_2\) and both calls have maturity
+\(T\). At time \(t\), write \(\tau=T-t\). You may use
+\(\mathcal V(K)=S\phi(d_1(K))\sqrt\tau\).
+\begin{exparts}
+\item Show that the spread vega is positive exactly when \(|d_1(K_1)|<|d_1(K_2)|\). Explain why positivity of each individual call vega does not settle the sign of their difference.
+\item Find the spot level at which spread vega is zero. Determine its sign on either side of that level.
+\item Use \(\mathcal V=S^2\sigma\tau\Gamma\) to relate the signs of spread gamma and spread vega. What does this say about curvature of a bounded spread payoff?
+\item Explain why nonnegative terminal payoff and positive price do not imply that the price increases with volatility.
+\end{exparts}
+\end{exercise}
+
+\begin{exercise}[Variation --- Equal realized variance, different hedge outcomes]
+For a continuously delta-hedged short option, suppose the discounted
+terminal hedging profit can be written
+\[
+\widetilde\Pi_T=-\frac12\int_0^T w_t
+\bigl(\sigma_{\rm actual}(t)^2-\widehat\sigma^2\bigr)\dd t,
+\qquad w_t=e^{-rt}S_t^2\Gamma_t\geq0.
+\]
+Consider two half-periods of equal length. In a controlled comparison,
+take their weights to be constants \(w_1>w_2>0\).
+\begin{exparts}
+\item Compare variance errors \((+\delta,-\delta)\) and \((-\delta,+\delta)\), with \(\delta>0\) small enough to keep variances positive. Both errors integrate to zero. Compute the two profits.
+\item Which part of the path matters most for the hedging result? Why is comparison of unweighted annualized realized and quoted volatility insufficient?
+\item If the actual variance exceeds the hedge variance at every date, what sign follows for the short-option profit under the stated gamma assumption?
+\item If the payoff is a call spread with changing gamma sign, which conclusion above can fail? Explain without changing the self-financing accounting.
+\end{exparts}
+\end{exercise}
+
+\begin{exercise}[Variation --- Follow a maturity slice at fixed forward moneyness]
+Assume constant \(r\), no dividends, and a true risk-neutral martingale
+\(X_t=e^{-rt}S_t/S_0\). Fix log-forward moneyness
+\(x=\log(K/(S_0e^{rT}))\), and define
+\(c(T,x)=C(T,S_0e^{rT+x})/S_0\). Assume the price surface is smooth.
+\begin{exparts}
+\item Use the chain rule to find \(\partial_T c(T,x)\) at fixed \(x\). Why is this different from differentiating \(C(T,K)\) at fixed strike?
+\item Write \(c(T,x)=\E^{\Qbb}[(X_T-e^x)^+]\). Use conditional Jensen at two maturities to show that this quantity is nondecreasing in \(T\). Deduce the derivative's sign without using a later local-volatility formula.
+\item Under Black--Scholes, the normalized call at fixed \(x\) depends on total variance \(w=\sigma_{\rm imp}^2T\) and increases strictly with \(w>0\). Explain why decreasing annualized implied volatility can be consistent with the calendar restriction.
+\item Compare 30\% implied volatility at \(T=1/4\) with 20\% at \(T=1\), at the same \(x\). What does this two-point check establish, and what does it leave untested?
+\end{exparts}
+\end{exercise}
+
+\begin{exercise}[Practice --- Repair a quote when strikes are not equally spaced]
+At one maturity, rates are zero, \(S_0=100\), and European call
+quotes are \(C(90)=14\), \(C(100)=x\), and \(C(120)=3\). Ignore
+bid--ask spreads for this exercise.
+\begin{exparts}
+\item Using monotonicity and call-spread slope bounds, find all restrictions on \(x\) from the two neighboring intervals.
+\item Derive the unequal-strike convexity restriction. Also include the zero-strike call \(C(0)=S_0=100\) and convexity across strikes \(0,90,100\). Combine the restrictions to obtain the admissible interval for these quote checks.
+\item If \(x=11\), construct a nonnegative-payoff weighted butterfly with negative initial cost. Explain how to turn it into a zero-cost arbitrage.
+\item Why is the equally weighted package with holdings \((1,-2,1)\) an invalid convexity test for these strikes? Examine its payoff above 120.
+\end{exparts}
+\end{exercise}
+\fi
+
+\ifIncludeFurther
+\Needspace{10\baselineskip}
+\subsection*{Optional further practice}
+\noindent These problems are supplementary; the core workload is complete after Exercises 9.1--9.4.
+\setcounter{exercise}{4}
+\begin{exercise}[A stock split changes units, not economics]
+Suppose one old share is replaced by \(a>0\) new shares, so that the quoted
+stock price and strike become \(S'=S/a\) and \(K'=K/a\).
+\begin{exparts}
+  \item Compare the old call payoff \((S_T-K)^+\) with the payoff on \(a\)
+  new calls struck at \(K/a\). Explain why the option position must also be
+  rescaled by \(a\).
+  \item If \(C(S,K)\) is the old call value and \(C'(S',K')\) the value per
+  new call, derive the relation between them by no-arbitrage.
+  \item Use the chain rule to relate the old and new Delta and Gamma. Which
+  sensitivity is invariant to the change of share denomination?
+\end{exparts}
+\end{exercise}
+\fi
+
+\ifdefined\ExercisesSynthesis\else
+\end{document}
+\fi

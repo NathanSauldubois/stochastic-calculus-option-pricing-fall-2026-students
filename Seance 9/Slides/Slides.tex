@@ -1,5 +1,5 @@
 % !TEX program = pdflatex
-\documentclass[10pt,aspectratio=169]{beamer}
+\documentclass[handout,10pt,aspectratio=169]{beamer}
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -59,6 +59,7 @@
 \newcommand{\cF}{\mathcal F}
 \newcommand{\1}{\mathbf 1}
 \newcommand{\Ncdf}{\Phi}
+\newcommand{\greekrecall}[1]{\par{\small\color{CourseBlue}\(\displaystyle #1\)\par}}
 
 \AtBeginSection[]{
   \begin{frame}[plain]
@@ -98,7 +99,8 @@ principles discipline the prices of the options traders quote every day?
   \item Build calls, puts, and simple option positions from their payoffs.
   \item Recover put--call parity from replication, then use it to diagnose a
         mispriced quote.
-  \item Read Black--Scholes as a pricing benchmark and a language for risk.
+  \item Use Black--Scholes for prices, Greeks, and implied volatility.
+  \item Derive the Gamma-weighted P\&L when the hedge uses the wrong volatility.
   \item Turn dominance, monotonicity, and convexity into quote checks.
   \item Construct the trade whenever a check fails.
 \end{enumerate}
@@ -110,6 +112,7 @@ principles discipline the prices of the options traders quote every day?
 
 \begin{frame}{A vanilla option is a simple right exercised at one date}
 At maturity \(T\), the underlying trades at \(S_T\) and the strike is \(K\).
+Each option is on one share; assume no dividends unless stated otherwise.
 \begin{columns}[T,onlytextwidth]
 \column{0.48\textwidth}
 \begin{block}{European call}
@@ -128,33 +131,9 @@ The right to \emph{sell} one share for \(K\):
 It is exercised only when \(S_T<K\).
 \end{exampleblock}
 \end{columns}
-\begin{marketbox}
-``European'' fixes the exercise date; it does not describe where the option
-trades or who may hold it.
-\end{marketbox}
+
 \end{frame}
 
-\begin{frame}{Can you fill in the two payoff tables?}
-\begin{pausebox}
-Take \(K=100\). Fill in the call and put payoffs when \(S_T=80\), \(100\),
-and \(130\). Which contract protects a fall in the stock price?
-\end{pausebox}
-\pause
-\medskip
-\begin{center}
-\begin{tabular}{c|ccc}
-\toprule
-\(S_T\) & \(80\) & \(100\) & \(130\)\\
-\midrule
-Call \((S_T-100)^+\) & \(0\) & \(0\) & \(30\)\\
-Put \((100-S_T)^+\) & \(20\) & \(0\) & \(0\)\\
-\bottomrule
-\end{tabular}
-\end{center}
-\begin{block}{Reading the table}
-The call has upside exposure; the put is downside insurance.
-\end{block}
-\end{frame}
 
 \begin{frame}{Going short flips every payoff}
 \begin{columns}[T,onlytextwidth]
@@ -168,10 +147,6 @@ Selling the same contracts gives \(-(S_T-K)^+\) and \(-(K-S_T)^+\).
 The premium is received today; the obligation is carried to \(T\).
 \end{alertblock}
 \end{columns}
-\begin{marketbox}
-For no-arbitrage arguments, write the \emph{net} payoff of the whole trade,
-including every long and short leg.
-\end{marketbox}
 \end{frame}
 
 \begin{frame}{Moneyness says whether immediate exercise has value}
@@ -192,38 +167,105 @@ Moneyness uses \(S_t\), but the European option payoff is determined by
 \end{block}
 \end{frame}
 
+\begin{frame}{Intrinsic value and time value: two different quantities}
+\begin{block}{Intrinsic value: the payoff if exercise were immediate}
+At today's spot \(S_t\),
+\[
+I_t^{\mathrm{call}}=(S_t-K)^+,
+\qquad I_t^{\mathrm{put}}=(K-S_t)^+.
+\]
+For a European option this is a reference payoff; early exercise is unavailable.
+\end{block}
+\begin{exampleblock}{Time value: the premium beyond intrinsic value}
+\[
+\boxed{\mathrm{TV}_t^{\mathrm{call}}=C_t-I_t^{\mathrm{call}},
+\qquad \mathrm{TV}_t^{\mathrm{put}}=P_t-I_t^{\mathrm{put}}.}
+\]
+For example, \(S_t=105\), \(K=100\), and \(C_t=8\) give intrinsic value
+\(5\) and time value \(3\).
+\end{exampleblock}
+At zero rates and dividends, both time values are nonnegative and vanish
+at expiry. With nonzero carry, a European premium can be below spot intrinsic.
+\end{frame}
+
 \begin{frame}{Which option has the most time value?}
 \begin{pausebox}
-Two one-year calls have the same spot \(S_t=100\), volatility, and rate.
-Their strikes are \(80\), \(100\), and \(130\). Which one is most likely
-to consist mainly of time value rather than intrinsic value?
+Three one-year calls have the same spot \(S_t=100\) and volatility, with
+zero rates. Their strikes are \(80\), \(100\), and \(130\).
+Which has the largest time value? Does zero intrinsic value mean zero price?
 \end{pausebox}
-\pause
+
 \begin{exampleblock}{Answer}
-The \(K=100\) call is at the money. Its intrinsic value is zero, so nearly
-all of its price is time value: the value of possible future moves. Deep ITM
-and deep OTM options typically have less time value.
+The ATM call, \(K=100\). Time value pays for \emph{optionality}, which is
+largest when \(S_T\) may finish on either side of \(K\).
+\begin{itemize}
+\item \(K=80\): almost surely exercised; it behaves like ``stock minus \(80\)''.
+\item \(K=130\): zero intrinsic value, yet a positive price, since it may still
+      finish in the money. That chance is small, so its time value is small.
+\item \(K=100\): exercise is most uncertain, so the kink matters most.
+\end{itemize}
 \end{exampleblock}
 \end{frame}
 
-\begin{frame}{A straddle buys movement in either direction}
-A long straddle is one call plus one put, both with strike \(K\):
+\begin{frame}[shrink=5]{Where the time value comes from, strike by strike}
+\small
+Take \(r=0\), so a payoff \(S_T-K\) is worth \(S_t-K\) today. Split each call
+payoff into a \emph{linear} part, worth the intrinsic value, and an
+\emph{optional} part, worth the time value:
+\[
+\begin{aligned}
+K=80:&\quad (S_T-80)^+=\underbrace{(S_T-80)}_{\text{worth }20}+\underbrace{(80-S_T)^+}_{\text{time value}},\\[-2pt]
+K=100:&\quad (S_T-100)^+=0+(S_T-100)^+,\qquad
+K=130:\quad (S_T-130)^+=0+(S_T-130)^+.
+\end{aligned}
+\]
+\begin{columns}[T,onlytextwidth]
+\column{0.55\textwidth}
+\begin{itemize}
+\item \(K=80\): time value is an \(80\)-put; it pays only after a
+      \(20\%\) fall. Rare, so small.
+\item \(K=130\): time value is the whole call; it pays only after a
+      \(30\%\) rise. Rare, so small, but not zero.
+\item \(K=100\): any rise pays, and the kink sits where \(S_T\) is most
+      likely to land.
+\end{itemize}
+\column{0.42\textwidth}
+\centering
+\begin{tabular}{c|ccc}
+\toprule
+\(K\) & Price & Intrinsic & Time value\\
+\midrule
+\(80\)  & \(21.19\) & \(20\) & \(1.19\)\\
+\(100\) & \(7.97\)  & \(0\)  & \(\mathbf{7.97}\)\\
+\(130\) & \(1.01\)  & \(0\)  & \(1.01\)\\
+\bottomrule
+\end{tabular}
+\par\smallskip
+{\scriptsize\raggedright Illustration: \(\sigma=20\%\), \(T=1\), \(r=0\), with the
+Black--Scholes formula of Section~3. The ranking itself needs no model.\par}
+\end{columns}
+\smallskip
+\textbf{Takeaway:} time value is the price of the OTM option at that strike.
+It peaks at the money and decays on both sides.
+\end{frame}
+
+% Question bank: FG05-015; TC05-006 / TC07-006.
+\begin{frame}{How can we buy a move without choosing its direction?}
+\begin{pausebox}
+An event may move the stock sharply up or down. Which combination of a call
+and a put, with the same strike and expiry, benefits from either direction?
+Is a nonzero payoff enough to make a profit?
+\end{pausebox}
+
+\begin{exampleblock}{Answer}
+Buy a \textbf{straddle}: one call plus one put, both with strike \(K\):
 \[
 (S_T-K)^+ + (K-S_T)^+=\boxed{|S_T-K|}.
 \]
-\begin{columns}[T,onlytextwidth]
-\column{0.48\textwidth}
-\begin{block}{When \(S_T\) is near \(K\)}
-Both options expire with little or no payoff.
-\end{block}
-\column{0.48\textwidth}
-\begin{exampleblock}{When \(S_T\) moves far}
-One option pays, and the payoff grows with the distance from \(K\).
+The payoff grows with the distance from \(K\). Profit also requires covering
+the premiums and their financing cost. At \(r=0\), the break-even prices are
+\(K\pm(C_t+P_t)\).
 \end{exampleblock}
-\end{columns}
-\begin{marketbox}
-The payoff is convex: uncertainty has value to the holder of the straddle.
-\end{marketbox}
 \end{frame}
 
 \begin{frame}{Stock plus put creates a floor; stock minus call creates a cap}
@@ -243,6 +285,25 @@ S_T-(S_T-K)^+=\min(S_T,K).
 The investor gives up upside above \(K\) for the call premium.
 \end{exampleblock}
 \end{columns}
+\end{frame}
+
+% Question bank: FG03-016.
+\begin{frame}{Which protective put buys the higher floor?}
+\begin{pausebox}
+You own a stock trading at \(100\). Compare buying a European put with strike
+at \(80\) with buying one with strike at \(90\), for the same expiry.
+Which protection costs more? Can you answer without Black--Scholes?
+\end{pausebox}
+
+\begin{exampleblock}{Answer}
+For every \(S_T\),
+\[
+(90-S_T)^+\ge(80-S_T)^+,
+\qquad\boxed{P_t(90)\ge P_t(80).}
+\]
+The \(90\)-strike put provides the higher floor and cannot be cheaper.
+This follows from payoff dominance, without a volatility estimate.
+\end{exampleblock}
 \end{frame}
 
 % ============================================================
@@ -303,8 +364,7 @@ funding account.
 \end{block}
 \begin{simplificationbox}
 With continuous dividend yield \(q\), replace \(S_t\) by
-\(S_te^{-q(T-t)}\). The no-dividend formula then creates a false arbitrage
-signal.
+\(S_te^{-q(T-t)}\).
 \end{simplificationbox}
 \end{frame}
 
@@ -313,7 +373,7 @@ signal.
 Let \(S_t=100\), \(K=100\), \(T-t=1\), \(r=5\%\), and \(C_t=10.45\).
 Use put--call parity to compute the put price.
 \end{pausebox}
-\pause
+
 \[
 K e^{-r(T-t)}=100e^{-0.05}\approx95.12,
 \]
@@ -339,7 +399,7 @@ Suppose the market quotes \(C_t=12\), \(P_t=5\), \(S_t=100\), and
 Which portfolio is expensive? Specify a trade that produces cash today and
 zero net payoff at maturity.
 \end{pausebox}
-\pause
+
 \begin{exampleblock}{Trade}
 Sell the call and borrow \(95.12\); buy the put and the share. The initial
 receipt is \(107.12-105=2.12\). The two sides have identical terminal payoff.
@@ -349,6 +409,27 @@ receipt is \(107.12-105=2.12\). The two sides have identical terminal payoff.
 % ============================================================
 \section{Black--Scholes as a Benchmark}
 % ============================================================
+
+\subsection{Prices and short maturities}
+
+% Question bank: FG06-027; FG07-008; FG08-028; FG09-012.
+\begin{frame}{Can spot, strike, and expiry determine an option price?}
+\begin{pausebox}
+A stock trades at \(100\). What would you pay for the right to buy it
+for \(100\) in one year? Which inputs are still missing for a
+Black--Scholes price?
+\end{pausebox}
+
+\begin{exampleblock}{Answer}
+There is no unique numerical answer from \(S_t,K,T\) alone.
+Black--Scholes also needs the interest rate, dividend assumptions, and
+volatility. The exercise style and contract size must be specified too.
+\medskip
+
+Throughout the benchmark calculations, \(\tau=T-t\) is in years and
+\(\sigma\) is annualized. We use European options on one share, without dividends.
+\end{exampleblock}
+\end{frame}
 
 \begin{frame}{Black--Scholes adds a model to the no-arbitrage framework}
 \begin{modelbox}
@@ -388,7 +469,7 @@ Use \(S_t=K=100\), \(r=5\%\), \(\sigma=20\%\), and \(\tau=1\). Compute
 \(d_1\), \(d_2\), then use \(\Ncdf(0.35)\approx0.6368\) and
 \(\Ncdf(0.15)\approx0.5596\).
 \end{pausebox}
-\pause
+
 \[
 d_1=0.35,\qquad d_2=0.15,
 \]
@@ -401,17 +482,99 @@ The put price is then \(5.57\), either from its formula or from parity.
 \end{marketbox}
 \end{frame}
 
+\begin{frame}{A short-dated ATM option costs about \(0.4S_t\sigma\sqrt{\tau}\)}
+Set \(S_t=K\), \(\tau=T-t\), and first take \(r=0\), with no dividends.
+The call and put have the same price:
+\[
+C_t=P_t=S_t\left[2\Ncdf\!\left(\frac{\sigma\sqrt{\tau}}{2}\right)-1\right].
+\]
+Use \(\Ncdf(x)=\tfrac12+x/\sqrt{2\pi}+O(x^3)\) as \(x\to0\):
+\begin{block}{Small-maturity approximation at the money}
+\[
+\boxed{C_t=P_t=\frac{S_t\sigma\sqrt{\tau}}{\sqrt{2\pi}}
+       +O(\tau^{3/2})
+       \ \approx\ 0.4\,S_t\sigma\sqrt{\tau}.}
+\]
+The leading time value scales with \(\sqrt{\tau}\).
+\end{block}
+\end{frame}
+
+\begin{frame}{Using the short-maturity approximation}
+For \(S_t=K=100\), \(\sigma=20\%\), \(r=0\), and one month to expiry,
+\[
+\tau=\frac1{12},\qquad
+C_t=P_t\approx\frac{100(0.20)\sqrt{1/12}}{\sqrt{2\pi}}
+\approx\boxed{2.30.}
+\]
+\begin{block}{For any fixed interest rate, the same leading term remains}
+Still at \(S_t=K\), as \(\tau\downarrow0\),
+\[
+\begin{aligned}
+C_t&=\frac{S_t\sigma\sqrt{\tau}}{\sqrt{2\pi}}
+       +\frac{rS_t}{2}\tau+O(\tau^{3/2}),\\
+P_t&=\frac{S_t\sigma\sqrt{\tau}}{\sqrt{2\pi}}
+       -\frac{rS_t}{2}\tau+O(\tau^{3/2}).
+\end{aligned}
+\]
+\end{block}
+The square-root rule is an \textbf{ATM approximation}; away from the money,
+use the full Black--Scholes formula.
+\end{frame}
+
+% Question bank: FG05-016; FG10-013. Day count made explicit.
+\begin{frame}{What is the price of a one-day ATM straddle?}
+\begin{pausebox}
+Take \(S_t=K=100\), \(r=0\), \(\sigma=20\%\), and one trading day to
+expiry, with \(252\) trading days per year. Estimate the straddle premium
+and its break-even move using the short-maturity rule.
+\end{pausebox}
+
+\begin{exampleblock}{Answer}
+The straddle costs twice the ATM call price:
+\[
+C_t+P_t\approx\sqrt{\frac2\pi}\,S_t\sigma\sqrt{\tau}
+=\sqrt{\frac2\pi}\frac{100(0.20)}{\sqrt{252}}
+\approx\boxed{1.01.}
+\]
+The break-even move is about \(1.01\%\) in either direction.
+The one-standard-deviation move, \(\sigma/\sqrt{252}\), is about \(1.26\%\).
+\end{exampleblock}
+\end{frame}
+
+% Question bank: FG09-025; TC08-008.
+\begin{frame}{Three-month straddle or one-year call?}
+\begin{pausebox}
+Assume ATM strikes, zero rates and dividends, and constant volatility
+\(20\%\). Using the square-root rule, compare a one-year call with a
+three-month call, then with a three-month straddle.
+\end{pausebox}
+
+\begin{exampleblock}{Answer}
+Writing \(C(\tau)\) for the ATM call benchmark,
+\[
+\frac{C(1)}{C(1/4)}\approx\sqrt{\frac{1}{1/4}}=2,
+\qquad
+\boxed{C(1)\approx 2C(1/4)=\text{straddle}(1/4).}
+\]
+This is an approximation under a flat volatility term structure.
+With the exact constant-volatility BS formula, the three-month straddle
+is slightly more expensive. Different term volatilities can change the ranking.
+\end{exampleblock}
+\end{frame}
+
+\subsection{Greeks and local hedging}
+
 \begin{frame}{The Greeks turn a price into a local risk report}
 \begin{center}
 \begin{tabular}{c|l}
 \toprule
 Greek & What it measures\\
 \midrule
-Delta \(\Delta=\partial_SV\) & sensitivity to a small stock move\\
-Gamma \(\Gamma=\partial_{SS}V\) & how rapidly Delta changes\\
-Vega \(\partial_\sigma V\) & sensitivity to implied volatility\\
-Theta \(\partial_tV\) & sensitivity to passage of time\\
-Rho \(\partial_rV\) & sensitivity to the interest rate\\
+Delta \(\Delta=\partial_s v\) & sensitivity to a small stock move\\
+Gamma \(\Gamma=\partial_{ss}v\) & how rapidly Delta changes\\
+Vega \(\nu=\partial_\sigma v\) & sensitivity to the volatility input\\
+Theta \(\Theta=\partial_t v\) & sensitivity to calendar time\\
+Rho \(\partial_r v\) & sensitivity to the interest rate\\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -419,20 +582,22 @@ Rho \(\partial_rV\) & sensitivity to the interest rate\\
 \[
 \Delta_{\mathrm{call}}=\Ncdf(d_1),
 \qquad
-\Gamma=\frac{\Ncdf'(d_1)}{S_t\sigma\sqrt{\tau}}.
+\Gamma=\frac{\Ncdf'(d_1)}{S_t\sigma\sqrt{\tau}},\qquad
+\nu=S_t\sqrt{\tau}\,\Ncdf'(d_1).
 \]
 Delta is the first-order hedge ratio; Gamma is why that hedge must be rebalanced.
 \end{block}
 \end{frame}
 
 \begin{frame}{What does a call Delta of \(0.64\) mean?}
+\greekrecall{\Delta_t=\partial_s v(t,S_t)=\Ncdf(d_1)}
 \begin{pausebox}
 An option has \(\Delta=0.64\). For a small \(\$1\) rise in the stock,
 what is the first-order change in the option price? How would you hedge a
 short position in 100 such calls?
 \end{pausebox}
-\pause
-\begin{exampleblock}{First-order answer}
+
+\begin{exampleblock}{Answer}
 The option gains about \(\$0.64\) per contract. A short position in 100 calls
 has Delta \(-64\), so buying about 64 shares makes the portfolio locally
 Delta-neutral.
@@ -443,16 +608,143 @@ still matter.
 \end{simplificationbox}
 \end{frame}
 
+% Question bank: TC02-018; TC05-017. Adapted to the lecture's seller convention.
+\begin{frame}{After a stock rise, do we buy or sell more shares?}
+\greekrecall{\Delta_t=\partial_s v(t,S_t)=\Ncdf(d_1),\qquad \Gamma_t=\partial_{ss}v(t,S_t)=\frac{\Ncdf'(d_1)}{S_t\sigma\sqrt{\tau}}}
+\begin{pausebox}
+You sold one call and bought \(\Delta_t\) shares to hedge it.
+The stock rises while time and the volatility input are held fixed.
+How must the stock position change? What if you had bought the call instead?
+\end{pausebox}
+
+\begin{exampleblock}{Answer}
+A vanilla call has positive Gamma, so its Delta increases:
+\[
+\Delta(t,S_t+\delta S)-\Delta(t,S_t)
+\approx\Gamma_t\delta S>0.
+\]
+The call seller \textbf{buys more shares}. A long call is hedged by shorting
+\(\Delta_t\) shares, so its holder \textbf{sells more shares} after the rise.
+For a large move, recompute the full Delta rather than using the linear estimate.
+\end{exampleblock}
+\end{frame}
+
+% Question bank: TC05-003 / TC07-003; TC07-034.
+\begin{frame}{Is an ATM call Delta always one half?}
+\greekrecall{\Delta_t=\partial_s v(t,S_t)=\Ncdf(d_1)}
+\begin{pausebox}
+At \(r=0\), with \(S_t=K\) and positive volatility, is the BS call Delta
+exactly \(1/2\)? What do call Deltas approach near expiry at fixed
+OTM, ATM, and ITM spots?
+\end{pausebox}
+
+\begin{exampleblock}{Answer}
+At the money and before expiry,
+\[
+\boxed{\Delta_{\mathrm{ATM}}=\Ncdf\!\left(\frac{\sigma\sqrt{\tau}}2\right)
+>\frac12,\qquad \Delta_{\mathrm{ATM}}\longrightarrow\frac12.}
+\]
+As \(\tau\downarrow0\), Delta tends to \(0\) at fixed \(S_t<K\) and to
+\(1\) at fixed \(S_t>K\). Exactly at expiry, the payoff has no classical
+derivative at \(S_T=K\); \(1/2\) is a pre-expiry limit.
+\end{exampleblock}
+\end{frame}
+
+% Question bank: TC04-004; TC08-004, TC08-005, TC08-006.
+\begin{frame}{Where does Gamma concentrate near expiry?}
+\greekrecall{\Gamma_t=\partial_{ss}v(t,S_t)=\frac{\Ncdf'(d_1)}{S_t\sigma\sqrt{\tau}}}
+\begin{pausebox}
+For a short-dated call, where is Gamma concentrated?
+At fixed \(S_t=K\) and \(r=0\), what happens as expiry approaches?
+What about a call with strike zero?
+\end{pausebox}
+
+\begin{exampleblock}{Answer}
+At the money,
+\[
+\Gamma_{\mathrm{ATM}}
+=\frac{\Ncdf'(\sigma\sqrt{\tau}/2)}{S_t\sigma\sqrt{\tau}}
+\sim\boxed{\frac1{S_t\sigma\sqrt{2\pi\tau}}}.
+\]
+Gamma becomes concentrated near the strike and diverges along the ATM limit;
+at fixed \(S_t\ne K\), it tends to zero. At expiry, the kink is not a finite
+classical Gamma. A zero-strike call is the stock itself, so its Gamma is zero.
+\end{exampleblock}
+\end{frame}
+
+% Question bank: FG07-025; TC04-016; TC08-009.
+\begin{frame}{Can call minus put have Gamma or Vega?}
+\begin{pausebox}
+Buy a call and sell a put with the same strike, expiry, and underlying.
+What are the Gamma and Vega of the combination?
+Can you justify the answer without differentiating the full BS formulas?
+\end{pausebox}
+
+\greekrecall{\Gamma_t=\partial_{ss}v(t,S_t)=\frac{\Ncdf'(d_1)}{S_t\sigma\sqrt{\tau}},\qquad \nu=\partial_\sigma v=S_t\sqrt{\tau}\,\Ncdf'(d_1)}
+\begin{exampleblock}{Answer}
+Put--call parity gives
+\(C_t-P_t=S_t-Ke^{-r\tau}\), linear in spot and independent of volatility. Hence
+\[
+\boxed{\Gamma_C=\Gamma_P,\qquad \nu_C=\nu_P,\qquad
+\Gamma_{C-P}=\nu_{C-P}=0.}
+\]
+The payoff is \(S_T-K\). The positive individual Gamma and Vega exposures cancel.
+\end{exampleblock}
+\end{frame}
+
 \begin{frame}{Higher volatility raises the value of a long call and put}
+\greekrecall{\nu=\partial_\sigma v=S_t\sqrt{\tau}\,\Ncdf'(d_1)}
 \begin{block}{Why}
 The payoffs \((S_T-K)^+\) and \((K-S_T)^+\) are convex in \(S_T\). Holding
 the mean fixed, a wider distribution puts more probability in the tails,
 where the holder benefits but cannot lose below zero at maturity.
 \end{block}
 \begin{marketbox}
-For standard European options, Vega is positive. A higher implied volatility
+For European vanilla calls and puts, Vega is positive. A higher implied volatility
 therefore means a higher price, all else equal.
 \end{marketbox}
+\end{frame}
+
+% Question bank: TC01-002,003; TC08-015,016.
+\begin{frame}{Does a call spread always have positive Vega?}
+\greekrecall{\nu=\partial_\sigma v=S_t\sqrt{\tau}\,\Ncdf'(d_1)}
+\begin{pausebox}
+Buy a \(95\)-strike call and sell a \(105\)-strike call of the same expiry.
+Must the spread's Vega be positive? Consider \(S_t=120\), \(r=0\),
+\(\sigma=20\%\), and \(\tau=1\).
+\end{pausebox}
+
+\begin{exampleblock}{Answer}
+Each call has positive Vega, but the position has their difference:
+\[
+\boxed{\nu_{\mathrm{spread}}=\nu(95)-\nu(105).}
+\]
+For these inputs, \(d_1(95)>d_1(105)>0\), so \(\nu(95)<\nu(105)\):
+the spread's Vega is \textbf{negative}. The sign can change with spot.
+A nonnegative payoff does not imply positive Vega.
+\end{exampleblock}
+\end{frame}
+
+\subsection{Implied volatility and smiles}
+
+\begin{frame}{Annualized historical volatility: a statistical estimate}
+From \(n+1\) daily closing prices, compute \(n\) log returns:
+\[
+R_i=\log\!\left(\frac{S_{t_i}}{S_{t_{i-1}}}\right),
+\qquad \overline R=\frac1n\sum_{i=1}^n R_i.
+\]
+\begin{block}{Estimate daily variance, then annualize}
+For \(A=252\) trading days per year,
+\[
+s_R^2=\frac1{n-1}\sum_{i=1}^n(R_i-\overline R)^2,
+\qquad
+\boxed{\widehat\sigma_{\mathrm{hist,ann}}=\sqrt{A}\,s_R.}
+\]
+With a common mean and variance and no return autocorrelation, annual variance
+is \(A\) times daily variance. Normality is not required.
+\end{block}
+A daily standard deviation of \(1\%\) gives
+\(\sqrt{252}\times1\%\approx15.9\%\) annualized volatility.
 \end{frame}
 
 \begin{frame}{Implied volatility is the market price written in model units}
@@ -462,6 +754,7 @@ Given a European call quote \(C_t^{\mathrm{mkt}}(K,T)\), hold
 C^{\mathrm{BS}}\!\left(S_t,K,\tau,r,\sigma_{\mathrm{imp},t}(K,T)\right)
 =C_t^{\mathrm{mkt}}(K,T).
 \]
+\greekrecall{\nu=\partial_\sigma v=S_t\sqrt{\tau}\,\Ncdf'(d_1)>0.}
 Black--Scholes Vega is positive: the price increases with \(\sigma\), so
 there is at most one solution. In practice, find it numerically.
 \begin{block}{Why traders quote volatility}
@@ -472,6 +765,26 @@ their dollar premiums alone.
 Implied volatility is extracted from today's option price. It is neither
 historical realized volatility nor a guaranteed forecast of future volatility.
 \end{simplificationbox}
+\end{frame}
+
+% Question bank: TC06-022; TC08-009.
+\begin{frame}{A put instead of a call: should the quoted volatility change?}
+\begin{pausebox}
+You quoted a European call in implied volatility. The client actually wants
+a put with the same \(K,T\) and underlying. Should you change the volatility?
+Does the answer change if one option is out of the money?
+\end{pausebox}
+
+\begin{exampleblock}{Answer}
+With the same spot, rate, dividend inputs, and parity-consistent prices,
+\[
+\boxed{\sigma_{\mathrm{imp},t}^{\mathrm{call}}(K,T)
+=\sigma_{\mathrm{imp},t}^{\mathrm{put}}(K,T).}
+\]
+The call and put BS formulas satisfy parity at every common volatility.
+This remains true away from the money. A skew compares \emph{different
+strikes}, not call and put labels at the same strike.
+\end{exampleblock}
 \end{frame}
 
 \begin{frame}{Two variables: strike and maturity}
@@ -525,25 +838,23 @@ a maturity. A quoted \(22\%\) is annualized even for a 3-month option.
 \end{block}
 \end{frame}
 
-\begin{frame}{A downside skew is expensive crash insurance}
-For an equity index, low-strike puts are OTM yet often display higher implied
-volatility than ATM options.
-\begin{columns}[T,onlytextwidth]
-\column{0.48\textwidth}
-\begin{block}{Market observation}
-Investors demand protection against severe market falls, raising low-strike
-put prices.
-\end{block}
-\column{0.48\textwidth}
-\begin{exampleblock}{Model reading}
-Feeding those high prices into Black--Scholes yields a high
-\(\sigma_{\mathrm{imp}}\): the volatility skew.
+% Question bank: TC05-026 / TC07-015; TC08-012, TC08-018.
+\begin{frame}{What does ``puts trade at higher vol'' actually compare?}
+\begin{pausebox}
+Equity traders often say that puts trade at higher implied volatility than
+calls. Which strikes are they comparing? Does this contradict equal call
+and put implied volatilities at the same \((K,T)\)?
+\end{pausebox}
+
+\begin{exampleblock}{Answer}
+They usually compare \textbf{low-strike OTM puts} with \textbf{high-strike
+OTM calls}, at the same expiry. A downside skew means higher implied
+volatility at lower strikes.
+\medskip
+
+These are different strikes, so parity is respected. Demand for downside
+protection can contribute to the higher prices of low-strike puts.
 \end{exampleblock}
-\end{columns}
-\begin{marketbox}
-The skew is not itself an arbitrage. It is evidence that constant-volatility
-Black--Scholes is an imperfect market description.
-\end{marketbox}
 \end{frame}
 
 \begin{frame}{Market evidence: the S\&P 500 downside skew}
@@ -591,6 +902,306 @@ Source: \href{https://www.mathfinance.com/wp-content/uploads/2025/06/FX-Column_2
 Author's parabolic interpolation in delta, converted to strike; reference spot fixed at 1.1000.\par}
 \end{frame}
 
+% ------------------------------------------------------------
+% Guided exercise: actual volatility versus the Black--Scholes hedge
+% ------------------------------------------------------------
+
+\subsection{Volatility error: a guided replication exercise}
+
+\begin{frame}{Guided exercise: hedge with the wrong volatility}
+\begin{modelbox}
+No dividends, constant rate \(r\), continuous trading, and no transaction costs.
+The actual stock follows
+\[
+\frac{\dd S_t}{S_t}=\mu_t\dd t+\sigma_t\dd W_t^{\Pp}.
+\]
+\end{modelbox}
+Sell a call and hedge it using a \textbf{fixed assumed volatility}
+\(\widehat\sigma>0\). Its model price is
+\[
+v(t,s)=C^{\mathrm{BS}}(s,K,T-t,r,\widehat\sigma),
+\qquad v(T,s)=(s-K)^+.
+\]
+\begin{block}{The problem}
+The premium received is \(v(0,S_0)\), but actual volatility is \(\sigma_t\).
+After trading the Black--Scholes Delta and paying the call at expiry,
+how much money remains?
+\end{block}
+\end{frame}
+
+\begin{frame}{The seller's books: what we hold, what we owe, and the P\&L}
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{What we hold: the hedge portfolio \(V_t\)}
+\(\Delta_t\) \textbf{shares}, the BS Delta computed with \(\widehat\sigma\),
+plus a \textbf{wallet} (cash account) holding \(V_t-\Delta_tS_t\) at rate \(r\);
+a negative wallet means borrowing.
+\smallskip
+
+At \(t=0\), the premium enters the wallet and pays for the \(\Delta_0\) shares:
+\(V_0=v(0,S_0)\).
+\end{block}
+\column{0.48\textwidth}
+\begin{alertblock}{What we owe: the short call}
+Before \(T\), the liability is marked at its model value \(v(t,S_t)\).
+\smallskip
+
+At \(T\), we pay \(v(T,S_T)=(S_T-K)^+\) out of the hedge portfolio.
+\end{alertblock}
+\end{columns}
+\medskip
+\begin{exampleblock}{The P\&L: what we hold minus what we owe}
+\[
+\boxed{\Pi_t=V_t-v(t,S_t),}\qquad
+\Pi_0=0,\qquad
+\Pi_T=V_T-(S_T-K)^+.
+\]
+\(V_t\) is \emph{not} the P\&L: it is shares plus wallet.
+\(\Pi_t\) nets out the call we still owe.
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Hedging exercise (1/9): how many shares do we hold?}
+\begin{pausebox}
+We are short one call, marked at \(v(t,S_t)\). How many shares must the hedge
+portfolio hold to offset the call's exposure to a small stock move?
+Define the Gamma used in the calculation. Which volatility enters these Greeks?
+\end{pausebox}
+
+\begin{exampleblock}{Answer}
+We hold the Black--Scholes Delta of the call, computed with \(\widehat\sigma\):
+\[
+\boxed{\Delta_t=\partial_s v(t,S_t)=\Ncdf(\widehat d_{1,t}),}
+\qquad
+\Gamma_t=\partial_{ss}v(t,S_t)=\frac{\Ncdf'(\widehat d_{1,t})}{S_t\widehat\sigma\sqrt{T-t}}.
+\]
+Both are computed with \(\widehat\sigma\), then evaluated at the
+\emph{actual} stock price \(S_t\). Here \(\widehat d_{1,t}\) is the usual
+Black--Scholes \(d_1\) using \(\widehat\sigma\). The rest of \(V_t\) sits in
+the wallet.
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Hedging exercise (2/9): how does the hedge portfolio evolve?}
+\greekrecall{\Delta_t=\partial_s v(t,S_t)=\Ncdf(\widehat d_{1,t})}
+\begin{pausebox}
+Over \([t,t+\dd t]\), write $dV_t$ using the self financing condition
+\end{pausebox}
+
+\begin{exampleblock}{Answer}
+Shares gain \(\Delta_t\dd S_t\); the wallet earns \(r(V_t-\Delta_tS_t)\dd t\).
+Buying shares is paid from the wallet, so rebalancing leaves \(V_t\)
+unchanged: the strategy is \textbf{self-financing},
+\[
+\boxed{\dd V_t=\Delta_t\dd S_t+r(V_t-\Delta_tS_t)\dd t.}
+\]
+The P\&L moves by \(\dd\Pi_t=\dd V_t-\dd v(t,S_t)\). Steps 3--5 compute
+\(\dd v(t,S_t)\); step 6 combines the two.
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Hedging exercise (3/9): which PDE does the price solve?}
+\greekrecall{\Delta_t=\partial_s v(t,S_t)=\Ncdf(\widehat d_{1,t}),\qquad \Gamma_t=\partial_{ss}v(t,S_t)=\frac{\Ncdf'(\widehat d_{1,t})}{S_t\widehat\sigma\sqrt{T-t}}}
+\begin{pausebox}
+Write the PDE satisfied by \(v\). Which volatility belongs in it?
+Then isolate \(\partial_t v(t,S_t)\), using \(\Delta_t\) and \(\Gamma_t\).
+\end{pausebox}
+
+\begin{exampleblock}{Answer}
+\[
+\begin{gathered}
+\boxed{\partial_t v+rs\,\partial_s v
+       +\frac12\widehat\sigma^{\,2}s^2\partial_{ss}v-rv=0,}\\[1ex]
+\partial_t v(t,S_t)
+=r\bigl(v(t,S_t)-S_t\Delta_t\bigr)
+ -\frac12\widehat\sigma^{\,2}S_t^2\Gamma_t.
+\end{gathered}
+\]
+For \(t<T\), the PDE uses the \emph{assumed} variance \(\widehat\sigma^{\,2}\).
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Hedging exercise (4/9): which variance enters It\^o?}
+\greekrecall{\Delta_t=\partial_s v(t,S_t)=\Ncdf(\widehat d_{1,t}),\qquad \Gamma_t=\partial_{ss}v(t,S_t)=\frac{\Ncdf'(\widehat d_{1,t})}{S_t\widehat\sigma\sqrt{T-t}}}
+\begin{pausebox}
+Apply
+It\^o's formula to \(v(t,S_t)\). Does its second-order term use
+\(\sigma_t\) or \(\widehat\sigma\)?
+\end{pausebox}
+
+\begin{exampleblock}{Answer}
+Actual stock fluctuations determine quadratic variation:
+\[
+\boxed{\dd\langle S\rangle_t=\sigma_t^2S_t^2\dd t.}
+\]
+Therefore
+\[
+\dd v(t,S_t)
+=\partial_t v(t,S_t)\dd t+\Delta_t\dd S_t
+ +\frac12\sigma_t^2S_t^2\Gamma_t\dd t.
+\]
+It\^o uses the \emph{actual} variance \(\sigma_t^2\).
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Hedging exercise (5/9): combine the PDE and It\^o}
+\greekrecall{\Delta_t=\partial_s v(t,S_t)=\Ncdf(\widehat d_{1,t}),\qquad \Gamma_t=\partial_{ss}v(t,S_t)=\frac{\Ncdf'(\widehat d_{1,t})}{S_t\widehat\sigma\sqrt{T-t}}}
+\begin{pausebox}
+Substitute the model PDE expression for \(\partial_t v\) into the
+It\^o differential. Can you isolate the term caused by the volatility error?
+\end{pausebox}
+
+\begin{exampleblock}{Answer}
+\[
+\boxed{\begin{aligned}
+\dd v(t,S_t)={}&\Delta_t\dd S_t
+ +r\bigl(v(t,S_t)-S_t\Delta_t\bigr)\dd t\\
+&+\frac12\bigl(\sigma_t^2-\widehat\sigma^{\,2}\bigr)
+             S_t^2\Gamma_t\dd t.
+\end{aligned}}
+\]
+Actual variance enters through It\^o; assumed variance enters through the PDE.
+Their difference is multiplied by \(\tfrac12 S_t^2\Gamma_t\).
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Hedging exercise (6/9): what remains in the P\&L?}
+\greekrecall{\Delta_t=\partial_s v(t,S_t)=\Ncdf(\widehat d_{1,t}),\qquad \Gamma_t=\partial_{ss}v(t,S_t)=\frac{\Ncdf'(\widehat d_{1,t})}{S_t\widehat\sigma\sqrt{T-t}}}
+\begin{pausebox}
+Compute \(\dd\Pi_t=\dd V_t-\dd v(t,S_t)\).
+Which terms cancel? Does the actual stock drift \(\mu_t\) remain
+explicitly in the result?
+\end{pausebox}
+
+\begin{exampleblock}{Answer}
+The two \(\Delta_t\dd S_t\) terms cancel, leaving
+\[
+\boxed{\dd\Pi_t=r\Pi_t\dd t
+ +\frac12\bigl(\widehat\sigma^{\,2}-\sigma_t^2\bigr)
+                  S_t^2\Gamma_t\dd t.}
+\]
+The cancellation removes both the drift and Brownian parts of
+\(\Delta_t\dd S_t\). There is no explicit \(\mu_t\) term; the variance
+error remains, weighted by \(S_t^2\Gamma_t\).
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Hedging exercise (7/9): remove the financing term}
+We found
+\[
+\dd\Pi_t=r\Pi_t\dd t
+ +\frac12\bigl(\widehat\sigma^{\,2}-\sigma_t^2\bigr)
+                  S_t^2\Gamma_t\dd t.
+\]
+\greekrecall{\Gamma_t=\partial_{ss}v(t,S_t)=\frac{\Ncdf'(\widehat d_{1,t})}{S_t\widehat\sigma\sqrt{T-t}}}
+\begin{pausebox}
+Which integrating factor removes \(r\Pi_t\dd t\)?
+Write the differential of the discounted P\&L.
+\end{pausebox}
+
+\begin{exampleblock}{Answer}
+Multiply by \(e^{-rt}\) and use the product rule:
+\[
+\boxed{\dd(e^{-rt}\Pi_t)
+ =\frac12 e^{-rt}S_t^2\Gamma_t
+       \bigl(\widehat\sigma^{\,2}-\sigma_t^2\bigr)\dd t.}
+\]
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Hedging exercise (8/9): obtain the terminal integral}
+\greekrecall{\Gamma_t=\partial_{ss}v(t,S_t)=\frac{\Ncdf'(\widehat d_{1,t})}{S_t\widehat\sigma\sqrt{T-t}}}
+\begin{pausebox}
+Integrate the discounted dynamics from \(0\) to \(T\), using \(\Pi_0=0\).
+What money remains after paying the call? Express the result in time-\(T\)
+dollars, keeping the financing factor.
+\end{pausebox}
+
+\begin{exampleblock}{Answer: exact continuous-hedging P\&L for the seller}
+\[
+\boxed{\underbrace{V_T-(S_T-K)^+}_{\Pi_T}
+=\frac12\int_0^T e^{r(T-t)}S_t^2\Gamma_t
+       \bigl(\widehat\sigma^{\,2}-\sigma_t^2\bigr)\dd t.}
+\]
+Each local gain or loss is accumulated to expiry by \(e^{r(T-t)}\).
+For \(r=0\), this factor is one.
+\medskip
+
+An initial premium different from \(v(0,S_0)\) would add
+\(e^{rT}\Pi_0\) to the terminal P\&L.
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Hedging exercise (9/9): interpret the P\&L}
+\greekrecall{\Gamma_t=\partial_{ss}v(t,S_t)=\frac{\Ncdf'(\widehat d_{1,t})}{S_t\widehat\sigma\sqrt{T-t}}}
+\begin{pausebox}
+Predict the seller's P\&L when \(\sigma_t=\widehat\sigma\),
+\(\sigma_t\le\widehat\sigma\), or \(\sigma_t\ge\widehat\sigma\) at all times.
+If the error changes sign, is its unweighted average enough?
+\end{pausebox}
+
+\begin{exampleblock}{Answer}
+{\centering
+\begin{tabular}{l|l}
+\toprule
+Volatility along the path & Seller's terminal P\&L\\
+\midrule
+\(\sigma_t=\widehat\sigma\) for all \(t\) & zero: exact replication\\
+\(\sigma_t\le\widehat\sigma\) for all \(t\) & nonnegative\\
+\(\sigma_t\ge\widehat\sigma\) for all \(t\) & nonpositive\\
+\bottomrule
+\end{tabular}
+\par}
+The weights are \(e^{r(T-t)}S_t^2\Gamma_t\); an unweighted average loses them.
+A long call with its short-stock hedge reverses the P\&L sign.
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Realized volatility: what the hedge actually experienced}
+Sample the hedging window \([0,T]\) with \(n\) log returns \(R_i\), \(A\) per year
+(\(T=n/A\)). A common realized measure is
+\[
+\boxed{\mathrm{RV}_{\mathrm{ann}}
+=\frac1{T}\sum_{i=1}^nR_i^2,
+\qquad \widehat\sigma_{\mathrm{real,ann}}=\sqrt{\mathrm{RV}_{\mathrm{ann}}}.}
+\]
+Unlike historical volatility, it uses uncentered squared returns:
+\(\mathrm{RV}_{\mathrm{ann}}=A[(n-1)s_R^2/n+\overline R^{\,2}]\).
+\begin{block}{Link with the hedging P\&L}
+For \(\dd S_t/S_t=\mu_t\dd t+\sigma_t\dd W_t^{\Pp}\), under increasingly fine sampling,
+\[
+\sum_iR_i^2\longrightarrow\int_0^T\sigma_t^2\dd t
+\quad\text{(quadratic variation)},
+\qquad
+\sigma_{\mathrm{real,ann}}^2=\frac1T\int_0^T\sigma_t^2\dd t.
+\]
+If \(r=0\) and \(S_t^2\Gamma_t\equiv G\) were constant, the seller's P\&L would be
+\(\Pi_T=\tfrac12GT\bigl(\widehat\sigma^{\,2}-\sigma_{\mathrm{real,ann}}^2\bigr)\).
+In general, the Gamma weights vary along the path.
+\end{block}
+\end{frame}
+
+
+% Question bank: FG01-040; FG07-027.
+\begin{frame}{Does realized volatility above implied guarantee a gain?}
+\greekrecall{\Delta_t=\partial_s v(t,S_t)=\Ncdf(\widehat d_{1,t}),\qquad \Gamma_t=\partial_{ss}v(t,S_t)=\frac{\Ncdf'(\widehat d_{1,t})}{S_t\widehat\sigma\sqrt{T-t}}}
+\begin{pausebox}
+Buy a call at \(20\%\) implied volatility and hedge its Delta daily.
+Realized volatility is \(30\%\) at expiry. Must you have made money?
+\end{pausebox}
+
+\begin{exampleblock}{Answer}
+\textbf{No.} For a long call and its short-stock hedge, at \(r=0\),
+\[
+\Pi_T^{\mathrm{long}}
+=\frac12\int_0^T S_t^2\Gamma_t
+        \bigl(\sigma_t^2-(0.20)^2\bigr)\dd t
+\]
+in the continuous, costless benchmark. Realized volatility omits the Gamma
+weights in the P\&L. Daily rehedging and costs introduce further differences.
+\end{exampleblock}
+\end{frame}
+
 % ============================================================
 \section{Model-Free Bounds}
 % ============================================================
@@ -615,6 +1226,8 @@ Let \(D_t=e^{-r\tau}\), still assuming no dividends.
 These are model-free constraints. Black--Scholes prices must obey them, but
 so must every arbitrage-free model.
 \end{marketbox}
+A quote outside these bounds has no nonnegative BS implied volatility.
+Strictly interior quotes have a unique finite, positive implied volatility.
 \end{frame}
 
 \begin{frame}{The call upper bound comes from a superhedge}
@@ -626,7 +1239,7 @@ S_T\ge(S_T-K)^+.
 Suppose \(C_t>S_t\). What happens if you sell the call and buy the share?
 Track the cashflow today and the payoff at \(T\).
 \end{pausebox}
-\pause
+
 \begin{exampleblock}{Arbitrage}
 Receive \(C_t-S_t>0\) today. At maturity, deliver the share if the call is
 exercised; otherwise retain a share worth \(S_T\ge0\). The terminal net
@@ -649,26 +1262,6 @@ Use a payoff inequality first; then translate it into a price inequality.
 \end{block}
 \end{frame}
 
-\begin{frame}{Are these quotes inside the arbitrage-free interval?}
-\begin{pausebox}
-Let \(S_t=100\), \(K=100\), \(r=5\%\), \(\tau=1\). Check call quotes
-\(2\), \(10.45\), and \(103\) against the model-free bounds.
-\end{pausebox}
-\pause
-\[
-\max(100-100e^{-0.05},0)\approx4.88,
-\qquad C_t\le100.
-\]
-\begin{center}
-\begin{tabular}{c|ccc}
-\toprule
-Quote & \(2\) & \(10.45\) & \(103\)\\
-\midrule
-Verdict & too low & feasible & too high\\
-\bottomrule
-\end{tabular}
-\end{center}
-\end{frame}
 
 \begin{frame}{Superhedges and subhedges generalize the same logic}
 If a liquid strategy satisfies \(Y_T\le H\le X_T\), then its initial costs
@@ -716,7 +1309,7 @@ Two calls share the same maturity and have \(K_1=90<K_2=110\), but the
 market quotes \(C_t(90)=8\) and \(C_t(110)=10\). State the trade and explain
 why it cannot lose at maturity.
 \end{pausebox}
-\pause
+
 \begin{exampleblock}{Trade}
 Buy the lower-strike call for \(8\), sell the higher-strike call for \(10\),
 and receive \(2\) today. The terminal payoff
@@ -742,26 +1335,27 @@ requirements on the entire strip of option quotes, not on one option alone.
 \end{marketbox}
 \end{frame}
 
-\begin{frame}{Why is the butterfly payoff never negative?}
+% Question bank: TC07-027. Equal acquisition cost makes the preference precise.
+\begin{frame}{Which call package would you prefer at the same price?}
 \begin{pausebox}
-Let the strikes be \(90\), \(100\), and \(110\). Evaluate the butterfly
-payoff for \(S_T\le90\), \(90<S_T<100\), \(100\le S_T<110\), and
-\(S_T\ge110\).
+You are offered either one \(95\)-strike call plus one \(105\)-strike call,
+or two \(100\)-strike calls, at the same total price and expiry.
+Which package has the better payoff? What price inequality follows?
 \end{pausebox}
-\pause
-\begin{center}
-\begin{tabular}{c|c}
-\toprule
-Region & payoff\\
-\midrule
-\(S_T\le90\) & \(0\)\\
-\(90<S_T<100\) & \(S_T-90\)\\
-\(100\le S_T<110\) & \(110-S_T\)\\
-\(S_T\ge110\) & \(0\)\\
-\bottomrule
-\end{tabular}
-\end{center}
-It is a nonnegative tent, peaking at \(10\) when \(S_T=100\).
+
+\begin{exampleblock}{Answer}
+Choose the two wings. Their payoff minus that of the two middle calls is
+\[
+(S_T-95)^++(S_T-105)^+-2(S_T-100)^+
+=\bigl(5-|S_T-100|\bigr)^+\ge0.
+\]
+This is a long butterfly, so no-arbitrage requires
+\[
+\boxed{C_t(95)+C_t(105)\ge2C_t(100).}
+\]
+The preference uses equal acquisition cost; the payoff comparison gives
+the price restriction.
+\end{exampleblock}
 \end{frame}
 
 \begin{frame}{A three-quote diagnostic finds a butterfly arbitrage}
@@ -773,7 +1367,7 @@ C_t(90)=14,\qquad C_t(100)=12,\qquad C_t(110)=7.
 Check monotonicity first, then convexity. If a condition fails, name the
 portfolio and compute its initial cashflow.
 \end{pausebox}
-\pause
+
 \begin{block}{Monotonicity}
 \(14>12>7\): no problem.
 \end{block}
@@ -797,21 +1391,143 @@ at maturity.
 \end{marketbox}
 \end{frame}
 
-\begin{frame}{More time is valuable under a clean comparison}
-For a fixed strike, suppose \(T_1<T_2\), rates and dividends are zero.
-Then
+\begin{frame}{What do strike constraints imply for the volatility smile?}
+For one expiry, write the quoted implied volatilities and their BS prices as
+\[
+I_i=\sigma_{\mathrm{imp},t}(K_i,T),\qquad
+C_i=C^{\mathrm{BS}}(S_t,K_i,\tau,r,I_i).
+\]
+\begin{block}{The quotes must produce admissible call spreads and butterflies}
+For increasing strikes,
+\[
+\boxed{0\le C_i-C_{i+1}\le e^{-r\tau}(K_{i+1}-K_i).}
+\]
+For equally spaced strikes,
+\[
+\boxed{C_{i-1}-2C_i+C_{i+1}\ge0.}
+\]
+\end{block}
+These are joint restrictions on the \(I_i\) through BS prices.
+Implied volatility itself need not be decreasing or convex in strike.
+\end{frame}
+
+\begin{frame}{Calendar spread (1/4): track the two expiries}
+Assume \(r=q=0\). Choose the same strike \(K\), with \(t<T_1<T_2\).
+\begin{block}{Long calendar spread}
+Buy the \(T_2\) call and sell the \(T_1\) call. Today's cost is
+\[
+B_t=C_t(K,T_2)-C_t(K,T_1).
+\]
+\end{block}
+At \(T_1\), pay the short call's payoff \((S_{T_1}-K)^+\).
+The long call has \textbf{not expired}; sell it to close the position:
+\[
+\boxed{B_{T_1}=C_{T_1}(K,T_2)-(S_{T_1}-K)^+.}
+\]
+\textbf{Payoff versus profit:} the cash remaining at \(T_1\) is \(B_{T_1}\),
+while the trade's P\&L is \(B_{T_1}-B_t\). No position remains at \(T_2\).
+\end{frame}
+
+\begin{frame}{Calendar spread (2/4): why can the long call cover settlement?}
+Keep \(r=q=0\).
+\begin{pausebox}
+At \(T_1\), why must the remaining \(T_2\) call be worth at least
+\((S_{T_1}-K)^+\)? Can you prove this without a lognormal model?
+\end{pausebox}
+
+\begin{exampleblock}{Answer}
+Under a pricing measure, \(S\) is a martingale in this zero-carry setting.
+Conditional Jensen gives
+\[
+\begin{aligned}
+C_{T_1}(K,T_2)
+&=\E^{\Q}[(S_{T_2}-K)^+\mid\cF_{T_1}]\\
+&\ge\bigl(\E^{\Q}[S_{T_2}\mid\cF_{T_1}]-K\bigr)^+
+=(S_{T_1}-K)^+.
+\end{aligned}
+\]
+Thus \(B_{T_1}\ge0\). The intrinsic-value lower bound gives the same conclusion.
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Calendar spread (3/4): build the arbitrage if prices reverse}
+\begin{pausebox}
+With zero rates and dividends, the same-strike calls cost
+\(C_t(K,T_1)=5\) and \(C_t(K,T_2)=4\).
+What do you trade today, and how do you close it at \(T_1\)?
+\end{pausebox}
+
+\begin{exampleblock}{Answer}
+\textbf{Today:} sell the short-dated call for \(5\), buy the long-dated
+call for \(4\), and retain \(1\) in cash.
+\medskip
+
+\textbf{At \(T_1\):} sell the remaining long call and settle the short:
+\[
+C_{T_1}(K,T_2)-(S_{T_1}-K)^+\ge0.
+\]
+The initial \(1\) is retained and the closing cashflow cannot be negative.
+Consequently,
 \[
 \boxed{C_t(K,T_2)\ge C_t(K,T_1).}
 \]
-\begin{block}{Calendar-spread logic}
-If the longer call were cheaper, buy it and sell the shorter call. The trade
-generates cash today. At \(T_1\), the remaining longer option is worth at
-least the intrinsic value needed to settle the short option.
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Calendar spread (4/4): can a correctly priced spread lose?}
+\begin{pausebox}
+Now the short-dated call costs \(4\) and the long-dated call costs \(8\).
+At \(T_1\), spot equals the strike and the remaining call is worth \(3\).
+You close the spread. What is the P\&L, with \(r=q=0\)?
+\end{pausebox}
+
+\begin{exampleblock}{Answer}
+The initial debit was \(B_t=8-4=4\). At \(T_1\), the short expires
+worthless and the long is sold for \(3\), so
+\[
+\boxed{\Pi_{T_1}=\underbrace{(3-0)}_{B_{T_1}}-
+\underbrace{(8-4)}_{B_t}=-1.}
+\]
+The no-arbitrage inequality makes the initial spread price nonnegative;
+it does not guarantee a profit on a spread bought at a positive price.
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Calendar restrictions apply to total implied variance}
+Keep \(r=q=0\), with fixed \(S_t,K\). Let
+\[
+\tau_i=T_i-t,\quad I_i=\sigma_{\mathrm{imp},t}(K,T_i),
+\quad w_i=\tau_i I_i^2.
+\]
+\greekrecall{\nu=\partial_\sigma C^{\mathrm{BS}}
+=S_t\sqrt{\tau}\,\Ncdf'(d_1)>0.}
+The BS price increases with \(\sigma\sqrt{\tau}=\sqrt w\), so
+\[
+\boxed{C_t(K,T_2)\ge C_t(K,T_1)
+\quad\Longleftrightarrow\quad w_2\ge w_1.}
+\]
+\begin{exampleblock}{Annualized implied volatility can decrease}
+Three months at \(20\%\) gives \(w_1=0.25(0.20)^2=0.01\).
+One year at \(12\%\) gives \(w_2=1(0.12)^2=0.0144\).
+Total variance increases, even though \(12\%<20\%\).
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{With carry, compare at fixed forward moneyness}
+With constant known \(r,q\), define
+\(D_i=e^{-r\tau_i}\) and \(F_i=S_te^{(r-q)\tau_i}\).
+\begin{block}{Normalize prices before comparing maturities}
+Fix forward moneyness \(x=K_i/F_i\) across expiries, and write
+\[
+c_i=\frac{C_t(xF_i,T_i)}{D_iF_i},\qquad
+w_i=\tau_i\sigma_{\mathrm{imp},t}(xF_i,T_i)^2.
+\]
+The normalized stock is a martingale; conditional convexity implies
+\[
+\boxed{c_2\ge c_1\quad\Longleftrightarrow\quad w_2\ge w_1.}
+\]
 \end{block}
-\begin{simplificationbox}
-With rates or dividends, maturity comparisons require more care. Do not use
-this simple monotonicity statement without its assumptions.
-\end{simplificationbox}
+Fixed forward moneyness generally means \emph{different strikes} \(K_i=xF_i\).
 \end{frame}
 
 % ============================================================
@@ -843,7 +1559,7 @@ S_t=100,\quad K=100,\quad r=5\%,\quad \tau=1,
 Is put--call parity satisfied? If not, write each leg of a zero-terminal-payoff
 arbitrage and its initial receipt.
 \end{pausebox}
-\pause
+
 \[
 C_t+100e^{-0.05}=107.12>105=P_t+S_t.
 \]
@@ -851,21 +1567,5 @@ Sell the call, borrow \(95.12\), buy the put, and buy one share. The receipt
 is \(2.12\) today; parity makes the terminal net payoff zero.
 \end{frame}
 
-\begin{frame}{The big picture in one line}
-\[
-\boxed{\text{option payoff geometry}
-\quad\Longrightarrow\quad
-\text{arbitrage-free prices and hedges}.}
-\]
-\begin{block}{What to retain}
-Calls and puts are simple contingent claims. Replication gives parity;
-dominance gives bounds; strike convexity gives butterfly tests. Black--Scholes
-turns the same contracts into prices, Greeks, and implied volatilities.
-\end{block}
-\begin{marketbox}
-The habit to keep: every price statement should be backed by a payoff
-comparison or an explicit trading strategy.
-\end{marketbox}
-\end{frame}
 
 \end{document}

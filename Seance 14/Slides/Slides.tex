@@ -1,546 +1,1163 @@
 % !TEX program = pdflatex
-\documentclass[10pt,aspectratio=169]{beamer}
-
+% November 17, 2026: 26 exercises; two added per section, questions and answers shown together.
+% Scope: Lectures 1-11 only. No direct numerical applications; questions and answers shown together.
+\documentclass[handout,10pt,t,aspectratio=169]{beamer}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[english]{babel}
-\usepackage{lmodern}
-\usepackage{microtype}
-\usepackage{amsmath,amssymb,bm,mathtools}
-\usepackage{booktabs,array}
-
+\usepackage{lmodern,microtype,amsmath,amssymb,mathtools,booktabs,array,listings}
 \usetheme[numbering=fraction,progressbar=frametitle]{metropolis}
-\setbeamertemplate{frame numbering}[fraction]
 \setbeamertemplate{navigation symbols}{}
-
 \definecolor{CourseBlue}{HTML}{1A3C68}
 \definecolor{CourseGreen}{HTML}{216E39}
-\definecolor{CourseGold}{HTML}{B8860B}
 \definecolor{CourseRed}{HTML}{9A2C2C}
 \definecolor{SoftBlue}{HTML}{F2F6FA}
 \definecolor{SoftGreen}{HTML}{F1F8F3}
-\definecolor{SoftRed}{HTML}{FFF3F3}
-
 \setbeamercolor{normal text}{fg=black,bg=white}
 \setbeamercolor{structure}{fg=CourseBlue}
-\setbeamercolor{title}{fg=CourseBlue}
-\setbeamerfont{title}{size=\Large,series=\bfseries}
 \setbeamercolor{frametitle}{bg=CourseBlue,fg=white}
 \setbeamerfont{frametitle}{series=\bfseries,size=\large}
-\setbeamertemplate{frametitle}{
-  \nointerlineskip
-  \begin{beamercolorbox}[wd=\paperwidth,ht=3.2ex,dp=1.4ex,leftskip=1em,rightskip=1em]{frametitle}
-    \usebeamerfont{frametitle}\insertframetitle
-  \end{beamercolorbox}
-}
+\setbeamertemplate{frametitle}{\nointerlineskip
+ \begin{beamercolorbox}[wd=\paperwidth,ht=3.2ex,dp=1.4ex,leftskip=1em,rightskip=1em]{frametitle}
+ \usebeamerfont{frametitle}\insertframetitle\end{beamercolorbox}}
 \setbeamercolor{block title}{bg=CourseBlue,fg=white}
 \setbeamercolor{block body}{bg=SoftBlue,fg=black}
 \setbeamercolor{block title example}{bg=CourseGreen,fg=white}
 \setbeamercolor{block body example}{bg=SoftGreen,fg=black}
-\setbeamercolor{block title alerted}{bg=CourseRed,fg=white}
-\setbeamercolor{block body alerted}{bg=SoftRed,fg=black}
 \setbeamertemplate{blocks}[rounded][shadow=false]
-
-\newenvironment{modelbox}{\begin{beamercolorbox}[rounded=true,sep=0.7em,wd=\textwidth]{block body}
-  \textbf{\color{CourseBlue}MODEL}\quad}{\end{beamercolorbox}}
-\newenvironment{marketbox}{\begin{beamercolorbox}[rounded=true,sep=0.7em,wd=\textwidth]{block body example}
-  \textbf{\color{CourseGreen}NO-ARBITRAGE}\quad}{\end{beamercolorbox}}
-\newenvironment{simplificationbox}{\begin{beamercolorbox}[rounded=true,sep=0.7em,wd=\textwidth]{block body alerted}
-  \textbf{\color{CourseRed}WATCH OUT}\quad}{\end{beamercolorbox}}
-\newenvironment{pausebox}{\begin{beamercolorbox}[rounded=true,sep=0.8em,wd=\textwidth]{block body}
-  \textbf{\color{CourseGold}YOUR TURN}\quad}{\end{beamercolorbox}}
-
+\AtBeginSection[]{}
 \newcommand{\E}{\mathbb E}
-\newcommand{\Pp}{\mathbb P}
 \newcommand{\Q}{\mathbb Q}
+\newcommand{\Pp}{\mathbb P}
 \newcommand{\F}{\mathcal F}
 \newcommand{\dd}{\,\mathrm d}
-\newcommand{\Ncdf}{\Phi}
-
-\AtBeginSection[]{
-  \begin{frame}[plain]\vfill
-    {\Large\bfseries\color{CourseBlue}\insertsectionhead\par}
-    \medskip{\color{CourseBlue}\rule{0.92\textwidth}{0.8pt}}\vfill
-  \end{frame}
-}
-
-\title{Pricing Toolbox: A Guided Refresher}
-\subtitle{It\^o calculus, Girsanov, path dependence, and early exercise}
-\author{}
-\date{Lecture 14}
-
+\newcommand{\ind}{\mathbf1}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\Lbs}{\mathcal L}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newenvironment{questions}{\begin{block}{Questions}}{\end{block}}
+\newenvironment{answers}{\begin{exampleblock}{Answer and check}}{\end{exampleblock}}
+\newcommand{\compact}{\small%
+ \setlength{\abovedisplayskip}{3pt}%
+ \setlength{\belowdisplayskip}{3pt}%
+ \setlength{\abovedisplayshortskip}{2pt}%
+ \setlength{\belowdisplayshortskip}{2pt}%
+ \setlength{\parskip}{2pt}}
+\lstset{language=Python,basicstyle=\ttfamily\small,
+ showstringspaces=false,columns=fullflexible,keepspaces=true,
+ aboveskip=3pt,belowskip=3pt}
+\title{Course Review: Lectures 1--11}
+\subtitle{26 worked exercises in a compact format}
+\author{}\date{Lecture 14}
 \begin{document}
 
-\begin{frame}[plain]
-  \vfill
-  {\LARGE\bfseries\color{CourseBlue}Pricing Toolbox: A Guided Refresher\par}
-  \medskip{\large It\^o calculus, Girsanov, path dependence, and early exercise\par}
-  \medskip{\color{CourseGold}\rule{0.94\textwidth}{0.8pt}}
-  \medskip{Lecture 14\par}\vfill
+\begin{frame}{Lecture 14 | 26 worked exercises, Lectures 1--11}
+\compact
+\begin{center}\begin{tabular}{cl}
+\toprule Problems & Skills to check\\\midrule
+1--6 & It\^o, martingales, stopping times and representation\\
+7--13 & Girsanov, replication, Black--Scholes and Greeks\\
+14--18 & Arbitrage bounds and American exercise\\
+19--22 & Monte Carlo and implied volatility\\
+23--26 & Heston: spanning, pricing drift and variance\\\bottomrule
+\end{tabular}\end{center}
+Read the questions first, then use the answer panel to check your reasoning.
+Work symbolically and explain the financial mechanism before using a formula.
+For each result, give a derivation and one check: a moment, sign, bound,
+unit, terminal condition or limiting case.
+\begin{exampleblock}{Conventions}
+Unless stated otherwise: frictionless trading, no dividends, a constant
+rate \(r\), and European payment at \(T\). Brownian filtrations are the
+usual augmented natural filtrations. \(\Phi,\phi\) denote the standard
+normal CDF and density. New material from Lectures 12--13 is excluded.
+\end{exampleblock}
 \end{frame}
 
-\begin{frame}{Four tools solve four pricing questions}
-\begin{block}{The question}
-How do the core tools of continuous-time finance work together when a payoff
-depends on a path, a barrier, or an exercise decision?
-\end{block}
+
+\section{Stochastic calculus and martingales}
+\begin{frame}{1 | Integrate a Brownian: identity, moments, isometry}
+\compact
+\begin{columns}[T,onlytextwidth]
+\column{.40\textwidth}
+\begin{questions}
+Let \(W\) be standard Brownian motion and
+\[
+ X_T=\int_0^T W_t\dd W_t.
+\]
 \begin{enumerate}
-  \item Use It\^o's formula to handle nonlinear functions of Brownian motion.
-  \item Use Girsanov to move a drifted hitting problem to Brownian motion.
-  \item Augment the state for an Asian option and price it by PDE or simulation.
-  \item Use backward induction to decide whether an American option is exercised.
+\item Express \(X_T\) using \(W_T,T\).
+\item Find its mean and variance.
+\item Identify a related martingale.
+\item Check the variance independently.
 \end{enumerate}
-\begin{marketbox}
-Each technique changes the representation of a problem while preserving the
-economic object that must be priced.
-\end{marketbox}
-\end{frame}
-
-\section{It\^o calculus turns stochastic integrals into identities}
-
-\begin{frame}{The quadratic-variation term is the essential correction}
-For \(f(x)=e^x\), It\^o's formula gives
+\end{questions}
+\column{.58\textwidth}
+\begin{answers}
+It\^o gives \(\dd(W_t^2)=2W_t\dd W_t+\dd t\), hence
 \[
-\dd e^{B_t}=e^{B_t}\dd B_t+\frac12e^{B_t}\dd t.
+ \boxed{X_T=\tfrac12(W_T^2-T).}
 \]
-Integrating from \(0\) to \(t\),
+Since \(\E[W_T^2]=T\), \(\E[W_T^4]=3T^2\),
 \[
-\boxed{
-\int_0^t e^{B_s}\dd B_s
-=
-e^{B_t}-1-\frac12\int_0^t e^{B_s}\dd s.}
+ \E[X_T]=0,\qquad \Var(X_T)=T^2/2.
 \]
-\begin{block}{Why ordinary calculus fails}
-The term \(\tfrac12 f''(B_t)\dd t\) comes from
-\((\dd B_t)^2=\dd t\). Omitting it produces the wrong stochastic integral.
-\end{block}
-\end{frame}
-
-\begin{frame}{A quick It\^o check}
-\begin{pausebox}
-Suppose someone claims
+\(W_t^2-t\) is a martingale. Independently, isometry gives
 \[
-\int_0^t e^{B_s}\dd B_s=e^{B_t}-1.
+ \E[X_T^2]=\int_0^T\E[W_t^2]\dd t=T^2/2.
 \]
-What term is missing, and why?
-\end{pausebox}
-\pause
-\begin{exampleblock}{Answer}
-The correction is
-\[
--\frac12\int_0^t e^{B_s}\dd s.
-\]
-It comes from the second derivative of \(e^x\) and Brownian quadratic
-variation.
-\end{exampleblock}
-\end{frame}
-
-\begin{frame}{The stochastic exponential is a martingale after correction}
-For deterministic square-integrable \(f\), define
-\[
-\mathcal E_t=
-\exp\left(
-\int_0^t f(s)\dd B_s-\frac12\int_0^t f(s)^2\dd s
-\right).
-\]
-Then
-\[
-\dd\mathcal E_t=\mathcal E_t f(t)\dd B_t,
-\]
-so \(\mathcal E\) is a martingale under standard integrability conditions.
-\begin{marketbox}
-The compensating term
-\(\tfrac12\int f^2\) is exactly what makes an exponential Gaussian
-quantity have mean one. It will become the density process in Girsanov.
-\end{marketbox}
-\end{frame}
-
-\section{Girsanov removes drift by changing measure}
-
-\begin{frame}{A change of measure turns drifted Brownian motion into Brownian motion}
-Let
-\[
-X_t=\mu t+\sigma B_t,\qquad \theta=\frac{\mu}{\sigma},
-\]
-under \(\Pp\). Define
-\[
-Z_t=\exp\left(-\theta B_t-\frac12\theta^2t\right),
-\qquad
-\left.\frac{\dd\Q}{\dd\Pp}\right|_{\F_t}=Z_t.
-\]
-Girsanov's theorem says
-\[
-\widetilde B_t=B_t+\theta t
-\]
-is a Brownian motion under \(\Q\). Therefore
-\[
-\boxed{X_t=\sigma\widetilde B_t\quad\text{under }\Q.}
-\]
-\end{frame}
-
-\begin{frame}{The measure change simplifies a hitting-time question}
-Let
-\[
-\tau_a=\inf\{t\geq0:X_t=a\},\qquad a>0.
-\]
-Under \(\Q\), \(\tau_a\) is the first time a standard Brownian motion reaches
-\(a/\sigma\). Its density is
-\[
-f_{\tau_a}^{\Q}(t)
-=
-\frac{a/\sigma}{\sqrt{2\pi t^3}}
-\exp\left(-\frac{(a/\sigma)^2}{2t}\right).
-\]
-\begin{block}{Returning to the original measure}
-Use
-\[
-\Pp(A)=\E^\Q[Z_t^{-1}\mathbf1_A],
-\]
-then evaluate the density weight on the event \(\{\tau_a=t\}\).
-\end{block}
-\end{frame}
-
-\begin{frame}{A drifted hitting time has an inverse-Gaussian density}
-The change-of-measure calculation yields
-\[
-\boxed{
-f_{\tau_a}^{\Pp}(t)=
-\frac{a}{\sigma\sqrt{2\pi t^3}}
-\exp\left(-\frac{(a-\mu t)^2}{2\sigma^2t}\right),\qquad t>0.}
-\]
-\begin{pausebox}
-When \(\mu>0\), does the process tend to hit a positive level sooner or later
-than a driftless Brownian motion?
-\end{pausebox}
-\pause
-\begin{exampleblock}{Answer}
-Sooner. Positive drift shifts the density toward earlier hitting times. The
-formula makes this visible through the term \((a-\mu t)^2\).
-\end{exampleblock}
-\end{frame}
-
-\section{Martingale pricing with path-dependent payoffs}
-
-\begin{frame}{An Asian payoff needs a memory variable}
-An arithmetic-average Asian call pays
-\[
-\left(\frac1T\int_0^T S_u\dd u-K\right)^+.
-\]
-Define the running integral
-\[
-I_t=\int_0^t S_u\dd u.
-\]
-At time \(t\),
-\[
-\int_0^T S_u\dd u=I_t+\int_t^T S_u\dd u.
-\]
-\begin{marketbox}
-The stock price alone is not enough. The minimal Markov state is
-\(\boxed{(t,S_t,I_t)}\).
-\end{marketbox}
-\end{frame}
-
-\begin{frame}{State augmentation restores a pricing PDE}
-Under Black--Scholes,
-\[
-\dd S_t=rS_t\dd t+\sigma S_t\dd B_t,\qquad
-\dd I_t=S_t\dd t.
-\]
-For \(v(t,s,i)\), the pricing PDE is
-\[
-\boxed{
-v_t+rs\,v_s+s\,v_i+\tfrac12\sigma^2s^2v_{ss}-rv=0,}
-\]
-with terminal condition
-\[
-v(T,s,i)=\left(\frac{i}{T}-K\right)^+.
-\]
-\begin{block}{What changed from a vanilla option}
-The new term \(s\,v_i\) reflects the deterministic accumulation of the
-running integral; there is no diffusion term in the \(i\)-direction.
-\end{block}
-\end{frame}
-
-\begin{frame}{Monte Carlo prices the same Asian claim path by path}
-On a grid \(t_k=k\Delta t\), simulate risk-neutral stock paths and form
-\[
-\bar S_T^{(m)}=\frac1T\sum_{k=0}^{n-1}S_{t_k}^{(m)}\Delta t.
-\]
-The price estimator is
-\[
-\boxed{V_0\approx e^{-rT}\frac1M\sum_{m=1}^M
-\left(\bar S_T^{(m)}-K\right)^+.}
-\]
-\begin{pausebox}
-Where should the deterministic discount factor appear?
-\end{pausebox}
-\pause
-\begin{exampleblock}{Answer}
-Once outside the average. The simulated quantity is the risk-neutral payoff.
-\end{exampleblock}
-\end{frame}
-
-\begin{frame}{A geometric Asian option can reduce Monte Carlo noise}
-The geometric average
-\[
-G=\exp\left(\frac1T\int_0^T\log S_u\dd u\right)
-\]
-is tractable in Black--Scholes because \(\log S\) is Gaussian and its time
-integral is Gaussian.
-\begin{columns}[T,onlytextwidth]
-\column{0.48\textwidth}
-\begin{block}{Arithmetic Asian}
-The desired payoff uses the arithmetic average; it generally has no
-comparable closed form.
-\end{block}
-\column{0.48\textwidth}
-\begin{exampleblock}{Control variate}
-Simulate both payoffs and use the known geometric-Asian value to reduce
-variance in the arithmetic-Asian estimator.
-\end{exampleblock}
+\textbf{Quick rejection:} \(W_T^2/2\) has mean \(T/2\), so cannot be the integral.
+\end{answers}
 \end{columns}
 \end{frame}
 
-\section{Barrier events combine a path maximum and Girsanov}
-
-\begin{frame}{A one-touch option is a hitting probability}
-Under \(\Q\), let the stock pay dividend yield \(q\):
-\[
-\frac{\dd S_t}{S_t}=(r-q)\dd t+\sigma\dd B_t.
-\]
-A one-touch pays one unit at \(T\) if it ever reaches \(H>S_0\):
-\[
-\Pi=\mathbf1_{\{\sup_{0\leq t\leq T}S_t\geq H\}}.
-\]
-\begin{block}{Log transform}
-With \(X_t=\log(S_t/S_0)=\mu t+\sigma B_t\), where
-\(\mu=(r-q)-\tfrac12\sigma^2\), the barrier becomes the level
-\(a=\log(H/S_0)\). Price the resulting hitting probability and discount it.
-\end{block}
-\end{frame}
-
-\begin{frame}{Reflection plus Girsanov gives the one-touch probability}
-For \(Y_t=\mu t+\sigma B_t\),
-\[
-\boxed{
-\Q\left(\sup_{0\leq t\leq T}Y_t\geq a\right)
-=
-\Phi\left(\frac{\mu T-a}{\sigma\sqrt T}\right)
-+e^{2\mu a/\sigma^2}
-\Phi\left(\frac{-\mu T-a}{\sigma\sqrt T}\right).}
-\]
+\begin{frame}{2 | Two-dimensional It\^o: a ratio is not a difference of returns}
+\compact
 \begin{columns}[T,onlytextwidth]
-\column{0.48\textwidth}
-\begin{block}{When \(\mu=0\)}
-Reflection gives twice the upper tail of \(B_T\).
-\end{block}
-\column{0.48\textwidth}
-\begin{exampleblock}{When \(\mu\neq0\)}
-Girsanov removes drift, then the density change restores the original
-probability weights.
-\end{exampleblock}
+\column{.40\textwidth}
+\begin{questions}
+Positive processes satisfy
+\[
+ \frac{\dd X}{X}=\mu_X\dd t+\sigma_X\dd W^1,
+\]
+\[
+ \frac{\dd Y}{Y}=\mu_Y\dd t+\sigma_Y\dd W^2,
+\]
+with \(\dd\langle W^1,W^2\rangle=\rho\dd t\).
+\begin{enumerate}
+\item Find \(\dd R/R\) for \(R=X/Y\).
+\item Find its instantaneous variance.
+\item Do equal drifts make \(R\) driftless?
+\end{enumerate}
+\end{questions}
+\column{.58\textwidth}
+\begin{answers}
+Apply It\^o to \(f(x,y)=x/y\):
+\[
+ \begin{aligned}
+ \frac{\dd R}{R}
+ &=a_R\dd t+\sigma_X\dd W^1-\sigma_Y\dd W^2,\\
+ a_R&=\mu_X-\mu_Y+\sigma_Y^2
+       -\rho\sigma_X\sigma_Y.
+ \end{aligned}
+\]
+The relative variance rate is
+\[
+ v_R=\sigma_X^2+\sigma_Y^2-2\rho\sigma_X\sigma_Y.
+\]
+If \(\mu_X=\mu_Y\) and \(\sigma_X=\sigma_Y=\sigma\),
+\[
+ a_R=\sigma^2(1-\rho),\qquad
+ v_R=2\sigma^2(1-\rho).
+\]
+Equal drifts alone are insufficient. At \(\rho=1\), with equal volatilities,
+the ratio is constant: a useful check.
+\end{answers}
 \end{columns}
 \end{frame}
 
-\begin{frame}{Worked one-touch: check the scale of a barrier probability}
-Let \(S_0=100\), \(H=120\), \(r=5\%\), \(q=0\), \(\sigma=20\%\), \(T=1\).
-Then
+\begin{frame}{3 | Martingale or not? Adaptation and mean are not enough}
+\compact
+\begin{columns}[T,onlytextwidth]
+\column{.40\textwidth}
+\begin{questions}
+On a finite Brownian horizon, classify each process and justify the answer.
+Here \(a\ne0\) is constant.
 \[
-\mu=0.03,\qquad a=\log(1.2)=0.1823,
+ \begin{array}{ll}
+ (a)&W_t^2-t,\\[.4em]
+ (b)&e^{aW_t-a^2t/2},\\[.4em]
+ (c)&\displaystyle\int_0^t W_s^2\dd s,\\[.8em]
+ (d)&W_{t/2}.
+ \end{array}
 \]
-and the hitting probability is approximately
+For (d), use a conditional expectation rather than its unconditional mean.
+\end{questions}
+\column{.58\textwidth}
+\begin{answers}
+\textbf{(a) Yes.} It equals \(2\int_0^tW_s\dd W_s\);
+the integrand has finite expected energy on the finite horizon.
+
+\textbf{(b) Yes.} Independent Gaussian increments give conditional mean
+equal to the current value. Constant \(a\) also satisfies Novikov.
+
+\textbf{(c) No.} Its expectation is \(t^2/2\), so it is not constant in mean.
+
+\textbf{(d) No.} For \(2s\leq T\),
 \[
-\Q\left(\sup_{t\leq1}S_t\geq120\right)\approx0.413.
+ \E[W_{(2s)/2}\mid\F_s]=W_s
+ \ne W_{s/2}.
+\]
+It is adapted and has mean zero, but fails the martingale property.
+\end{answers}
+\end{columns}
+\end{frame}
+
+\begin{frame}{4 | Martingale representation: hedge the Brownian area}
+\compact
+\begin{columns}[T,onlytextwidth]
+\column{.40\textwidth}
+\begin{questions}
+Work under \(\Q\), with \(r=0\), in the square-integrable hedging class.
+\[
+ \begin{aligned}
+ H&=\int_0^T W_s\dd s,\\
+ \dd S_t&=\gamma_t\dd W_t,\quad\gamma_t\ne0.
+ \end{aligned}
+\]
+\begin{enumerate}
+\item Use integration by parts to represent \(H\) as an It\^o integral.
+\item Find \(M_t=\E^\Q[H\mid\F_t]\).
+\item Find the stock holding and \(\Var^\Q(H)\).
+\end{enumerate}
+\end{questions}
+\column{.58\textwidth}
+\begin{answers}
+Since \(\dd[(T-t)W_t]=-W_t\dd t+(T-t)\dd W_t\),
+\[
+ H=\int_0^T(T-s)\dd W_s.
+\]
+Conditioning or differentiating gives
+\[
+ \begin{aligned}
+ M_t&=\int_0^tW_s\dd s+(T-t)W_t,\\
+ \dd M_t&=(T-t)\dd W_t.
+ \end{aligned}
+\]
+Match the Brownian exposure:
+\[
+ \boxed{\Delta_t=\frac{T-t}{\gamma_t},\qquad
+ \text{cash}=M_t-\Delta_tS_t.}
+\]
+Isometry gives \(\Var^\Q(H)=\int_0^T(T-s)^2\dd s=T^3/3\).
+\end{answers}
+\end{columns}
+\end{frame}
+
+\begin{frame}{5 | Brownian exit from an interval}
+\compact
+\begin{columns}[T,onlytextwidth]
+\column{.40\textwidth}
+\begin{questions}
+Let \(W_0=0\), \(a>0\), and
+\[
+ \tau=\inf\{t\geq0:|W_t|=a\}.
+\]
+\begin{enumerate}
+\item Find the probabilities of exiting at \(a\) and \(-a\).
+\item Find \(\E[\tau]\).
+\item Why work with \(\tau\wedge t\) before taking \(t\to\infty\)?
+\end{enumerate}
+\end{questions}
+\column{.58\textwidth}
+\begin{answers}
+For the stopped Brownian motion, isometry gives
+\[
+ \E[W_{t\wedge\tau}^2]=\E[t\wedge\tau]\leq a^2.
+\]
+Monotone convergence gives \(\E[\tau]\leq a^2\), so \(\tau<\infty\) a.s.
+By continuity and bounded convergence,
+\[
+ \boxed{\E[\tau]=\E[W_\tau^2]=a^2.}
+\]
+Also \(\E[W_{t\wedge\tau}]=0\) and \(|W_{t\wedge\tau}|\leq a\), so
+\(\E[W_\tau]=0\). Since \(W_\tau\in\{-a,a\}\),
+\[
+ \boxed{\Pr(W_\tau=a)=\Pr(W_\tau=-a)=\tfrac12.}
+\]
+Stopping at \(t\wedge\tau\) justifies the martingale identities before
+passing to an unbounded time.
+\end{answers}
+\end{columns}
+\end{frame}
+
+\begin{frame}{6 | Correlated It\^o integrals}
+\compact
+\begin{columns}[T,onlytextwidth]
+\column{.40\textwidth}
+\begin{questions}
+Let \(\dd\langle W^1,W^2\rangle_t=\rho\dd t\), and let \(f,g\) be
+deterministic square-integrable functions. Set
+\[
+ X_t=\int_0^t f(s)\dd W_s^1,
+\]
+\[
+ Y_t=\int_0^t g(s)\dd W_s^2.
+\]
+\begin{enumerate}
+\item Find their means and variances.
+\item Find \(\Cov(X_t,Y_t)\).
+\item What must be subtracted from \(X_tY_t\) to obtain a martingale?
+\end{enumerate}
+\end{questions}
+\column{.58\textwidth}
+\begin{answers}
+Isometry gives zero means and
+\[
+ \Var(X_t)=\int_0^t f(s)^2\dd s,\qquad
+ \Var(Y_t)=\int_0^t g(s)^2\dd s.
+\]
+The product rule gives
+\[
+ \dd(XY)=Xg\dd W^2+Yf\dd W^1+\rho fg\dd t.
 \]
 Therefore
 \[
-\boxed{V_0\approx e^{-0.05}(0.413)=0.393.}
+ \boxed{\Cov(X_t,Y_t)=\rho\int_0^t f(s)g(s)\dd s,}
 \]
-\begin{marketbox}
-A terminal digital and a one-touch are not the same contract: the barrier
-may be hit and then the stock may fall before maturity.
-\end{marketbox}
-\end{frame}
-
-\begin{frame}{Discrete monitoring understates continuous barrier hitting}
-A simulation on dates \(t_0,\ldots,t_N\) replaces
 \[
-\mathbf1_{\{\sup_{0\leq t\leq T}S_t\geq H\}}
+ \boxed{X_tY_t-\rho\int_0^t f(s)g(s)\dd s}
 \]
-by
-\[
-\mathbf1_{\{\max_{0\leq k\leq N}S_{t_k}\geq H\}}.
-\]
-\begin{pausebox}
-For an up-and-in one-touch, is this discretely monitored estimator biased
-high or low relative to continuous monitoring?
-\end{pausebox}
-\pause
-\begin{exampleblock}{Answer}
-Low. A path can cross the barrier between two monitoring dates and return
-below it before the next observation. Refining the grid reduces this bias.
-\end{exampleblock}
-\end{frame}
-
-\section{American options turn pricing into a decision}
-
-\begin{frame}{American pricing is backward induction with an exercise test}
-In a binomial model with gross return \(R=1+r\) and risk-neutral probability
-\(p\),
-\[
-\boxed{
-V_t=\max\left\{g(S_t),\frac{pV_{t+1}^{u}+(1-p)V_{t+1}^{d}}{R}\right\}.}
-\]
-\begin{columns}[T,onlytextwidth]
-\column{0.48\textwidth}
-\begin{block}{Exercise value}
-\[
-g(S_t).
-\]
-Take the payoff and stop.
-\end{block}
-\column{0.48\textwidth}
-\begin{exampleblock}{Continuation value}
-\[
-R^{-1}\E^\Q[V_{t+1}\mid\F_t].
-\]
-Keep all future exercise choices.
-\end{exampleblock}
+is a martingale on the finite horizon.
+\end{answers}
 \end{columns}
 \end{frame}
 
-\begin{frame}{A three-step American put has a genuine exercise region}
-Consider
-\[
-S_0=100,\quad u=1.1,\quad d=0.9,\quad R=1.02,\quad K=100.
-\]
-The risk-neutral up probability is
-\[
-p=\frac{R-d}{u-d}=0.6.
-\]
-At maturity, the stock values and put payoffs are
-\[
-\begin{array}{c|cccc}
-S_3 & 133.1 & 108.9 & 89.1 & 72.9\\
-\midrule
-(K-S_3)^+ & 0 & 0 & 10.9 & 27.1
-\end{array}
-\]
-\begin{marketbox}
-At \(S_2=81\), \(19>
-\bigl[0.6(10.9)+0.4(27.1)\bigr]/1.02=17.04\), so exercise.
-\end{marketbox}
-\end{frame}
-
-\begin{frame}{The early-exercise premium comes from node-by-node choices}
-Working backward gives:
-\[
-\begin{array}{c|c|c|c}
-\toprule
-\text{Node} & \text{Exercise} & \text{Continuation} & \text{Action}\\
-\midrule
-t=2,\ S=81 & 19.00 & 17.04 & exercise\\
-t=1,\ S=90 & 10.00 & 9.97 & exercise\\
-t=0,\ S=100 & 0.00 & 4.91 & continue\\
-\bottomrule
-\end{array}
-\]
-\[
-V_0^{\mathrm{Eur}}\approx4.59,\qquad V_0^{\mathrm{Am}}\approx4.91.
-\]
-\begin{pausebox}
-What is the early-exercise premium?
-\end{pausebox}
-\pause
-\begin{exampleblock}{Answer}
-\(4.91-4.59=0.32\): the value of exercising at low-stock nodes.
-\end{exampleblock}
-\end{frame}
-
-\section{Numerical habits complete the toolkit}
-
-\begin{frame}{Euler simulation is simple, but its approximation must be named}
-For
-\[
-\dd X_t=b(X_t,t)\dd t+a(X_t,t)\dd W_t,
-\]
-the Euler scheme on a grid is
-\[
-\boxed{
-X_{n+1}=X_n+b(X_n,t_n)\Delta t
-+a(X_n,t_n)\sqrt{\Delta t}\,Z_{n+1},}
-\]
-where \(Z_{n+1}\sim N(0,1)\).
+\section{Change of measure, replication and Black--Scholes}
+\begin{frame}{7 | Girsanov and a cash-or-nothing digital}
+\compact
 \begin{columns}[T,onlytextwidth]
-\column{0.48\textwidth}
-\begin{block}{What is approximated}
-The continuous diffusion and any path functional evaluated between grid
-dates.
-\end{block}
-\column{0.48\textwidth}
-\begin{alertblock}{What must be checked}
-Convergence in \(\Delta t\), sampling error in \(M\), positivity or boundary
-behavior, and bias for extrema or stopping rules.
-\end{alertblock}
+\column{.40\textwidth}
+\begin{questions}
+Under \(\Pp\), with constant parameters,
+\[
+ \frac{\dd S_t}{S_t}=\mu\dd t+\sigma\dd W_t^\Pp,
+ \qquad \sigma>0.
+\]
+The claim pays \(\ind_{\{S_T>K\}}\), with \(S_0,K>0\).
+\begin{enumerate}
+\item Construct the density and \(\Q\)-Brownian motion.
+\item Check the new stock drift.
+\item Derive the digital price.
+\item Explain why the historical drift disappears.
+\end{enumerate}
+\end{questions}
+\column{.58\textwidth}
+\begin{answers}
+Set \(\lambda=(\mu-r)/\sigma\). Then
+\[
+ Z_t=e^{-\lambda W_t^\Pp-\lambda^2t/2},\qquad
+ \left.\frac{\dd\Q}{\dd\Pp}\right|_{\F_t}=Z_t,
+\]
+\[
+ W_t^\Q=W_t^\Pp+\lambda t,\qquad
+ \frac{\dd S_t}{S_t}=r\dd t+\sigma\dd W_t^\Q.
+\]
+Constant \(\lambda\) satisfies Novikov. The event \(S_T>K\) becomes
+\(W_T^\Q/\sqrt T>-d_2\), where
+\[
+ d_2=\frac{\log(S_0/K)+(r-\sigma^2/2)T}{\sigma\sqrt T}.
+\]
+Thus \(\boxed{D_0=e^{-rT}\Phi(d_2)}\).
+The unique BS pricing measure is determined by traded stock and cash;
+\(\mu\) affects the physical probability, not this replicated value.
+\end{answers}
 \end{columns}
 \end{frame}
 
-\begin{frame}{Before trusting a numerical price, identify its weakest link}
-\begin{center}
-\begin{tabular}{p{0.31\textwidth}|p{0.49\textwidth}}
-\toprule
-Problem & First diagnostic\\
-\midrule
-Asian Monte Carlo & refine the integration grid and estimate sampling error\\
-Barrier Monte Carlo & test monitoring bias and barrier correction\\
-American tree & refine time steps and map the exercise region\\
-PDE or local-vol grid & test boundary placement and mesh convergence\\
-\bottomrule
-\end{tabular}
-\end{center}
-\begin{marketbox}
-A numerical result is credible only when it survives a refinement or a
-no-arbitrage check appropriate to the contract.
-\end{marketbox}
+\begin{frame}{8 | Girsanov with correlated drivers: shift both consistently}
+\compact
+\begin{columns}[T,onlytextwidth]
+\column{.40\textwidth}
+\begin{questions}
+Let \(\dd\langle W^1,W^2\rangle=\rho\dd t\).
+Define \(\Q\) with
+\[
+ Z_t=e^{-\lambda W_t^1-\lambda^2t/2},
+\]
+where \(\lambda\) is constant. Under \(\Pp\),
+\[
+ \dd Y_t/Y_t=a\dd t+b\dd W_t^2.
+\]
+Find the new Brownian drivers and the new drift of \(Y\).
+Explain the special cases \(\rho=0\) and \(\rho<0\).
+\end{questions}
+\column{.58\textwidth}
+\begin{answers}
+The density loads the first Brownian risk, so
+\[
+ W_t^{1,\Q}=W_t^1+\lambda t,\qquad
+ W_t^{2,\Q}=W_t^2+\rho\lambda t.
+\]
+Consequently,
+\[
+ \frac{\dd Y_t}{Y_t}
+ =(a-b\rho\lambda)\dd t+b\dd W_t^{2,\Q}.
+\]
+If \(\rho=0\), the second driver and the drift of \(Y\) do not change.
+If \(\rho<0\) and \(b,\lambda>0\), the drift correction is positive.
+The second shift is \(\rho\lambda\), not \(\lambda\).
+Quadratic covariation is unchanged:
+\(\dd\langle W^{1,\Q},W^{2,\Q}\rangle=\rho\dd t\).
+\end{answers}
+\end{columns}
 \end{frame}
 
-\section{Takeaways}
-
-\begin{frame}{The same pricing logic adapts to the contract}
-\begin{center}
-\begin{tabular}{p{0.25\textwidth}|p{0.30\textwidth}|p{0.27\textwidth}}
-\toprule
-Contract feature & Mathematical tool & Extra state or decision\\
-\midrule
-Nonlinear Brownian function & It\^o formula & quadratic variation\\
-Drifted barrier event & Girsanov and reflection & hitting probability\\
-Asian average & state augmentation & running integral \(I_t\)\\
-American exercise & dynamic programming & stop or continue\\
-\bottomrule
-\end{tabular}
-\end{center}
-\begin{marketbox}
-The payoff determines which information must be carried forward: a state
-variable, a stopping rule, or a path-monitoring convention.
-\end{marketbox}
+\begin{frame}{9 | Replication with dividends: a power payoff}
+\compact
+\begin{columns}[T,onlytextwidth]
+\column{.40\textwidth}
+\begin{questions}
+The ex-dividend stock price follows
+\[
+ \dd S=\mu S\dd t+\sigma S\dd W^\Pp.
+\]
+One share also pays \(qS\dd t\), with constant dividend yield \(q\).
+The claim pays \(S_T^2\).
+\begin{enumerate}
+\item Write self-financing gains.
+\item Derive the pricing PDE.
+\item Find the price, stock holding and cash amount.
+\end{enumerate}
+\end{questions}
+\column{.58\textwidth}
+\begin{answers}
+For \(X=\Delta S+\beta B=u\),
+\[
+ \dd X=\Delta(\dd S+qS\dd t)+r\beta B\dd t.
+\]
+Match \(\Delta=u_s\), then drifts:
+\[
+ u_t+(r-q)su_s+\tfrac12\sigma^2s^2u_{ss}-ru=0.
+\]
+Put \(u=A(t)s^2\), with \(A(T)=1\). This gives
+\[
+ \boxed{u(t,s)=s^2e^{(r-2q+\sigma^2)(T-t)}.}
+\]
+\[
+ \Delta=2s\,e^{(r-2q+\sigma^2)(T-t)},\qquad \beta B=-u.
+\]
+\textbf{Check:} at \(T\), the portfolio value is \(s^2\).
+Omitting the dividend gain loses the \(q\) term.
+\end{answers}
+\end{columns}
 \end{frame}
 
-\begin{frame}{Final check: choose the representation before calculating}
-\begin{pausebox}
-A claim pays one dollar at maturity if a stock ever crosses an upper barrier.
-What are the three modelling choices you should state before presenting a
-numerical price?
-\end{pausebox}
-\pause
-\begin{exampleblock}{Answer}
-State the risk-neutral dynamics, whether monitoring is continuous or
-discrete, and the numerical approximation used for the hitting event. These
-choices determine the probability being priced.
+\begin{frame}{10 | Short-maturity ATM prices and Greeks}
+\compact
+\begin{columns}[T,onlytextwidth]
+\column{.40\textwidth}
+\begin{questions}
+Consider a BS call with \(r=q=0\), current \(S=K\), volatility \(\sigma>0\),
+and remaining maturity \(\tau\).
+\begin{enumerate}
+\item Find the leading price as \(\tau\downarrow0\).
+\item Describe delta, gamma and vega.
+\item How do price, gamma and vega scale when remaining maturity is multiplied by \(c>0\)?
+\item A long call is delta-neutralized. Spot rises: buy or sell more stock?
+\end{enumerate}
+\end{questions}
+\column{.58\textwidth}
+\begin{answers}
+At the money, \(d_1=\sigma\sqrt\tau/2\), and
+\[
+ C=S[2\Phi(d_1)-1]\sim\frac{S\sigma\sqrt\tau}{\sqrt{2\pi}}.
+\]
+As \(\tau\downarrow0\),
+\[
+ \begin{aligned}
+ \Delta&\to\tfrac12,\\
+ \Gamma&=\frac{\phi(d_1)}{S\sigma\sqrt\tau}
+       \sim\frac1{S\sigma\sqrt{2\pi\tau}},\\
+ {\rm Vega}&=S\phi(d_1)\sqrt\tau
+       \sim\frac{S\sqrt\tau}{\sqrt{2\pi}}\to0.
+ \end{aligned}
+\]
+At leading order, multiplying \(\tau\) by \(c\) multiplies price and vega by \(\sqrt c\), and gamma by \(1/\sqrt c\).
+Short \(\Delta\) shares against the long call; positive gamma means
+\textbf{sell more stock} after a spot increase.
+\end{answers}
+\end{columns}
+\end{frame}
+
+\begin{frame}{11 | Volatility mismatch: derive the seller's hedging error}
+\compact
+\begin{columns}[T,onlytextwidth]
+\column{.40\textwidth}
+\begin{questions}
+The true volatility is \(\sigma_{\rm real}\). The sold claim's value \(u\)
+solves BS with \(\sigma_h\).
+Start \(X_0=u(0,S_0)\); hedge with \(\Delta=u_s\).
+\begin{enumerate}
+\item Find \(\dd[e^{-rt}(X-u)]\).
+\item Give its sign for a convex claim and \(\sigma_h<\sigma_{\rm real}\).
+\item Does frequent rebalancing fix it?
+\end{enumerate}
+Explain which sensitivity weights the mismatch and when its sign can change.
+\end{questions}
+\column{.58\textwidth}
+\begin{answers}
+Subtract the true It\^o dynamics of \(u(t,S_t)\) from
+\(\dd X=u_s\dd S+r(X-u_sS)\dd t\), then use the \(\sigma_h\) PDE:
+\[
+ \boxed{\begin{aligned}
+ \dd[e^{-rt}(X-u)]
+ &=\tfrac12e^{-rt}(\sigma_h^2-\sigma_{\rm real}^2)\\
+ &\qquad{}\times S_t^2u_{ss}\dd t.
+ \end{aligned}}
+\]
+For positive gamma, the discounted seller's hedge error is negative.
+The historical drift cancels.
+
+The mismatch is weighted by dollar gamma \(S_t^2u_{ss}\).
+Its sign reverses if gamma or the volatility ordering reverses.
+
+Continuous rebalancing removes discrete-trading error, but does not
+remove this model-volatility mismatch.
+\end{answers}
+\end{columns}
+\end{frame}
+
+\begin{frame}{12 | Scaling spot and strike}
+\compact
+\begin{columns}[T,onlytextwidth]
+\column{.40\textwidth}
+\begin{questions}
+Let \(C(t,s;K)\) be a BS call price, with \(q=0\).
+Keep \(r,\sigma,T\) fixed.
+\begin{enumerate}
+\item Multiply both \(s\) and \(K\) by \(\lambda>0\). How does the price change?
+\item Differentiate in \(\lambda\) at \(\lambda=1\).
+\item Express the cash amount in the delta hedge using \(C_K\).
+\end{enumerate}
+\end{questions}
+\column{.58\textwidth}
+\begin{answers}
+BS stock paths scale with their initial value, and
+\((\lambda S_T-\lambda K)^+=\lambda(S_T-K)^+\). Hence
+\[
+ C(t,\lambda s;\lambda K)=\lambda C(t,s;K).
+\]
+Differentiating at \(\lambda=1\),
+\[
+ \boxed{sC_s+KC_K=C.}
+\]
+With \(\Delta=C_s\), the cash amount is
+\[
+ \boxed{C-s\Delta=KC_K=-Ke^{-r(T-t)}\Phi(d_2).}
+\]
+The call hedge holds stock and borrows cash. At expiry, the portfolio
+reproduces the call payoff.
+\end{answers}
+\end{columns}
+\end{frame}
+
+\begin{frame}{13 | Put--call parity for Greeks}
+\compact
+\begin{columns}[T,onlytextwidth]
+\column{.40\textwidth}
+\begin{questions}
+For matched European options with dividend yield \(q\),
+\[
+ C-P=se^{-q\tau}-Ke^{-r\tau},
+ \qquad\tau=T-t.
+\]
+\begin{enumerate}
+\item Find the differences in delta, gamma and vega.
+\item Find \(\Theta_C-\Theta_P\), with \(\Theta=\partial_t\).
+\item What risks remain in a long call and short put?
+\end{enumerate}
+\end{questions}
+\column{.58\textwidth}
+\begin{answers}
+Differentiate parity, keeping the other inputs fixed:
+\[
+ \boxed{\Delta_C-\Delta_P=e^{-q\tau},}
+\]
+\[
+ \boxed{\Gamma_C-\Gamma_P=0,\qquad
+ {\rm Vega}_C-{\rm Vega}_P=0.}
+\]
+Since \(\partial_t\tau=-1\),
+\[
+ \boxed{\Theta_C-\Theta_P=qse^{-q\tau}-rKe^{-r\tau}.}
+\]
+Call minus put pays \(S_T-K\). It has stock exposure but no gamma or vega.
+For \(q=0\), its delta is one and its theta is \(-rKe^{-r\tau}\).
+\end{answers}
+\end{columns}
+\end{frame}
+
+\section{Arbitrage and American exercise}
+\begin{frame}{14 | Quote checks: exhibit an executable arbitrage}
+\compact
+\begin{columns}[T,onlytextwidth]
+\column{.40\textwidth}
+\begin{questions}
+Three independent frictionless quote checks, with no dividends.
+Write \(D=e^{-rT}\), \(\varepsilon>0\), and \(c(K),p(K)\) for option prices.
+\begin{enumerate}
+\item \(c(K)=S_0-KD-\varepsilon\), with \(S_0>KD\).
+\item \(c(K)-p(K)=S_0-KD-\varepsilon\).
+\item \(K_1<K_2<K_3\),
+\[
+ w=\frac{K_3-K_2}{K_3-K_1},
+\]
+\[
+ c(K_2)=wc(K_1)+(1-w)c(K_3)+\varepsilon.
+\]
+\end{enumerate}
+Give positions, initial receipts and terminal payoffs.
+\end{questions}
+\column{.58\textwidth}
+\begin{answers}
+\textbf{1. Lower bound.} Buy the call, short one share, lend \(KD\).
+Receive \(\varepsilon\) initially; terminal payoff is
+\[
+ (S_T-K)^+-S_T+K=(K-S_T)^+\geq0.
+\]
+\textbf{2. Put--call parity.} Buy the call, sell the put, short one share,
+lend \(KD\). Receive \(\varepsilon\); the terminal payoff is identically zero.
+
+\textbf{3. Convexity.} Buy \(w\) calls at \(K_1\), \(1-w\) at \(K_3\),
+and sell one at \(K_2\). Receive \(\varepsilon\).
+Since \(K_2=wK_1+(1-w)K_3\), convexity in strike makes the terminal payoff nonnegative.
+
+\textbf{Finish each trade:} invest the initial receipt in the bank account.
+The zero-cost strategy then earns at least \(\varepsilon e^{rT}>0\) at expiry.
+\end{answers}
+\end{columns}
+\end{frame}
+
+\begin{frame}{15a | An American claim on the running maximum: choose the state}
+\compact
+\begin{columns}[T,onlytextwidth]
+\column{.40\textwidth}
+\begin{questions}
+On a two-step stock tree, take
+\[
+ 0<d<1<R<u,\qquad ud\leq1,
+\]
+with bank growth factor \(R\) per step.
+Let \(M_n=\max_{0\leq j\leq n}S_j\), \(M_0=S_0=s\).
+Exercise at \(n\) pays the drawdown \(g(S_n,M_n)=M_n-S_n\).
+\begin{enumerate}
+\item Find the risk-neutral up probability.
+\item Do paths \(ud\) and \(du\) have the same state?
+\item List the four terminal exercise payoffs.
+\end{enumerate}
+\end{questions}
+\column{.58\textwidth}
+\begin{answers}
+The discounted stock condition gives \(p=(R-d)/(u-d)\in(0,1)\).
+Both middle paths finish at \(uds\), but \(M_2^{ud}=us\) and \(M_2^{du}=s\).
+Thus the stock tree recombines, while the \((S,M)\) state tree does not.
+\begin{center}\begin{tabular}{ccl}
+\toprule Path & Maximum & Payoff \(M_2-S_2\)\\\midrule
+\(uu\) & \(u^2s\) & \(0\)\\
+\(ud\) & \(us\) & \(us(1-d)\)\\
+\(du\) & \(s\) & \(s(1-ud)\)\\
+\(dd\) & \(s\) & \(s(1-d^2)\)\\\bottomrule
+\end{tabular}\end{center}
+\textbf{Check:} the state must remember the running maximum.
+\end{answers}
+\end{columns}
+\end{frame}
+
+\begin{frame}{15b | The American maximum claim: compare exercise and continuation}
+\compact
+\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{2pt}
+\setlength{\abovedisplayshortskip}{1pt}\setlength{\belowdisplayshortskip}{1pt}
+\begin{columns}[T,onlytextwidth]
+\column{.40\textwidth}
+\begin{questions}
+Use the same two-step drawdown contract, with payoff \(M_n-S_n\),
+\(0<d<1<R<u\), \(ud\leq1\), and
+\(p=(R-d)/(u-d)\).
+\begin{enumerate}
+\item At the up node \((us,us)\), exercise or continue?
+\item At the down node \((ds,s)\), exercise or continue?
+\item Derive the root American value \(V_A\).
+\item Compare it with mandatory exercise at date 2.
+\end{enumerate}
+\end{questions}
+\column{.58\textwidth}
+\begin{answers}
+\textbf{Up node:} exercise gives zero, while
+\[
+ C_u=\frac{(1-p)us(1-d)}R>0;
+\]
+continue. \textbf{Down node:} exercise gives \(s(1-d)\), while
+\[
+ C_d=\frac{s[p(1-ud)+(1-p)(1-d^2)]}R
+     =s(R^{-1}-d).
+\]
+Since \(R>1\), exercise is better by \(s(1-R^{-1})\).
+At the root (immediate exercise gives zero):
+\[
+ \boxed{V_A=\frac{pC_u+(1-p)s(1-d)}R.}
+\]
+The European value is \(V_E=[pC_u+(1-p)C_d]/R\), hence
+\[
+ \boxed{V_A-V_E=\frac{(1-p)s(1-R^{-1})}R>0.}
+\]
+\end{answers}
+\end{columns}
+\end{frame}
+
+\begin{frame}{16 | Stopping times, the obstacle, and the exercise boundary}
+\compact
+\begin{columns}[T,onlytextwidth]
+\column{.40\textwidth}
+\begin{questions}
+In BS with \(r\geq0,\sigma>0,q=0\), consider the American put
+\(g(s)=(K-s)^+\).
+\begin{enumerate}
+\item Write its value using stopping times in \([t,T]\).
+\item Write the obstacle PDE.
+\item Give value matching and smooth fit at a regular boundary \(s=b(t)\).
+\item Can an American call exceed its European counterpart here?
+\end{enumerate}
+Why is a pathwise hindsight maximum invalid?
+\end{questions}
+\column{.58\textwidth}
+\begin{answers}
+With \(\mathcal T_{t,T}\) the admissible stopping times,
+\[
+ V_t=\operatorname*{ess\,sup}_{\tau\in\mathcal T_{t,T}}
+ \E^\Q[e^{-r(\tau-t)}g(S_\tau)\mid\F_t].
+\]
+For \(\Lbs=rs\partial_s+\tfrac12\sigma^2s^2\partial_{ss}\),
+\[
+ \max\{g-v,\ v_t+\Lbs v-rv\}=0,\qquad
+ v(T,s)=g(s).
+\]
+At a regular put exercise boundary, for \(t<T\),
+\[
+ v(t,b)=K-b,\qquad v_s(t,b)=-1.
+\]
+The no-dividend call has no early-exercise premium when \(r\geq0\).
+A pathwise hindsight choice uses future information, so is not an
+admissible stopping rule.
+\end{answers}
+\end{columns}
+\end{frame}
+
+\begin{frame}{17 | A vertical call spread}
+\compact
+\begin{columns}[T,onlytextwidth]
+\column{.40\textwidth}
+\begin{questions}
+At time zero, take two calls with \(K_1<K_2\), the same expiry, and no dividends.
+Buy the \(K_1\) call and sell the \(K_2\) call.
+\begin{enumerate}
+\item Write and bound the terminal payoff.
+\item Deduce bounds on \(C(K_1)-C(K_2)\).
+\item Exhibit an arbitrage if the spread costs more than its upper bound.
+\end{enumerate}
+\end{questions}
+\column{.58\textwidth}
+\begin{answers}
+The payoff is
+\[
+ H=(S_T-K_1)^+-(S_T-K_2)^+,
+\]
+so \(0\leq H\leq K_2-K_1\). By dominance,
+\[
+ \boxed{0\leq C(K_1)-C(K_2)
+ \leq e^{-rT}(K_2-K_1).}
+\]
+If the upper bound is violated:
+\begin{itemize}
+\item Sell the spread.
+\item Buy a bond paying \(K_2-K_1\) at \(T\).
+\item Invest the initial surplus in cash.
+\end{itemize}
+The bond covers every possible spread payment; the surplus is a profit.
+\end{answers}
+\end{columns}
+\end{frame}
+
+\begin{frame}{18 | American value before exercise}
+\compact
+\begin{columns}[T,onlytextwidth]
+\column{.40\textwidth}
+\begin{questions}
+On dates \(n=0,\ldots,N\), let \(g_n\) be the exercise payment and \(R\) the
+bank growth factor per step. Set
+\[
+ Z_n=R^{-n}g_n,\quad U_n=R^{-n}V_n.
+\]
+\begin{enumerate}
+\item Write the backward recursion for \(U_n\).
+\item Is \(U\) a martingale or a supermartingale?
+\item Give an optimal exercise rule.
+\end{enumerate}
+\end{questions}
+\column{.58\textwidth}
+\begin{answers}
+With integrable payoffs on a finite tree,
+\[
+ U_N=Z_N,\qquad
+ \boxed{U_n=\max\{Z_n,\E_n^\Q[U_{n+1}]\}.}
+\]
+Thus \(U_n\geq\E_n^\Q[U_{n+1}]\): discounted American value is a
+supermartingale. In the continuation region, equality holds.
+
+An optimal rule is the first date when value equals exercise payment:
+\[
+ \boxed{\tau^*=\inf\{n:U_n=Z_n\}.}
+\]
+Expiry is included, since \(U_N=Z_N\).
+The stopped process \(U_{n\wedge\tau^*}\) is a martingale.
+\end{answers}
+\end{columns}
+\end{frame}
+
+\section{Numerics and volatility surfaces}
+\begin{frame}[fragile]{19 | Code drill: Brownian increments, GBM, and sampling error}
+\compact
+\begin{columns}[T,onlytextwidth]
+\column{.40\textwidth}
+\begin{questions}
+For \(M\) paths, \(N\) steps and \(h=T/N\), diagnose:
+\begin{lstlisting}
+z = rng.normal(size=(M,N))
+dw = h*z
+w = np.cumsum(dw, axis=1)
+s *= 1 + r*h + sigma*dw
+\end{lstlisting}
+\begin{enumerate}
+\item Correct Brownian scaling and time-step indexing.
+\item Give a positive exact BS step.
+\item Distinguish \(4M\) paths from a smaller time step.
+\end{enumerate}
+\end{questions}
+\column{.58\textwidth}
+\begin{answers}
+Use independent \(Z_{m,j}\sim N(0,1)\):
+\[
+ \Delta W=\sqrt h\,Z,\qquad
+ \E[W_T]=0,\quad\Var(W_T)=T.
+\]
+Prepend \(W_0=0\); use one column per time step.
+An exact BS step is
+\begin{lstlisting}
+z = rng.normal(size=M)
+s *= np.exp((r-.5*sigma**2)*h
+            + sigma*np.sqrt(h)*z)
+\end{lstlisting}
+The exact step stays positive; Euler need not.
+
+For discounted payoffs \(Y_m\) with sample SD \(s_Y\),
+\({\rm SE}=s_Y/\sqrt M\).
+\(4M\) independent paths halve SE. Refine \(h\) to check
+SDE/functional discretization bias.
+\end{answers}
+\end{columns}
+\end{frame}
+
+
+\begin{frame}{20 | What does an implied-volatility surface identify?}
+\compact
+\begin{columns}[T,onlytextwidth]
+\column{.40\textwidth}
+\begin{questions}
+\begin{enumerate}
+\item Distinguish \(\sigma_{\rm imp}(T,K)\) from \(\sigma_{\rm loc}(t,s)\).
+\item With deterministic \(\sigma(t)\), can prices at one expiry identify the
+whole time profile?
+\item At fixed \(k=\log(K/F_{0,T})\), where \(F_{0,T}=S_0e^{rT}\),
+can a decreasing implied volatility be compatible with no calendar arbitrage?
+\item Give the condition for two maturities \(T_1<T_2\).
+Does this alone validate the full surface?
+\end{enumerate}
+\end{questions}
+\column{.58\textwidth}
+\begin{answers}
+\textbf{Implied:} invert the BS price of one contract.
+\textbf{Local:} the state-dependent diffusion coefficient in the selected
+stock model. These inputs are not interchangeable.
+
+One expiry determines \(\int_0^T\sigma(t)^2\dd t\), not the full deterministic
+volatility schedule.
+
+At fixed log-forward moneyness, the calendar check uses
+\[
+ w(T,k)=T\sigma_{\rm imp}(T,k)^2.
+\]
+For \(T_1<T_2\), the required check is
+\[
+ \boxed{T_2\sigma_{\rm imp}(T_2,k)^2\geq
+ T_1\sigma_{\rm imp}(T_1,k)^2.}
+\]
+IV may decrease while this inequality holds: compare total variance,
+not the volatility levels alone. Passing one maturity pair does not check
+all calendar pairs or strike convexity.
+\end{answers}
+\end{columns}
+\end{frame}
+
+\begin{frame}{21 | American options by Monte Carlo}
+\compact
+\begin{columns}[T,onlytextwidth]
+\column{.40\textwidth}
+\begin{questions}
+On exercise dates \(t_0,\ldots,t_N=T\), someone proposes pricing a put by
+\[
+ \frac1M\sum_{m=1}^M\max_k
+ e^{-rt_k}(K-S_{t_k}^{(m)})^+.
+\]
+\begin{enumerate}
+\item What information does this exercise choice use?
+\item How does least-squares Monte Carlo estimate continuation?
+\item Why test the learned rule on independent paths?
+\end{enumerate}
+\end{questions}
+\column{.58\textwidth}
+\begin{answers}
+The pathwise maximum chooses the exercise date after seeing the whole
+future. Its expectation is an upper bound for this exercise grid,
+not an admissible stopping value.
+
+At \(t_k\), regress later discounted cash flows on the current state to estimate
+\[
+ c_k(s)=\E^\Q[\text{later discounted payoff}\mid S_{t_k}=s].
+\]
+Compare \((K-s)^+\) with this estimate.
+
+On independent test paths, the learned rule uses only information
+available at each date. Its expected discounted payoff is at most the
+optimal value. The sample estimate still has Monte Carlo error.
+\end{answers}
+\end{columns}
+\end{frame}
+
+\begin{frame}{22 | Quote errors and implied volatility}
+\compact
+\begin{columns}[T,onlytextwidth]
+\column{.40\textwidth}
+\begin{questions}
+Implied volatility solves
+\[
+ C_{\rm BS}(\sigma_{\rm imp})=C_{\rm mkt},
+\]
+with spot, strike, rates and expiry fixed.
+\begin{enumerate}
+\item How does a small price error \(\delta C\) affect implied volatility?
+\item Where can a small quote error produce a large volatility error?
+\item Can one divide a large bid--ask spread by a single vega?
+\end{enumerate}
+\end{questions}
+\column{.58\textwidth}
+\begin{answers}
+If BS vega is positive, implicit differentiation gives
+\[
+ \boxed{\delta\sigma_{\rm imp}
+ \simeq\frac{\delta C}{{\rm Vega}_{\rm BS}}.}
+\]
+Small vega makes implied volatility sensitive to quote noise.
+This often occurs far from the money or close to expiry.
+
+The formula is a local approximation. For a wide price spread,
+invert the bid and ask separately; vega changes with volatility.
+Quotes must also satisfy the option price bounds for a finite implied
+volatility to exist.
+\end{answers}
+\end{columns}
+\end{frame}
+
+\section{Heston: spanning and pricing dynamics}
+\begin{frame}{23a | Heston replication: match the two diffusion risks}
+\compact
+\begin{columns}[T,onlytextwidth]
+\column{.40\textwidth}
+\begin{questions}
+Under \(\Pp\),
+\[
+ \begin{aligned}
+ \dd S/S&=\mu\dd t+\sqrt V\dd W^S,\\
+ \dd V&=b_\Pp(V)\dd t+\eta\sqrt V\dd W^V,
+ \end{aligned}
+\]
+with \(V>0,\ \eta>0,\ |\rho|<1\) and
+\(\dd\langle W^S,W^V\rangle=\rho\dd t\).
+A traded call \(g(t,S,V)\) has \(g_v\ne0\).
+
+For a European claim \(u\), find its It\^o diffusion, call holding \(\alpha\),
+stock holding \(\Delta\), and cash.
+Explain what fails if the traded call has zero variance sensitivity.
+\end{questions}
+\column{.58\textwidth}
+\begin{answers}
+The diffusion part of \(\dd u\) is
+\[
+ \sqrt v\,s u_s\dd W^S+\eta\sqrt v\,u_v\dd W^V.
+\]
+For \(u=\Delta s+\alpha g+\text{cash}\), match both coefficients:
+\[
+ \boxed{\begin{aligned}
+ \alpha&=u_v/g_v,\\
+ \Delta&=u_s-\alpha g_s,\\
+ \text{cash}&=u-\Delta s-\alpha g.
+ \end{aligned}}
+\]
+The It\^o drift includes the mixed term
+\(\rho\eta sv\,u_{sv}\).
+If \(g_v=0\) but \(u_v\ne0\), the traded call cannot hedge the independent
+variance risk. The exposure matrix loses rank.
+Both diffusion directions match; cash then follows from the value equation.
+\end{answers}
+\end{columns}
+\end{frame}
+
+\begin{frame}{23b | Heston replication: derive one shared pricing drift}
+\compact
+Let \(\mathcal D^\Pp f\) denote the It\^o drift of \(f(t,S,V)\):
+\[
+ \mathcal D^\Pp f=f_t+\mu sf_s+b_\Pp(v)f_v+
+ \tfrac12vs^2f_{ss}+\rho\eta svf_{sv}+\tfrac12\eta^2vf_{vv}.
+\]
+\begin{questions}
+Use self-financing with the holdings in 23a to eliminate \(\mu\).
+Express the common pricing drift of variance through the traded call.
+\end{questions}
+\begin{answers}
+Matching drifts gives the identity without dividing by the claim's \(u_v\):
+\[
+ \mathcal D^\Pp u-ru-(\mu-r)su_s
+ =\frac{u_v}{g_v}
+ [\mathcal D^\Pp g-rg-(\mu-r)sg_s].
+\]
+Define \(\pi=[\mathcal D^\Pp g-rg-(\mu-r)sg_s]/g_v\) and
+\(b_\Q=b_\Pp-\pi\). Then
+\[
+ \boxed{u_t+rsu_s+b_\Q u_v+\tfrac12vs^2u_{ss}
+ +\rho\eta svu_{sv}+\tfrac12\eta^2vu_{vv}-ru=0.}
+\]
+\end{answers}
+\end{frame}
+
+\begin{frame}{24 | Heston: what calibration and spanning guarantee}
+\compact
+\begin{columns}[T,onlytextwidth]
+\column{.40\textwidth}
+\begin{questions}
+Use the usual pricing drift \(b_\Q(v)=\kappa(\theta-v)\).
+\begin{enumerate}
+\item Can \(\eta,\rho\) change under an equivalent pricing measure?
+\item Does one ATM option identify \(v_0,\kappa,\theta,\eta,\rho\)?
+\item Local vol and Heston fit vanilla quotes: must their hedge P\&L agree?
+\item What happens when the hedging call's \(g_v\) becomes very small?
+\end{enumerate}
+\end{questions}
+\column{.58\textwidth}
+\begin{answers}
+\textbf{1. No.} Equivalent measure changes preserve quadratic variation
+and covariation. The variance drift can change.
+
+\textbf{2. No.} One price cannot determine five inputs. Separating the
+historical drift and risk premium needs additional data.
+
+\textbf{3. No.} Vanilla quotes do not determine the full joint path law
+or hedge P\&L.
+
+\textbf{4. If \(u_v\ne0\),} small \(g_v\) makes
+\(\alpha=u_v/g_v\) large. Algebraic spanning can be ill-conditioned.
+\end{answers}
+\end{columns}
+\end{frame}
+
+\begin{frame}{25 | Heston with stock and cash only}
+\compact
+\begin{columns}[T,onlytextwidth]
+\column{.40\textwidth}
+\begin{questions}
+Use independent Brownian motions \(Z^1,Z^2\) with
+\[
+ \begin{aligned}
+ W^S&=Z^1,\\
+ W^V&=\rho Z^1+\sqrt{1-\rho^2}Z^2.
+ \end{aligned}
+\]
+For a claim \(u(t,S,V)\), with \(v>0\):
+\begin{enumerate}
+\item Find its two diffusion coefficients.
+\item Choose a stock holding to minimize the instantaneous hedge-error variance.
+\item Which risk remains?
+\end{enumerate}
+\end{questions}
+\column{.58\textwidth}
+\begin{answers}
+The diffusion of \(u\) is
+\[
+ \sqrt v(su_s+\rho\eta u_v)\dd Z^1
+ +\eta\sqrt{v(1-\rho^2)}u_v\dd Z^2.
+\]
+Only the stock has a \(Z^1\) exposure. Matching it gives
+\[
+ \boxed{\Delta^*=u_s+\frac{\rho\eta}{s}u_v.}
+\]
+The remaining error has variance rate
+\[
+ \boxed{\eta^2v(1-\rho^2)u_v^2.}
+\]
+It is positive when \(u_v\ne0\), \(\eta>0\), and \(|\rho|<1\).
+This minimizes local variance; it does not replicate the claim.
+\end{answers}
+\end{columns}
+\end{frame}
+
+\begin{frame}{26 | Expected variance in Heston}
+\compact
+\begin{columns}[T,onlytextwidth]
+\column{.40\textwidth}
+\begin{questions}
+Under \(\Q\), let
+\[
+ \dd V_t=\kappa(\theta-V_t)\dd t
+       +\eta\sqrt{V_t}\dd W_t,
+\]
+with \(\kappa>0\), \(V_t=v\), \(\tau=T-t\).
+\begin{enumerate}
+\item Find \(m(u)=\E_t^\Q[V_{t+u}]\).
+\item Find \(\E_t^\Q[\int_t^T V_s\dd s]\).
+\item If two models have the same expected integrated variance, must call prices agree?
+\end{enumerate}
+\end{questions}
+\column{.58\textwidth}
+\begin{answers}
+Taking expectations gives \(m'(u)=\kappa(\theta-m(u))\), \(m(0)=v\), so
+\[
+ \boxed{m(u)=\theta+(v-\theta)e^{-\kappa u}.}
+\]
+Integrating,
+\[
+ \boxed{\E_t^\Q\!\left[\int_t^T V_s\dd s\right]
+ =\theta\tau+(v-\theta)\frac{1-e^{-\kappa\tau}}\kappa.}
+\]
+This mean does not depend on \(\eta\) or \(\rho\).
+Call prices generally do: these parameters change the stock's terminal
+distribution and its dependence on the variance path.
+Equal expected integrated variance therefore does not imply equal call prices.
+\end{answers}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Exit check | Make the solution's logic visible}
+\compact
+\begin{columns}[T,onlytextwidth]
+\column{.46\textwidth}
+\begin{questions}
+Challenge each statement:
+\begin{itemize}
+\item A zero-drift expression is automatically a true martingale.
+\item The historical stock drift sets a complete-market BS price.
+\item American value is exercise \emph{plus} continuation.
+\item A narrow MC interval proves model and discretization accuracy.
+\end{itemize}
+\end{questions}
+\column{.52\textwidth}
+\begin{exampleblock}{Solution checklist}
+\begin{enumerate}
+\item State the claim, dates and conventions.
+\item Name the model, information and traded hedge instruments.
+\item Derive the It\^o representation, self-financing identity or stopping rule.
+\item Keep signs, drift corrections, cash amounts and units consistent.
+\item Check a moment, parity, bound, boundary condition or refined numerical result.
+\end{enumerate}
+\textbf{Review scope: Lectures 1--11 only.}
 \end{exampleblock}
-\vfill
-\begin{center}
-{\large\color{CourseBlue}\bfseries Good pricing begins by identifying the right state, measure, and event.}
-\end{center}
+\end{columns}
 \end{frame}
-
 \end{document}

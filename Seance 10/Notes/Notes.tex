@@ -69,7 +69,8 @@ valuation with a timing decision:
 \begin{aligned}
 \text{exercise right}&\longrightarrow\text{optimal stopping under }\Q\\
 &\longrightarrow\text{backward induction / Snell envelope}\\
-&\longrightarrow\text{obstacle PDE and numerical methods}.
+&\longrightarrow\text{obstacle PDE and free boundary}\\
+&\longrightarrow\text{numerical methods: trees, simulation, finite differences}.
 \end{aligned}
 \]
 At every date ask one question: is immediate exercise worth more than
@@ -98,11 +99,12 @@ For a stock \(S\) and strike \(K\), the exercise payoffs are
 g^{\rm call}(S_t)=(S_t-K)^+,\qquad
 g^{\rm put}(S_t)=(K-S_t)^+.
 \]
-The word American describes the exercise convention. It does not describe
-the stock or the exchange.
+The payoff map is the same for European and American contracts; only the
+timing right differs. The word American describes the exercise convention.
+It does not describe the stock or the exchange.
 
 \begin{boardexample}{more rights cannot reduce value}
-The holder of an American put can choose \(\tau=T\), reproducing the
+The holder of an American option can choose \(\tau=T\), reproducing the
 European exercise policy. Hence
 \[
 V_t^{\rm Am}\geq V_t^{\rm Eur}.
@@ -111,11 +113,35 @@ The difference is the \emph{early-exercise premium}; it can be zero even
 though the American holder owns an additional right.
 \end{boardexample}
 
-\subsection{The seller's super-hedging viewpoint}
+\subsection{The economic trade-off of early exercise}
+
+Exercising a put early means receiving \(K-S_t\) now and investing the cash:
+with positive rates, this earns interest on the strike. Waiting keeps the
+downside insurance: a further fall in the stock can increase the eventual
+payoff. Neither effect dominates everywhere, so an in-the-money option is not
+automatically exercised: it should be exercised only when its intrinsic value
+is at least its \emph{continuation value}.
+
+For a call on a non-dividend-paying stock, the trade-off is one-sided: early
+exercise means paying \(K\) earlier and giving up the optionality, with no
+compensating cash flow. Section~\ref{sec:calls} shows that early exercise is
+then never optimal. Dividends change this conclusion.
+
+\begin{warningbox}{A stopping time is essential}
+The holder cannot select an exercise date after seeing future prices. The
+exercise decision at date \(t\) may use only \(\cF_t\): formally,
+\(\{\tau=t\}\in\cF_t\) for every \(t\). ``Exercise the put the first time the
+stock is below \(80\)'' is admissible; ``exercise today if tomorrow's price
+will be below \(80\)'' is not. A future-dependent choice would overstate the
+contract value.
+\end{warningbox}
+
+\subsection{Buyer's value and seller's price}
 
 Let \(B_t=e^{rt}\) be the bank account and \(X^\pi\) the wealth of a
-self-financing strategy. The writer must be ready whenever the holder
-exercises. Thus \(\pi\) is a super-hedge when
+self-financing strategy. The writer does not know which stopping time the
+holder will choose, so the writer must be ready whenever the holder exercises.
+Thus \(\pi\) is a super-hedge when
 \[
 X^\pi_u\geq g_u\quad\text{for all }u\in[t,T],
 \]
@@ -129,15 +155,10 @@ V_t^{\rm Am}
 =\esssup_{\tau\in\mathcal T_{t,T}}
 \E^\Q[e^{-r(\tau-t)}g_\tau\mid\cF_t].}
 \]
-The first formula protects the writer; the second describes the holder's
-optimal decision. Completeness is the bridge between them.
+The first formula is the seller's minimal super-hedging capital; the second
+is the buyer's optimal-stopping value. Completeness is the bridge between
+them: the same number, seen from two sides.
 \end{keyidea}
-
-\begin{warningbox}{A stopping time is essential}
-The holder cannot select an exercise date after seeing future prices. The
-exercise decision at date \(t\) may use only \(\cF_t\). A future-dependent
-choice would overstate the contract value.
-\end{warningbox}
 
 \begin{studentexercise}{first comparison}
 Which inequality always holds between American and European options with the
@@ -155,14 +176,16 @@ at every date before maturity, in which case the two values coincide.
 
 \subsection{Risk-neutral recursion}
 
-Consider dates \(0,1,\ldots,N\), a bank account growing by \(R=1+r>0\),
-and an equivalent martingale measure \(\Q\). Let \(Y_n=g_n(S_n)\). The
+Consider dates \(0,1,\ldots,N\), a bank account growing by \(R=1+r>0\) per
+period, and an equivalent martingale measure \(\Q\). Let \(Y_n=g(S_n)\). The
 American value is
 \[
 V_n=\esssup_{\tau\in\mathcal T_{n,N}}
 \E^\Q[R^{-(\tau-n)}Y_\tau\mid\cF_n].
 \]
-At maturity there is no remaining choice: \(V_N=Y_N\).
+At each date, every feasible future exercise rule is evaluated under \(\Q\)
+and the best one is chosen; the rule may adapt to the information revealed
+along the path. At maturity there is no remaining choice: \(V_N=Y_N\).
 
 \medskip
 \begin{theorem}[Bellman recursion]
@@ -175,16 +198,19 @@ V_n=\max\left\{Y_n,\frac1R\E^\Q[V_{n+1}\mid\cF_n]\right\},
 \begin{proof}
 Any exercise policy either stops now, giving \(Y_n\), or continues for at
 least one period. In the latter case the best remaining value is
-\(R^{-1}\E^\Q[V_{n+1}\mid\cF_n]\). Take the better alternative.
+\(R^{-1}\E^\Q[V_{n+1}\mid\cF_n]\), because \(V_{n+1}\) already reflects
+optimal later choices. Take the better alternative.
 \end{proof}
 
 \begin{assumptionbox}{Exercise versus continuation}
-Define \(E_n=Y_n\) and
+Define the exercise value \(E_n=Y_n\) and the continuation value
 \[
 C_n=\frac1R\E^\Q[V_{n+1}\mid\cF_n].
 \]
 Then \(E_n>C_n\) means exercise, \(E_n<C_n\) means continue, and equality
-means that either action is optimal.
+means that either action is optimal. The set of states where \(E_n\geq C_n\)
+is the \emph{exercise region}; its complement is the \emph{continuation
+region}.
 \end{assumptionbox}
 
 \subsection{A binomial implementation}
@@ -200,62 +226,89 @@ C_n=\frac{pV_{n+1}^{u}+(1-p)V_{n+1}^{d}}{R},
 \qquad V_n=\max\{g(S_n),C_n\}.
 \]
 Work from terminal payoffs backward through the tree, recording nodes where
-the intrinsic value wins.
+the intrinsic value wins. The price and the exercise policy are computed
+together.
 
-\begin{boardexample}{a strict early-exercise node}
-Take \(S_0=100\), \(u=1.2\), \(d=0.8\), \(R=1.05\), and a put with \(K=105\).
-Then \(p=0.625\). At a date-1 down node \(S_1=80\), exercise pays \(25\).
-The two terminal put values are \(9\) and \(41\), so
+\begin{keyidea}{The decision depends on the node, not on the date}
+In the same tree, the holder of an American put may continue at an up node
+and exercise at a down node of the same date. The output is an
+\emph{exercise region}, not a pre-announced exercise date. The difference
+\(V_0^{\rm Am}-V_0^{\rm Eur}\) comes entirely from the nodes where the
+maximum selects \(g\): the terminal payoff is unchanged, but the holder can
+take the intrinsic value instead of being forced to carry the position to
+maturity.
+\end{keyidea}
+
+\subsection{The hedge}
+
+At a node \((n,S_n)\), the one-period replicating portfolio for the two
+next-date option values uses
 \[
-C_1(80)=\frac{0.625(9)+0.375(41)}{1.05}=20.
+\Delta_n=\frac{V_{n+1}^u-V_{n+1}^d}{(u-d)S_n},\qquad
+B_n=\frac{uV_{n+1}^d-dV_{n+1}^u}{R(u-d)},\qquad
+\Delta_nS_n+B_n=C_n.
 \]
-Since \(25>20\), early exercise is strictly optimal at this node.
-\end{boardexample}
+\begin{itemize}
+\item If continuation is optimal, \(V_n=C_n\) and the portfolio delivers
+      \(V_{n+1}\) in both states.
+\item If exercise is optimal, \(V_n=g(S_n)\) and the seller's wealth
+      finances the exercise payment.
+\item If the holder continues when exercise was optimal, the seller holds
+      \(V_n\geq C_n\), invests \(C_n\) in the hedge and keeps the surplus.
+\end{itemize}
+Hence tracking \(V\) superhedges every admissible exercise time, at cost
+\(V_0\); no cheaper strategy survives every stopping choice of the buyer.
 
-The up-node value is \(V_1(120)=3.214\), hence
-\[
-V_0^{\rm Am}
-=\frac{0.625(3.214)+0.375(25)}{1.05}\approx10.84.
-\]
-The European value is approximately \(9.06\), leaving an early-exercise
-premium of about \(1.78\).
-
-\begin{studentexercise}{one backward step}
-Let \(R=1.02\), \(p=0.6\), and \(K=100\). At a node with \(S=85\), an
-American put has terminal continuation values \(4\) and \(22\). Exercise,
-continue, or indifferent?
-\end{studentexercise}
-\begin{shortsolution}
-Exercise pays \(15\), while continuation is
-\[
-\frac{0.6(4)+0.4(22)}{1.02}\approx10.98.
-\]
-The holder exercises. Use terminal option values, not terminal stock prices,
-in the continuation calculation.
-\end{shortsolution}
-
-\subsection{Snell envelope and the hedge}
+\subsection{Snell envelope}
 
 \begin{definition}[Discounted Snell envelope]
 With \(Z_n=R^{-n}Y_n\), define
 \[
 U_n=\esssup_{\tau\in\mathcal T_{n,N}}\E^\Q[Z_\tau\mid\cF_n].
 \]
-\(U\) is the smallest \(\Q\)-supermartingale dominating \(Z\), and
-\(V_n=R^nU_n\).
+Then \(V_n=R^nU_n\), and the recursion reads
+\(U_N=Z_N\), \(U_n=\max\{Z_n,\E^\Q[U_{n+1}\mid\cF_n]\}\).
 \end{definition}
+
+\begin{proposition}
+\(U\) is the smallest \(\Q\)-supermartingale dominating \(Z\).
+\end{proposition}
+\begin{proof}
+From the recursion, \(U_n\geq Z_n\) and \(U_n\geq\E^\Q[U_{n+1}\mid\cF_n]\):
+\(U\) is a supermartingale dominating \(Z\). If \(W\) is another such
+supermartingale, then \(W_N\geq Z_N=U_N\), and if \(W_{n+1}\geq U_{n+1}\),
+\(W_n\geq\max\{Z_n,\E^\Q[W_{n+1}\mid\cF_n]\}\geq U_n\). Backward induction
+gives \(W\geq U\).
+\end{proof}
+
+Recall that an adapted, integrable process \(X\) is a \(\Q\)-supermartingale
+if \(\E^\Q[X_u\mid\cF_t]\leq X_t\) for \(t\leq u\): it decreases on
+average. The Snell envelope is the American analogue of risk-neutral
+valuation: the minimal discounted process that can always cover an exercise
+request.
 
 \begin{keyidea}{Optimal policy}
 One optimal stopping rule is the first entry into the exercise region:
 \[
 \tau_n^\star=\inf\{k\in\{n,\ldots,N\}:V_k=Y_k\}.
 \]
-In a complete market, the martingale part of the Snell envelope yields the
-dynamic hedge for the seller.
+Up to \(\tau_n^\star\), the discounted value \(U\) is a martingale: the option
+is hedged like a European claim until it is exercised.
 \end{keyidea}
 
+\begin{studentexercise}{in the money is not enough}
+At a node, an American put is in the money. Is immediate exercise optimal?
+What must be compared, and what is the option value at the node?
+\end{studentexercise}
+\begin{shortsolution}
+Not necessarily. Compare the intrinsic value \(g(S_n)\) with the discounted
+risk-neutral continuation value \(C_n\). The option is worth
+\(\max\{g(S_n),C_n\}\); exercising when \(C_n>g(S_n)\) throws away
+\(C_n-g(S_n)\).
+\end{shortsolution}
+
 % ============================================================
-\section{Continuous time: stopping regions and boundaries}
+\section{Continuous time: the obstacle problem}
 % ============================================================
 
 \subsection{Black--Scholes formulation}
@@ -263,18 +316,123 @@ dynamic hedge for the seller.
 Under \(\Q\), suppose
 \[
 \frac{\dd S_t}{S_t}=(r-q)\dd t+\sigma\dd W_t^\Q,
-\qquad\sigma>0.
+\qquad\sigma>0,
 \]
-For exercise payoff \(g(S_t)\), the Markov value is
+with a continuous dividend yield \(q\geq0\) (\(q=0\) unless stated).
+
+\paragraph{The notation \(\E^\Q_{t,s}\).}
+This is expectation under \(\Q\) for the stock started at time \(t\)
+with \(S_t=s\). For a future payoff \(h(S_T)\),
+\[
+\E^\Q_{t,s}[h(S_T)]=\E^\Q[h(S_T)\mid S_t=s].
+\]
+The Black--Scholes stock is Markov: its current value summarizes the past
+information needed to predict its future. Thus, writing
+\(F(t,s)=\E^\Q_{t,s}[h(S_T)]\),
+\[
+\E^\Q[h(S_T)\mid\cF_t]=F(t,S_t).
+\]
+For example, \(\E^\Q_{t,s}[S_T]=s e^{(r-q)(T-t)}\). With no dividends,
+\(\E^\Q_{t,s}[e^{-r(T-t)}S_T]=s\).
+
+\paragraph{The value function.}
+Fix a stopping time \(\tau\). Receiving \(g(S_\tau)\) at \(\tau\) is a claim
+whose no-arbitrage price is \(\E^\Q[e^{-r(\tau-t)}g(S_\tau)\mid\cF_t]\)
+(Lectures~6--8). The holder picks the best \(\tau\), so the American value is
 \[
 \boxed{
 v(t,s)=\sup_{\tau\in\mathcal T_{t,T}}
 \E^\Q_{t,s}[e^{-r(\tau-t)}g(S_\tau)].}
 \]
-The continuation and exercise regions are respectively where
-\(v(t,s)>g(s)\) and \(v(t,s)=g(s)\).
+Only the \(\Q\)-dynamics of \(S\) matter: drift \(r-q\), not \(\mu\). The
+\emph{continuation region} is \(\{v>g\}\) and the \emph{exercise region}
+is \(\{v=g\}\).
+
+\subsection{Two inequalities and one equality}
+
+Define the pricing operator, including discounting,
+\[
+\mathcal Af=(r-q)s\,f_s+\tfrac12\sigma^2s^2f_{ss}-rf,
+\]
+and assume, formally, that \(v\) is smooth enough for It\^o's formula. Then
+\[
+\dd\bigl(e^{-ru}v(u,S_u)\bigr)
+=e^{-ru}(v_t+\mathcal Av)(u,S_u)\dd u
++e^{-ru}\sigma S_uv_s(u,S_u)\dd W_u^\Q,
+\]
+and taking expectations over a short interval \([t,t+\dd t]\),
+\[
+\E^\Q_{t,s}\!\left[e^{-r\dd t}v(t+\dd t,S_{t+\dd t})\right]
+=v(t,s)+(v_t+\mathcal Av)(t,s)\dd t+o(\dd t).
+\]
+At \((t,s)\), the holder can either exercise now or wait \(\dd t\) and then
+act optimally. Each choice gives an inequality; the optimal one gives an
+equality.
+
+\paragraph{Option 1: exercise now.}
+Stopping at \(\tau=t\) is admissible and pays \(g(s)\), so
+\[
+\boxed{v(t,s)\geq g(s)\quad\text{for every }(t,s).}
+\]
+In a market, a put trading below \(K-s\) could be bought and exercised
+immediately: an arbitrage.
+
+\paragraph{Option 2: wait \(\dd t\).}
+Waiting, then acting optimally, is always admissible:
+\[
+v(t,s)\geq\E^\Q_{t,s}\!\left[e^{-r\dd t}v(t+\dd t,S_{t+\dd t})\right]
+=v(t,s)+(v_t+\mathcal Av)(t,s)\dd t+o(\dd t).
+\]
+Subtracting \(v(t,s)\), dividing by \(\dd t\) and letting \(\dd t\downarrow0\),
+\[
+\boxed{v_t+\mathcal Av\leq0\quad\text{everywhere, including the exercise region.}}
+\]
+Equivalently, \(e^{-rt}v(t,S_t)\) has nonpositive drift: it is a
+\(\Q\)-supermartingale, the continuous-time Snell envelope.
+
+\paragraph{In the continuation region, waiting is optimal.}
+If \(v(t,s)>g(s)\), continuity of \(v-g\) and of the path imply that, for
+small \(\dd t\), the path stays where \(v>g\); stopping in
+\([t,t+\dd t]\) is never optimal. Option 2 then attains the maximum, so
+\[
+\boxed{v_t+\mathcal Av=0\quad\text{where }v>g.}
+\]
+This is the Black--Scholes PDE: until exercise, \(e^{-rt}v(t,S_t)\) is a
+martingale, and the option is hedged like a European one.
+
+\begin{keyidea}{The obstacle problem (variational inequality)}
+\[
+\boxed{
+\max\{g-v,\;v_t+\mathcal Av\}=0,\qquad v(T,s)=g(s).}
+\]
+Equivalently, wherever the derivatives exist,
+\[
+v-g\geq0,\qquad -(v_t+\mathcal Av)\geq0,\qquad
+(v-g)(v_t+\mathcal Av)=0.
+\]
+In the continuation region the PDE holds with equality. In the exercise
+region \(v=g\) and only the inequality \(g_t+\mathcal Ag\leq0\) is required.
+Unlike the European case, the region where the PDE holds is not known in
+advance: finding it is part of the pricing problem.
+\end{keyidea}
+
+\begin{boardexample}{why waiting is costly deep in the money}
+For a put with \(q=0\) and \(s<K\), \(g(s)=K-s\) and
+\[
+g_t+\mathcal Ag=rs(-1)-r(K-s)=-rK<0.
+\]
+In the exercise region, waiting an instant loses the interest \(rK\dd t\) on
+the strike, which is why the inequality is strict there.
+\end{boardexample}
+
+\begin{warningbox}{A formal argument}
+At the exercise boundary, \(v\) is only \(C^1\) in \(s\), not \(C^2\), so
+It\^o's formula does not apply directly. A rigorous proof uses the Snell
+envelope in continuous time or viscosity solutions.
+\end{warningbox}
 
 \subsection{A non-dividend-paying call}
+\label{sec:calls}
 
 \begin{proposition}[No early exercise for a standard call]
 If \(q=0\) and \(r\geq0\), then
@@ -298,67 +456,26 @@ price is a martingale.
 \end{proof}
 
 \begin{warningbox}{The dividend qualification matters}
-When \(q>0\), holding the stock before an ex-dividend date can be valuable.
+When \(q>0\), or with a discrete dividend, exercising before an
+ex-dividend date gives ownership of the stock and therefore the dividend.
 An American call may then be exercised early. Never quote the preceding
 result without the no-dividend assumption.
 \end{warningbox}
 
-\subsection{American puts and boundaries}
+\begin{studentexercise}{what do dividends change?}
+Which object changes with dividends: the payoff, the stopping-time logic, or
+the continuation value?
+\end{studentexercise}
+\begin{shortsolution}
+The payoff and the stopping-time logic are unchanged. Dividends alter the
+economics of waiting, hence the continuation value and the exercise boundary.
+\end{shortsolution}
 
-For a put, receiving \(K-S_t\) now can be attractive at low stock values.
-In the standard model with \(r>0\), the exercise region typically has the
-form
-\[
-\mathcal E=\{(t,s):s\leq b(t)\},\qquad
-\mathcal C=\{(t,s):s>b(t)\},
-\]
-where \(b(t)<K\) before maturity. Deep below \(K\), waiting delays cash while
-adding little useful optionality; near the strike, continuation is valuable.
+\subsection{The American put: exercise boundary}
 
-% ============================================================
-\section{The obstacle PDE}
-% ============================================================
-
-\subsection{Variational inequality and free boundary}
-
-Let
-\[
-\mathcal Lf=(r-q)sf_s+\frac12\sigma^2s^2f_{ss}.
-\]
-In the continuation region, hedging gives
-\[
-v_t+\mathcal Lv-rv=0.
-\]
-Together with the requirement \(v\geq g\), this becomes
-\[
-\boxed{
-\min\{v-g,-(v_t+\mathcal Lv-rv)\}=0,\qquad v(T,s)=g(s).}
-\]
-For a regular American put boundary \(s=b(t)\), value matching and smooth
-fit read
-\[
-v(t,b(t))=K-b(t),\qquad v_s(t,b(t))=-1.
-\]
-The boundary is free: it is a result of the pricing problem, not a contract
-input.
-
-\subsection{A complete PDE problem for the American put}
-
-For the numerical example below, specialize to no dividends \(q=0\),
-\(r\geq0\), and \(g(s)=(K-s)^+\). Define the pricing operator,
-including discounting, by
-\[
-\mathcal Af=rsf_s+\tfrac12\sigma^2s^2f_{ss}-rf.
-\]
-The variational inequality is equivalent, wherever the derivatives exist, to
-\[
-\boxed{
-v-g\geq0,\qquad -(v_t+\mathcal Av)\geq0,\qquad
-(v-g)(v_t+\mathcal Av)=0.}
-\]
-In the continuation region \(v>g\), the last condition forces the PDE
-equality. In the exercise region \(v=g\), the PDE residual need not vanish.
-The terminal and spatial conditions are
+From now on, \(q=0\), \(r\geq0\) and \(g(s)=(K-s)^+\). There is no
+closed-form price: both the value \(v\) and the exercise boundary must be
+computed numerically. The obstacle problem is completed by
 \[
 v(T,s)=(K-s)^+,\qquad v(t,0)=K,\qquad
 \lim_{s\to\infty}v(t,s)=0.
@@ -368,6 +485,79 @@ cannot improve its discounted value when \(r\geq0\). On a numerical domain
 \([0,S_{\max}]\), with \(S_{\max}>K\), replace the condition at infinity
 by \(v(t,S_{\max})\approx0\), and check the truncation error by increasing
 \(S_{\max}\).
+
+In the standard model with \(r>0\), there is a boundary \(s^*(t)<K\) such that
+\[
+\mathcal E=\{(t,s):s\leq s^*(t)\}\ \text{(exercise)},\qquad
+\mathcal C=\{(t,s):s>s^*(t)\}\ \text{(continue)}.
+\]
+Deep below \(K\), waiting delays cash while adding little useful
+optionality; near the strike, continuation is valuable. The boundary
+increases with \(t\) and approaches \(K\) from below as maturity approaches.
+At the boundary, the value joins the payoff smoothly (value matching and
+smooth fit):
+\[
+\boxed{v(t,s^*(t))=K-s^*(t),\qquad v_s(t,s^*(t))=-1.}
+\]
+The boundary is free: it is a result of the pricing problem, not a contract
+input.
+
+\begin{keyidea}{The boundary is the decision rule}
+The optimal exercise time is the first touch of the boundary,
+\[
+\tau^\star=\inf\{u\geq t:S_u\leq s^*(u)\}\wedge T,
+\]
+which uses only the path so far: it is a stopping time. A path that never
+touches \(s^*\) is held to maturity. Being deep in the money is not enough:
+the path must cross \(s^*(t)\), which may lie well below \(K\). The price is
+\(v(0,S_0)=\E^\Q[e^{-r\tau^\star}(K-S_{\tau^\star})^+]\).
+\end{keyidea}
+
+\begin{studentexercise}{identify the region}
+For an American put, a numerical scheme reports at some node an intrinsic
+value strictly below the continuation estimate. Which region contains the
+node and what is the option value there?
+\end{studentexercise}
+\begin{shortsolution}
+It is in the continuation region and the value is the continuation estimate.
+Intrinsic value is a lower obstacle, not necessarily the price.
+\end{shortsolution}
+
+% ============================================================
+\Needspace{16\baselineskip}
+\section{Computing American prices}
+% ============================================================
+
+\subsection{Three numerical routes}
+
+Pricing the American put means solving its obstacle problem. Three methods
+are standard; they approximate different objects.
+
+\begin{center}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{>{\raggedright\arraybackslash}p{0.17\textwidth}
+                >{\raggedright\arraybackslash}p{0.34\textwidth}
+                >{\raggedright\arraybackslash}p{0.38\textwidth}}
+\toprule
+Method & What is approximated & How the continuation value is obtained\\
+\midrule
+Binomial tree
+  & The \emph{stock model}: \(S\) moves to \(uS\) or \(dS\) at dates
+    \(0,\Delta t,\ldots,T\)
+  & Exactly, from the two children of each node\\
+Longstaff--Schwartz
+  & Only the \emph{exercise dates}: Black--Scholes paths are simulated;
+    exercise is allowed at \(t_0,\ldots,t_N\)
+  & Estimated, by regressing realized cash flows on functions of the
+    current state across simulated paths\\
+Finite differences
+  & The \emph{PDE}: the obstacle problem on an \((s,t)\) grid
+  & Through the discretized PDE operator, then the obstacle \(V\geq g\)\\
+\bottomrule
+\end{tabular}
+\end{center}
+All three compare exercise with continuation. Convergence requires refining
+the exercise grid and controlling each method's space, sampling, or regression errors.
 
 \begin{warningbox}{An exercise grid is an approximation to continuous exercise}
 For exercise restricted to \(0,h,2h,\ldots,T\), the Bermudan value satisfies
@@ -379,30 +569,311 @@ The continuous-time American value is recovered as the mesh tends to zero;
 the same finite-step identity is not exact for unrestricted exercise.
 \end{warningbox}
 
-\begin{studentexercise}{identify the region}
-For an American put, a numerical scheme reports \(g(s)=18\) and a
-continuation estimate \(C=18.7\). Which region contains the node and what
-is the option value?
+\subsection{The binomial model: backward induction on a tree}
+
+With \(N\) steps of length \(\Delta t=T/N\), the Cox--Ross--Rubinstein
+parameters are
+\[
+u=e^{\sigma\sqrt{\Delta t}},\qquad d=u^{-1},\qquad
+p=\frac{e^{r\Delta t}-d}{u-d}.
+\]
+Node \((n,j)\) carries \(S_n^j=S_0u^jd^{n-j}\). At every node,
+\[
+\boxed{V_n^j=\max\left\{g(S_n^j),\ e^{-r\Delta t}
+\left[pV_{n+1}^{j+1}+(1-p)V_{n+1}^j\right]\right\}.}
+\]
+The tree supplies both a price and a discrete approximation to the exercise
+boundary: mark every node at which the maximum selects \(g(S_n^j)\). The
+tree recombines, so it has \(O(N^2)\) nodes.
+
+\subsection{Simulation: the Longstaff--Schwartz method}
+
+\paragraph{Simulation uses the Black--Scholes model, not a tree.}
+Monte Carlo draws \(M\) paths directly from the Black--Scholes
+\(\Q\)-dynamics, exactly:
+\[
+S_{t_{k+1}}=S_{t_k}\exp\Bigl(\bigl(r-\tfrac12\sigma^2\bigr)\Delta t
++\sigma\sqrt{\Delta t}\,Z_{k+1}\Bigr),\qquad Z_{k+1}\sim\mathcal N(0,1)
+\text{ i.i.d.}
+\]
+Nothing is binomial: the stock can take any positive value, and paths do not
+recombine, so each simulated state is visited once. The only discrete feature
+is the set of exercise dates \(0=t_0<t_1<\cdots<t_N=T\): Longstaff--Schwartz
+prices a \emph{Bermudan} option, which approaches the American price as the
+exercise grid is refined.
+
+\paragraph{Why plain Monte Carlo is not enough.}
+For a European option, simulation estimates \(e^{-rT}\E^\Q[g(S_T)]\) by
+averaging terminal discounted payoffs. An American decision at an
+intermediate state requires the conditional continuation value
+\(\E^\Q[\text{future discounted cash flow}\mid S_{t_k}=s]\). In a tree, this
+is an average over the two children of the node. A simulated state has no
+siblings to average over, so the function must be \emph{estimated}.
+
+\begin{keyidea}{Key idea: a cross-sectional regression}
+With \(\tau\) the optimal exercise date after \(t_k\), the continuation value
+is a function of the current state:
+\[
+C_k(s)=\E^\Q\!\left[e^{-r(\tau-t_k)}g(S_\tau)\mid S_{t_k}=s\right]
+\approx\sum_{\ell=0}^L\beta_{k,\ell}\,\psi_\ell(s),
+\]
+for basis functions \(\psi_0,\ldots,\psi_L\) (e.g.\ \(1,s,s^2\), or Laguerre
+polynomials). The coefficients are fitted \emph{across paths}: each path
+gives one point \(\bigl(S^{(m)}_{t_k},\text{its realized discounted cash
+flow}\bigr)\).
+\end{keyidea}
+
+\paragraph{What does conditioning mean numerically?}
+Least-squares Monte Carlo (LSMC) approximates a conditional mean by regression.
+Fix one exercise date \(t_k\) and a later stopping rule \(\tau>t_k\).
+For this paragraph, treat that rule as fixed, and define
+\[
+X=S_{t_k},\qquad Y=e^{-r(\tau-t_k)}g(S_\tau),\qquad
+c(s)=\E^\Q[Y\mid X=s].
+\]
+Each simulated path supplies a pair \((X^{(m)},Y^{(m)})\): the current
+stock price and a noisy observation of the later discounted cash flow.
+The ordinary average \(M^{-1}\sum_mY^{(m)}\) estimates \(\E^\Q[Y]\), a
+single number that pools different current states. The exercise decision
+needs a function of the state, \(c(s)\). For a continuously distributed
+stock price, exact repetitions of \(X=s\) almost surely do not occur in a
+finite sample. Conditioning therefore cannot be implemented by simply
+averaging the paths with exactly that stock price. Regression pools
+information across the cloud of pairs by fitting a common function.
+
+If \(\tau\) is the optimal later rule, \(c=C_k\), the true continuation
+function. In the backward algorithm, the optimal rule is unknown: the
+response \(Y\) uses the later rule learned so far. The fit estimates the
+continuation value of that rule, which is then improved by allowing
+exercise at \(t_k\).
+
+\begin{keyidea}{Conditional expectation is an orthogonal projection}
+Suppose \(\E^\Q[Y^2]<\infty\). Write
+\(Y=c(X)+\varepsilon\), where \(\E^\Q[\varepsilon\mid X]=0\).
+For every square-integrable function \(f(X)\),
+\[
+\boxed{\E^\Q[(Y-f(X))^2]
+=\E^\Q[(Y-c(X))^2]+\E^\Q[(c(X)-f(X))^2].}
+\]
+Indeed, the cross term vanishes by conditioning on \(X\):
+\[
+\E^\Q[(Y-c(X))(c(X)-f(X))]
+=\E^\Q[(c(X)-f(X))\E^\Q[\varepsilon\mid X]]=0.
+\]
+Thus \(c\) minimizes the population mean squared prediction error over all
+functions of the current state. The first term is future uncertainty;
+only the second term can be reduced by improving the mean function.
+\end{keyidea}
+
+\paragraph{Two approximations turn this identity into LSMC.}
+First restrict the candidate functions to a finite span:
+\[
+f_\beta(s)=\sum_{\ell=0}^L\beta_\ell\psi_\ell(s),\qquad
+\beta^*=\operatorname*{arg\,min}_{\beta}
+\E^\Q\!\left[\left(Y-f_\beta(X)\right)^2\right].
+\]
+For example, \(\psi_0=1\), \(\psi_1(s)=s\), \(\psi_2(s)=s^2\) give a
+quadratic approximation. Second replace the expectation by the empirical
+average over the selected paths. If \(n_k=|I_k|\), define the design matrix
+\(\Psi\in\R^{n_k\times(L+1)}\) and response vector \(y\) by
+\[
+\Psi_{m\ell}=\psi_\ell(S^{(m)}_{t_k}),\qquad
+y_m=e^{-r(\tau^{(m)}-t_k)}CF^{(m)},\qquad m\in I_k.
+\]
+Then
+\[
+\boxed{\widehat\beta_k=\operatorname*{arg\,min}_{\beta}\|y-\Psi\beta\|_2^2,
+\qquad \widehat C_k(s)=\sum_{\ell=0}^L\widehat\beta_{k,\ell}\psi_\ell(s).}
+\]
+The normal equations are
+\(\Psi^\top\Psi\widehat\beta_k=\Psi^\top y\). If \(\Psi\) has full
+column rank, the solution is unique; the familiar inverse formula is an
+algebraic description, not a recommended numerical implementation.
+Use a QR or SVD least-squares solver. There is one row per path and one
+column per basis function, and a separate fit at each date.
+
+When the fit uses only in-the-money paths, the population objective is
+conditioned on \(g(X)>0\). This changes the region weighted by the fit,
+but not \(\E^\Q[Y\mid X=s]\) at an in-the-money state \(s\), because
+selection depends only on \(X\).
+
+\begin{warningbox}{Sampling error, basis error, and the information set}
+For a fixed basis and an appropriate sampling law, more paths stabilize the
+least-squares coefficients around the population projection. They do not
+remove the error from an insufficient basis. Increasing the basis dimension
+with too few paths can instead overfit the simulated future outcomes.
+Scale the state, for example by using \(S/K\), and use substantially more
+in-the-money observations than basis functions. If there are no such paths,
+skip the fit; if the design is rank deficient, reduce the basis or use an
+explicitly chosen fallback.
+
+The regressors must contain the state needed to predict continuation using
+current information. For a vanilla Black--Scholes put, \(S_{t_k}\) suffices.
+For an Asian payoff or stochastic volatility, include the running average
+or volatility as well. Future stock prices must never be regressors.
+Refining the exercise grid alone does not remove sampling or basis errors.
+\end{warningbox}
+
+\paragraph{The algorithm.}
+Each path \(m\) carries a cash flow \(CF^{(m)}\) and its date
+\(\tau^{(m)}\) under the current exercise rule.
+\begin{enumerate}
+\item \textbf{Simulate} \(M\) independent paths
+      \(S^{(m)}_{t_0},\ldots,S^{(m)}_{t_N}\) under \(\Q\).
+\item \textbf{Initialize at maturity.} For every path,
+      \(CF^{(m)}=g(S^{(m)}_T)\) and \(\tau^{(m)}=T\).
+\item \textbf{Backward loop.} For \(k=N-1,N-2,\ldots,1\):
+  \begin{enumerate}
+  \item[(a)] \emph{Select} the in-the-money paths
+        \(I_k=\{m:g(S^{(m)}_{t_k})>0\}\).
+  \item[(b)] For \(m\in I_k\), compute the realized discounted cash flow
+        \(Y^{(m)}=e^{-r(\tau^{(m)}-t_k)}CF^{(m)}\).
+  \item[(c)] \emph{Regress} by least squares:
+        \[
+        \widehat\beta_k=\arg\min_\beta\sum_{m\in I_k}
+        \Bigl(Y^{(m)}-\sum_{\ell=0}^L\beta_\ell\,\psi_\ell(S^{(m)}_{t_k})\Bigr)^2,
+        \qquad
+        \widehat C_k(s)=\sum_{\ell}\widehat\beta_{k,\ell}\,\psi_\ell(s).
+        \]
+  \item[(d)] \emph{Decide and update:} for \(m\in I_k\), if
+        \(g(S^{(m)}_{t_k})>\widehat C_k(S^{(m)}_{t_k})\), set
+        \(CF^{(m)}\leftarrow g(S^{(m)}_{t_k})\) and
+        \(\tau^{(m)}\leftarrow t_k\). Otherwise keep the later cash flow.
+  \end{enumerate}
+\item \textbf{Price at \(t_0\).} All paths share \(S_0\), so no regression
+      is needed:
+      \[
+      \boxed{\widehat V_0=\max\Bigl\{g(S_0),\ \frac1M\sum_{m=1}^M
+      e^{-r\tau^{(m)}}CF^{(m)}\Bigr\}.}
+      \]
+\end{enumerate}
+
+\Needspace{10\baselineskip}
+\paragraph{Worked calculation: the regression at \(t=2\).}
+Use the eight stock paths in the slides, with \(K=1.10\), \(r=0.06\),
+dates \(0,1,2,3\), and basis \(1,s,s^2\). Before the first backward step,
+all cash flows are terminal put payoffs. At \(t=2\), paths \(1,3,4,6,7\)
+are in the money. In that order, the numerical least-squares problem is
+\[
+\Psi=\begin{pmatrix}
+1&1.08&1.1664\\
+1&1.07&1.1449\\
+1&0.97&0.9409\\
+1&0.77&0.5929\\
+1&0.84&0.7056
+\end{pmatrix},\qquad
+y=e^{-0.06}\begin{pmatrix}0\\0.07\\0.18\\0.20\\0.09\end{pmatrix}.
+\]
+Solving gives
+\[
+\widehat C_2(s)=-1.069988+2.983411s-1.813576s^2
+\quad\text{(coefficients rounded)}.
+\]
+The response is already valued at \(t=2\), so no extra discount factor is
+applied when comparing the fitted value with immediate exercise.
+\begin{center}
+\begin{tabular}{c|rrrrl}
+\toprule
+Path & \(S_2\) & Realized \(Y\) & Fitted \(\widehat C_2\) & \(g(S_2)\) & Decision\\
+\midrule
+1 & 1.08 & 0.0000 & 0.0367 & 0.0200 & continue\\
+3 & 1.07 & 0.0659 & 0.0459 & 0.0300 & continue\\
+4 & 0.97 & 0.1695 & 0.1175 & 0.1300 & exercise\\
+6 & 0.77 & 0.1884 & 0.1520 & 0.3300 & exercise\\
+7 & 0.84 & 0.0848 & 0.1564 & 0.2600 & exercise\\
+\bottomrule
+\end{tabular}
+\end{center}
+For example, path 4 exercises even though its eventual discounted terminal
+payoff happens to exceed \(0.13\): the decision compares \(0.13\) with
+the fitted conditional mean \(0.1175\), not with that future realization.
+
+\paragraph{Move backward: the response changes when the rule changes.}
+After this step, paths \(4,6,7\) carry cash flows \(0.13,0.33,0.26\)
+at date \(2\). At \(t=1\), the in-the-money paths are \(1,4,6,7,8\).
+In this order, their current-price and response vectors are
+\[
+\begin{aligned}
+x&=(1.09,\ 0.93,\ 0.76,\ 0.92,\ 0.88)^\top,\\
+y&=e^{-0.06}(0,\ 0.13,\ 0.33,\ 0.26,\ 0)^\top.
+\end{aligned}
+\]
+These are cash flows under the updated later rule; regressing the original
+terminal payoffs again would ignore the decisions just learned. The fit is
+\[
+\widehat C_1(s)=2.037512-3.335443s+1.356457s^2.
+\]
+Path 1 continues; paths \(4,6,7,8\) exercise at \(t=1\). The final
+nonzero cash flows are \(0.17,0.34,0.18,0.22\) at \(t=1\) and
+\(0.07\) on path 3 at \(t=3\). Average over \emph{all eight paths},
+including the zero payments:
+\[
+\widehat V_0=\max\left\{0.10,\frac18\left[
+(0.17+0.34+0.18+0.22)e^{-0.06}+0.07e^{-0.18}\right]\right\}
+\approx0.1144.
+\]
+This is an in-sample illustration, not an independent accuracy check.
+
+\begin{studentexercise}{realized future or conditional mean?}
+For path 1 at \(t=2\), \(S_2=1.08\), \(Y=0\), and
+\(\widehat C_2(1.08)=0.0367\). Should the fitted rule exercise the put?
+Why would using \(Y\) directly give a different decision?
 \end{studentexercise}
 \begin{shortsolution}
-It is in the continuation region and \(v=18.7\). Intrinsic value is a lower
-obstacle, not necessarily the price.
+Continue, because \(g(1.08)=0.02<0.0367\). Comparing with \(Y=0\)
+would instead say exercise, but uses a future outcome unavailable at the
+decision time. The regression estimates a conditional mean; it does not
+reveal the future cash flow of an individual path.
 \end{shortsolution}
 
-% ============================================================
-\section{Computing American prices}
-% ============================================================
+\paragraph{Why each design choice.}
+\begin{itemize}
+\item \emph{Regress realized cash flows, not estimated values.} \(Y^{(m)}\) is
+      what the path actually pays under the current rule. The regression only
+      \emph{selects} the rule; the price averages real cash flows, so
+      regression errors affect the exercise policy and hence the cash-flow
+      targets used at earlier dates. Keeping realized payments avoids
+      substituting fitted values for the cash flows being priced.
+\item \emph{Use only in-the-money paths.} Out of the money, \(g=0\) and
+      exercise is never chosen. Fitting only where the decision matters
+      improves the fit with few basis functions.
+\end{itemize}
 
-\subsection{Finite differences: grid and explicit update}
+\begin{warningbox}{A policy value is a lower bound in expectation}
+Freeze the learned rule \(\widehat\tau\), including the decision at
+\(t_0\), using training data. On independent valuation paths, the average
+of \(e^{-r\widehat\tau}g(S_{\widehat\tau})\) is unbiased for that fixed
+policy's value, which is at most the optimal Bermudan value. A particular
+Monte Carlo average can exceed the optimum through sampling noise; the
+lower-bound statement concerns the policy's expectation. Choosing again
+between exercise at \(t_0\) and continuation using the valuation-sample
+maximum would add selection bias, so freeze that choice as well.
 
-Keep the no-dividend American put assumptions above. Choose
+Reusing training paths for valuation can create upward foresight bias,
+which need not be small. Fit on one set of paths and evaluate the frozen
+rule on an independent set, reporting the Monte Carlo standard error.
+Accuracy also depends on the basis and exercise dates; duality methods
+(Andersen--Broadie) can complement the policy value with an upper bound.
+\end{warningbox}
+
+{\footnotesize Reference: F.~Longstaff and E.~Schwartz, ``Valuing American
+options by simulation: a simple least-squares approach'', \emph{Review of
+Financial Studies} 14(1), 113--147, 2001,
+\href{https://doi.org/10.1093/rfs/14.1.113}{doi:10.1093/rfs/14.1.113}.
+Section~1 supplies the eight-path example used above.\par}
+
+\Needspace{14\baselineskip}
+\subsection{Finite differences: the explicit scheme}
+
+Keep the no-dividend American put assumptions. Choose
 \[
 s_i=i\Delta s,\quad \Delta s=S_{\max}/M,\qquad
 t_n=n\Delta t,\quad \Delta t=T/N,
 \]
 and write \(V_i^n\approx v(t_n,s_i)\), \(g_i=(K-s_i)^+\).
 Initialize \(V_i^N=g_i\), fix \(V_0^n=K\), \(V_M^n=0\), and march
-backward from \(n=N-1\) to \(0\). At an interior stock node, use
+backward from \(n=N-1\) to \(0\). At an interior stock node, use centered
+differences
 \[
 v_s(t_n,s_i)\approx\frac{V_{i+1}^n-V_{i-1}^n}{2\Delta s},\qquad
 v_{ss}(t_n,s_i)\approx
@@ -414,7 +885,7 @@ An explicit continuation step evaluates it at the already known level:
 \frac{V_i^{n+1}-C_i^n}{\Delta t}
 +(\mathcal A_hV^{n+1})_i=0.
 \]
-Since \(s_i=i\Delta s\), this gives the implementable update
+Since \(s_i=i\Delta s\), this gives the update
 \[
 \boxed{
 C_i^n=a_iV_{i-1}^{n+1}+b_iV_i^{n+1}+c_iV_{i+1}^{n+1},\qquad
@@ -426,13 +897,8 @@ a_i=\frac{\Delta t}{2}(\sigma^2i^2-ri),\qquad
 b_i=1-\Delta t(\sigma^2i^2+r),\qquad
 c_i=\frac{\Delta t}{2}(\sigma^2i^2+ri).
 \]
-Thus each new value uses three neighbouring values at the next time level,
-followed by the exercise test. Compute all interior nodes from the old
-array before replacing it. The weights sum to \(1-r\Delta t\), the
-first-order approximation to the one-step discount factor. At the end,
-interpolate \(V^0\) to \(S_0\) if necessary. Nodes with
-\(V_i^n=g_i>0\) identify the put exercise region; its largest stock node
-approximates the free boundary.
+The weights sum to \(1-r\Delta t\), the first-order approximation to the
+one-step discount factor.
 
 \begin{warningbox}{Positivity and the explicit time-step restriction}
 Require \(a_i,b_i,c_i\geq0\) for all \(1\leq i\leq M-1\). With
@@ -450,105 +916,64 @@ For \(r\geq0\), the forward difference
 \(rs_i(V_{i+1}-V_i)/\Delta s\) gives nonnegative off-diagonal weights.
 \end{warningbox}
 
-\begin{boardexample}{one step before maturity}
-Take \(K=100\), \(r=5\%\), \(\sigma=30\%\), \(\Delta s=5\),
-\(\Delta t=1/252\), and \(S_{\max}=200\), so \(M=40\).
-These parameters satisfy the positivity and time-step conditions.
-Starting from the terminal payoff, two nodes give
+\paragraph{The explicit algorithm, step by step.}
+\begin{enumerate}
+\item \textbf{Grid and check.} Choose \(S_{\max}\), \(M\), \(N\); set
+      \(\Delta s=S_{\max}/M\), \(\Delta t=T/N\). Compute \(a_i,b_i,c_i\) for
+      \(i=1,\ldots,M-1\) and check that all are nonnegative; otherwise
+      increase \(N\) (or change the drift stencil if some \(a_i<0\)).
+\item \textbf{Initialize at maturity.} For \(i=0,\ldots,M\):
+      \(g_i=(K-s_i)^+\) and \(V_i^N=g_i\).
+\item \textbf{Backward loop.} For \(n=N-1,N-2,\ldots,0\):
+  \begin{enumerate}
+  \item[(a)] \emph{Boundaries:} \(V_0^n=K\), \(V_M^n=0\).
+  \item[(b)] \emph{Continuation:} for \(i=1,\ldots,M-1\), using only the
+        known level \(n+1\),
+        \(C_i^n=a_iV_{i-1}^{n+1}+b_iV_i^{n+1}+c_iV_{i+1}^{n+1}\).
+        Compute all interior nodes from the old array before replacing it.
+  \item[(c)] \emph{Decide:} \(V_i^n=\max\{g_i,C_i^n\}\). If
+        \(g_i\geq C_i^n\) and \(g_i>0\), flag node \((n,i)\) as
+        \emph{exercise}.
+  \end{enumerate}
+\item \textbf{Output.} Interpolate \(V^0\) at \(s=S_0\) for the price. At
+      each \(t_n\), the largest flagged \(s_i\) approximates \(s^*(t_n)\).
+\end{enumerate}
+Each step costs \(O(M)\) operations and needs no linear solve: the maximum is
+applied node by node, exactly as on a binomial tree. The price of this
+simplicity is the stability condition: \(\Delta t\) must shrink like
+\((\Delta s)^2\), so \(N\) grows like \(M^2\).
+
+\begin{remark}[What one step before maturity shows]
+Where the payoff is locally linear, \(s_{i\pm1}<K\), the stencil applied
+to \(g=K-s\) gives exactly \(C_i^{N-1}=g_i-rK\Delta t<g_i\): the PDE step
+loses the interest on the strike, and the maximum restores \(g_i\), so the
+node is in the exercise region. At the strike node, the kink gives
+\(C_i^{N-1}=a_i\Delta s>0=g_i\): keeping the option has value. The PDE step and
+the stopping decision are both visible in the first backward step.
+\end{remark}
+
+\subsection{Choosing a method and checking the output}
+
 \begin{center}
-\begin{tabular}{c|c|c|c|l}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{>{\raggedright\arraybackslash}p{0.2\textwidth}
+                >{\raggedright\arraybackslash}p{0.34\textwidth}
+                >{\raggedright\arraybackslash}p{0.36\textwidth}}
 \toprule
-\(s_i\) & \((V_{i-1}^N,V_i^N,V_{i+1}^N)\) & \(C_i^{N-1}\) & \(g_i\) & Action\\
+Method & Best fit & Main caution\\
 \midrule
-\(80\) & \((25,20,15)\) & \(19.9802\) & \(20\) & Exercise\\
-\(100\) & \((5,0,0)\) & \(0.3472\) & \(0\) & Continue\\
+Binomial tree & One underlying; teaching and robust benchmarks
+  & Many steps may be needed for convergence\\
+Finite differences & Low-dimensional Markov models; boundary analysis
+  & Grid size grows quickly with dimension\\
+Longstaff--Schwartz & Several risk factors, or path simulation available
+  & Quality depends on paths, basis, and regression design\\
 \bottomrule
 \end{tabular}
 \end{center}
-At \(s=80\), the payoff is locally linear and
-\(C=20-rK\Delta t=19.9801587\). At \(s=100\),
-\(a_{20}=\frac{1}{2\cdot252}(36-1)=0.0694444\), giving
-\(C=5a_{20}=0.3472222\). These are numerical grid values, not exact
-continuous-time prices.
-\end{boardexample}
-
-\subsection{Implicit Euler and discrete complementarity}
-
-To avoid the explicit time-step restriction, evaluate spatial terms at the
-unknown level \(n\). With the same \(a_i,c_i\), set
-\[
-d_i=1+\Delta t(\sigma^2i^2+r),\qquad
-R_i^n=d_iV_i^n-a_iV_{i-1}^n-c_iV_{i+1}^n-V_i^{n+1}.
-\]
-The fully implicit obstacle problem is
-\[
-\boxed{V_i^n-g_i\geq0,\qquad R_i^n\geq0,\qquad
-(V_i^n-g_i)R_i^n=0,\quad i=1,\ldots,M-1.}
-\]
-The endpoint values are fixed at \(K\) and \(0\). The residual is
-\(-\Delta t\) times the discrete PDE residual, explaining its sign.
-Provided \(a_i,c_i\geq0\), the tridiagonal system has positive diagonal,
-nonpositive off-diagonals and strict diagonal dominance:
-\(d_i-a_i-c_i=1+r\Delta t>0\). The explicit restriction on \(\Delta t\)
-is no longer needed for monotonicity, although accuracy still requires
-time and space refinement.
-
-\begin{keyidea}{An implementable projected Gauss--Seidel solve}
-At each time level, initialize \(U_i^{(0)}=V_i^{n+1}\), keep
-\(U_0^{(k)}=K\), \(U_M^{(k)}=0\), and sweep \(i=1,\ldots,M-1\):
-\[
-U_i^{(k+1)}=\max\left\{g_i,
-\frac{V_i^{n+1}+a_iU_{i-1}^{(k+1)}+c_iU_{i+1}^{(k)}}{d_i}
-\right\}.
-\]
-Repeat the sweeps until
-\[
-\max_{1\leq i\leq M-1}
-\left|\min\{U_i^{(k)}-g_i,\ R_i(U^{(k)})\}\right|\leq\varepsilon,
-\]
-then accept \(V^n=U^{(k)}\) and move to the preceding time level.
-Here \(R_i(U)=d_iU_i-a_iU_{i-1}-c_iU_{i+1}-V_i^{n+1}\).
-\end{keyidea}
-
-One unconstrained implicit linear solve followed by a single pointwise
-maximum does not generally solve this coupled complementarity problem:
-changing one node changes its neighbours' PDE residuals. That procedure is
-a splitting approximation; projected iteration enforces both conditions
-together. Policy iteration and penalty methods provide other solvers.
-
-{\footnotesize Further reading:
-P.~Forsyth, \href{https://student.cs.uwaterloo.ca/~cs774/as2_09.pdf}{\emph{Numerical PDE Option Pricing}, CS~774, Assignment~2 (2009)},
-for the complementarity formulation and implicit treatment of the obstacle.\par}
-
-\subsection{Trees and least-squares Monte Carlo}
-
-A recombining tree applies the Bellman maximum at each node and makes the
-exercise region visible. Finite-difference schemes solve a discrete obstacle
-problem: each grid value must satisfy both a PDE relation and \(v\geq g\).
-Projection, penalty, and policy-iteration methods enforce this constraint.
-
-For many risk factors, Longstaff--Schwartz approximates continuation values
-from simulated risk-neutral paths:
-\begin{enumerate}
-  \item simulate paths at a set of exercise dates;
-  \item set terminal cash flows to \(g(S_T)\);
-  \item work backward and regress discounted future cash flows on basis
-        functions of the current state, using in-the-money paths;
-  \item exercise when \(g(S_{t_n})\) exceeds the fitted continuation value;
-  \item average the discounted cash flows induced by the estimated policy.
-\end{enumerate}
-
-\begin{keyidea}{What LSM estimates}
-Regression estimates the conditional continuation value
-\[
-C_n(s)\approx\E^\Q[e^{-r(t_{n+1}-t_n)}V_{n+1}\mid S_{t_n}=s],
-\]
-not the price directly. Poor basis functions, sparse exercise dates, or too
-few paths can produce a poor stopping policy.
-\end{keyidea}
 
 \begin{warningbox}{Mandatory numerical checks}
-Refine the time grid and verify
+Refine the time grid (and the space grid or number of paths) and verify
 \[
 V^{\rm Am}\geq V^{\rm Eur}\geq0,\qquad
 V^{\rm Am,put}\geq(K-S_0)^+.
@@ -577,24 +1002,23 @@ out-of-sample policy performance.
   \item Write the payoff and permitted exercise dates.
   \item Compare exercise and risk-neutral continuation values.
   \item In a tree, apply the Bellman maximum from maturity backward.
-  \item In continuous time, locate stopping and continuation regions.
+  \item With simulated paths, estimate continuation values by regression.
+  \item In continuous time, solve the obstacle problem and locate stopping
+        and continuation regions.
   \item Check numerical output against bounds and refinements.
 \end{enumerate}
 \end{keyidea}
 
 \Needspace{11\baselineskip}
 \begin{studentexercise}{final stopping-policy check}
-An American put has immediate exercise value \(12\) and continuation value
-\(11.5\). A colleague adds them and reports an option value of \(23.5\).
-Explain the error, state the correct value, and give the action.
+At a node, an American put has immediate exercise value \(E\) and
+continuation value \(C\), with \(E>C\). A colleague reports the option value
+\(E+C\). Explain the error, state the correct value, and give the action.
 \end{studentexercise}
 \begin{shortsolution}
 Exercise and continuation are mutually exclusive policies, so the recursion
-takes their maximum:
-\[
-V=\max\{12,11.5\}=12.
-\]
-The holder exercises. The continuation value belongs to a different policy.
+takes their maximum: \(V=\max\{E,C\}=E\). The holder exercises. The
+continuation value belongs to a different policy.
 \end{shortsolution}
 
 \begin{keyidea}{Final synthesis}
@@ -602,7 +1026,6 @@ The holder exercises. The continuation value belongs to a different policy.
 \boxed{\text{American pricing}
 =\text{no-arbitrage valuation}+\text{an optimal stopping decision}.}
 \]
-Dynamic programming, the Snell envelope, and the free-boundary PDE are
-three compatible ways to represent the same exercise right.
+The Snell envelope describes optimal stopping; trees, LSMC, and finite differences compute it.
 \end{keyidea}
 \end{document}

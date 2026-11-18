@@ -1,5 +1,5 @@
 % !TEX program = pdflatex
-\documentclass[10pt,aspectratio=169]{beamer}
+\documentclass[handout,10pt,aspectratio=169]{beamer}
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -133,7 +133,7 @@ V_T(\theta,\omega)=\sum_{i=0}^m\theta^iS_T^i(\omega).
 State two ways a strategy can give a free lunch: one starting at zero cost,
 the other starting with money received today.
 \end{pausebox}
-\pause
+
 \begin{block}{Answer: two equivalent forms of arbitrage}
 \begin{itemize}
   \item \(V_0(\theta)=0\), \(V_T(\theta)\geq0\) in every state and
@@ -151,7 +151,7 @@ The bond converts the second form into a zero-cost strategy.
 If \(V_0(\theta)<0\) and \(V_T(\theta)\geq0\), how can the initial receipt
 finance a bond position that brings today's cost to zero?
 \end{pausebox}
-\pause
+
 \begin{exampleblock}{Answer}
 Invest \(-V_0(\theta)>0\) in the bond. The combined cost is \(0\), and its
 terminal payoff is \(V_T(\theta)\) plus a strictly positive bond payoff in
@@ -171,7 +171,7 @@ prices \(a,b\). Suppose \(a<b\).
 \begin{pausebox}
 Which claim do you buy and which do you sell? Track cash today and at \(T\).
 \end{pausebox}
-\pause
+
 \begin{exampleblock}{Answer}
 Buy \(A\), sell \(B\): receive \(b-a>0\) today and obtain
 \(A-B\geq0\) at maturity. Thus no-arbitrage requires \(\boxed{a\geq b}\).
@@ -203,7 +203,7 @@ Two calls on the same stock, same maturity \(T\), strikes \(K_1<K_2\).
 Without writing any formula, compare \((S_T-K_1)^+\) and \((S_T-K_2)^+\)
 state by state. Which call is worth more today, and why?
 \end{pausebox}
-\pause
+
 \[
 (S_T-K_1)^+\geq(S_T-K_2)^+
 \quad\text{in every state,}
@@ -223,7 +223,7 @@ A government bond pays \(\$1\) at \(T\) for certain. A corporate bond pays
 Compare the two payoffs state by state. What does dominance say about their
 prices, with no model of default probability at all?
 \end{pausebox}
-\pause
+
 The corporate payoff is \(\leq1\) in every state, matching the government
 bond exactly in the no-default state. Hence
 \[
@@ -236,7 +236,7 @@ For strikes \(K-h<K<K+h\), buy the outer calls and sell two calls at \(K\).
 \begin{pausebox}
 Find the butterfly payoff \(f(S_T)\). Can it ever be negative?
 \end{pausebox}
-\pause
+
 \begin{exampleblock}{Answer}
 \[
 f(S_T)=(S_T-K+h)^+-2(S_T-K)^++(S_T-K-h)^+
@@ -282,7 +282,7 @@ Two self-financing strategies satisfy \(X_T=Y_T\) in every state.
 \begin{pausebox}
 If \(X_0\ne Y_0\), which strategy do you buy, and what are the cashflows?
 \end{pausebox}
-\pause
+
 \begin{exampleblock}{Answer}
 Buy the cheaper strategy and sell the more expensive one. Receive the price
 gap today and owe \(X_T-Y_T=0\) at maturity. Therefore
@@ -312,7 +312,7 @@ Compare a call plus \(K\) zero-coupon bonds with a put plus one share.
 \begin{pausebox}
 Compute both terminal payoffs. What must their current costs satisfy?
 \end{pausebox}
-\pause
+
 \begin{exampleblock}{Answer}
 \[
 (S_T-K)^++K=(K-S_T)^++S_T=\max(S_T,K).
@@ -329,7 +329,7 @@ and \(P(K_1)\).
 \begin{pausebox}
 What is this box portfolio's payoff in each region of \(S_T\)?
 \end{pausebox}
-\pause
+
 \begin{exampleblock}{Answer}
 It pays \(K_2-K_1\) in every state, like a zero-coupon bond. Hence
 \[
@@ -351,7 +351,7 @@ A forward pays \(S_T-K_t\). A zero-coupon bond costs \(P_t(T)\) and pays
 \begin{pausebox}
 Replicate the forward payoff. Which \(K_t\) makes its initial value zero?
 \end{pausebox}
-\pause
+
 \begin{exampleblock}{Answer}
 Buy one share and sell \(K_t\) bonds. Their cost is
 \(S_t-K_tP_t(T)\), so
@@ -366,7 +366,7 @@ Buy one share and sell \(K_t\) bonds. Their cost is
 Reinvested dividends turn \(e^{-q(T-t)}\) shares today into one share at
 \(T\). What is the zero-value forward delivery price?
 \end{pausebox}
-\pause
+
 \begin{exampleblock}{Answer}
 The prepaid share costs \(S_te^{-q(T-t)}\). Thus
 \[
@@ -403,7 +403,7 @@ This is exactly the role \(\Q\) played in Black--Scholes: under \(\Q\),
 \begin{pausebox}
 Why must the martingale measure be equivalent to the historical measure?
 \end{pausebox}
-\pause
+
 \begin{exampleblock}{Answer}
 If \(\Pp(\omega)>0\) but \(\Q(\omega)=0\), \(\Q\) assigns zero value to a
 payoff occurring only in that genuinely possible state. Equivalence prevents
@@ -456,7 +456,7 @@ gross return \(R=1.1\).
 Find the up probability \(p\) that makes the discounted stock a
 \(\Q\)-martingale. Is it a valid probability?
 \end{pausebox}
-\pause
+
 \begin{exampleblock}{Answer}
 \[
 pu+(1-p)d=R
@@ -476,7 +476,7 @@ Keep \(S_0=100\), \(u=1.2\), and \(d=0.8\), but set \(R=1.25\).
 Since no \(p\in(0,1)\) makes the discounted stock a martingale,
 construct a zero-cost trade that profits in both states.
 \end{pausebox}
-\pause
+
 \begin{exampleblock}{Answer}
 Short one share for \(100\) and invest the proceeds in the bond.
 At \(T\), receive \(125\), buy back the share, and keep
@@ -534,7 +534,7 @@ A bond paying \(1\) costs \(B_0=1/1.1\). A stock quoted at \(115\) pays
 \begin{pausebox}
 Solve for the two state prices. If one is negative, exhibit the trade.
 \end{pausebox}
-\pause
+
 \begin{exampleblock}{Answer}
 \(\psi_1+\psi_2=1/1.1\), \(120\psi_1+90\psi_2=115\) give
 \(\psi_1\approx1.106\), \(\psi_2\approx-0.197\).
@@ -574,7 +574,7 @@ Let \(R=1.1\), \(S_0=100\), and \(S_T\in\{130,100,70\}\) in states
 \begin{pausebox}
 Write the risk-neutral equations. Are the three probabilities unique?
 \end{pausebox}
-\pause
+
 \begin{exampleblock}{Answer}
 \[
 p_u+p_m+p_d=1,
@@ -599,7 +599,7 @@ t=0.4:\ (0.4667,\,0.4,\,0.1333).
 Consider a claim paying \(1\) only in the middle state \(m\). Compute its
 price under each measure. Do they agree?
 \end{pausebox}
-\pause
+
 \[
 \text{price}=\frac{p_m}{R}:
 \qquad
@@ -617,7 +617,7 @@ In the three-state market, add a call paying \((30,0,0)\), quoted at
 \begin{pausebox}
 Use its pricing equation to find \(p_u\); then find \(p_m,p_d\).
 \end{pausebox}
-\pause
+
 \begin{exampleblock}{Answer}
 \[
 \frac{30p_u}{1.1}=13.64
@@ -670,7 +670,7 @@ We already derived \(C_t-P_t=S_t-Ke^{-r(T-t)}\) from the law of one price.
 Combine this identity with \(P_t\geq0\) and \((S_T-K)^+\leq S_T\) to bound
 \(C_t\) above and below, with no distributional assumption at all.
 \end{pausebox}
-\pause
+
 \[
 \boxed{
 \bigl(S_t-Ke^{-r(T-t)}\bigr)^+\leq C_t\leq S_t.}
@@ -682,7 +682,7 @@ Let \(H=\max(S_T^1,S_T^2)\), with nonnegative stock prices.
 \begin{pausebox}
 Which stock portfolio lies below \(H\), and which lies above it?
 \end{pausebox}
-\pause
+
 \begin{exampleblock}{Answer}
 Either single stock pays at most \(H\); holding both pays at least \(H\).
 Dominance gives
@@ -700,7 +700,7 @@ bull spread at \(K,K+h\).
 \begin{pausebox}
 Does \(\bigl[(S_T-K)^+-(S_T-K-h)^+\bigr]/h\) lie above or below \(D\)?
 \end{pausebox}
-\pause
+
 \begin{exampleblock}{Answer}
 The spread pays \(0\), then \((S_T-K)/h\), then \(1\); it never exceeds
 \(D\). Therefore
@@ -717,7 +717,7 @@ The spread pays \(0\), then \((S_T-K)/h\), then \(1\); it never exceeds
 Compare the digital \(D=\1_{\{S_T>K\}}\) with the bull spread at
 \(K-h,K\), scaled by \(1/h\). Which bound follows?
 \end{pausebox}
-\pause
+
 \begin{exampleblock}{Answer}
 This spread dominates \(D\), so its price is an upper bound. Together with
 the previous slide,
@@ -769,7 +769,7 @@ For one maturity, suppose \(C_t(90)=14\), \(C_t(100)=12\), and
 Check strike monotonicity and convexity. Construct the trade if a quote
 violates either condition.
 \end{pausebox}
-\pause
+
 \begin{exampleblock}{Answer}
 Monotonicity holds, but convexity requires
 \(C_t(100)\leq(14+7)/2=10.5<12\).

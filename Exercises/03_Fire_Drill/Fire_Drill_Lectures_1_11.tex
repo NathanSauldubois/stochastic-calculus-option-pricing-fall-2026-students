@@ -1,0 +1,186 @@
+% !TEX program = pdflatex
+% Exercise 5 adapts REP-02 from the instructor's midterm exercise bank.
+% Exercise 6 uses original prompts in the oral style of the local Finance Games bank.
+\documentclass[10pt,letterpaper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype}
+\usepackage[margin=0.7in,includeheadfoot,headheight=13pt,headsep=10pt,footskip=22pt]{geometry}
+\usepackage{amsmath,amssymb,mathtools,enumitem,xcolor,fancyhdr,lastpage,hyperref}
+\definecolor{ink}{HTML}{193B56}
+\definecolor{muted}{HTML}{52616C}
+\hypersetup{hidelinks,pdftitle={Rapid Fire - 60 Short Questions - Lectures 1-11},
+ pdfauthor={Nathan Sauldubois},pdfsubject={Stochastic calculus and option pricing: self-check questions}}
+\pagestyle{fancy}\fancyhf{}
+\fancyhead[L]{\small\color{ink}\textbf{STOCHASTIC CALCULUS \& OPTION PRICING}}
+\fancyhead[R]{\small\color{muted}Rapid fire | Lectures 1--11}
+\fancyfoot[L]{\small\color{muted}NYU Tandon | Fall 2026}
+\fancyfoot[R]{\small\color{muted}\thepage\,/\,\pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.35pt}
+\setlength{\parindent}{0pt}\setlength{\parskip}{3pt}
+\setlength{\abovedisplayskip}{5pt}\setlength{\belowdisplayskip}{5pt}
+\setlength{\abovedisplayshortskip}{3pt}\setlength{\belowdisplayshortskip}{4pt}
+\newcommand{\dd}{\,\mathrm{d}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Pbb}{\mathbb{P}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\round}[2]{\par\vspace{7pt}{\large\bfseries\color{ink}Exercise #1\quad #2\par}\vspace{2pt}}
+\newenvironment{drill}[1]{\begin{enumerate}[label=\textbf{#1.\arabic*},
+ leftmargin=2.7em,labelsep=0.6em,itemsep=4pt,topsep=4pt,parsep=0pt]}{\end{enumerate}}
+\raggedbottom
+\begin{document}
+\fontsize{10.7}{13}\selectfont
+{\LARGE\bfseries\color{ink}Rapid fire\par}
+{\color{muted}60 short questions to check what you can do without your notes.\par}
+Most answers need one line or a few equations. Exercise 5 is a guided replication argument.
+Mark any item you cannot justify, then return to it after reviewing the course.
+Time is in years. Unless stated otherwise, rates are constant, stocks pay no dividends and trading is frictionless.
+
+\round{1}{Quick applications of It\^o: one and two states}
+Give the \emph{full differential}, including the drift and every Brownian term.
+Here $W$ is a standard Brownian motion. For Questions 1.6--1.8,
+$\dd\langle W^1,W^2\rangle_t=\tfrac12\dd t$.
+\begin{drill}{1}
+\item Compute $\dd(W_t^2)$.
+\item Compute $\dd(W_t^3)$.
+\item Compute $\dd(e^{2W_t})$.
+\item If $\dd X_t=\mu X_t\dd t+\sigma X_t\dd W_t$, with $X_0>0$, compute $\dd\log X_t$.
+\item If $\dd X_t=\dd t+2\dd W_t$, compute $\dd(tX_t^2)$.
+\item Compute $\dd(W_t^1W_t^2)$. Which term disappears when the two drivers are independent?
+\item Let $\dd X_t=\dd t+2\dd W_t^1$ and $\dd Y_t=-2\dd t+3\dd W_t^2$.
+Compute $\dd(X_tY_t)$.
+\item With the same $X,Y$, compute $\dd[(X_t+Y_t)^2]$.
+\end{drill}
+
+\round{2}{Girsanov: change the measure, recalculate the drift}
+On $[0,T]$, $W$ is Brownian under $\Pbb$, and $\lambda$ is bounded and deterministic. Define
+\[
+ \frac{\dd\Q}{\dd\Pbb}\bigg|_{\F_T}
+ =Z_T=\exp\!\left(-\int_0^T\lambda_u\dd W_u
+                  -\tfrac12\int_0^T\lambda_u^2\dd u\right).
+\]
+\begin{drill}{2}
+\item Give a sufficient condition ensuring that $Z$ is a true density martingale.
+Does the stated $\lambda$ satisfy it?
+\item Write the $\Q$-Brownian motion $W^{\Q}$ and express $\dd W$ in terms of $\dd W^{\Q}$.
+\item Under $\Pbb$, $\dd X_t=3\dd t+2\dd W_t$. For $\lambda_t=1$,
+give its drift and diffusion under $\Q$.
+\item For the same $X$ with deterministic $X_0=x_0$, now take $\lambda_t=t$.
+Give the $\Q$ dynamics and the distribution of $X_T$.
+\item A stock has $\dd S/S=0.08\dd t+0.20\dd W$ under $\Pbb$, while $r=0.03$.
+Choose $\lambda$ for risk-neutral pricing; give the $\Q$ drift of $\log S$.
+\item Finally, use the density built from $W^1$ with $\lambda=0.4$.
+Under $\Pbb$, $\dd Y/Y=0.06\dd t+0.30\dd W^2$, with correlation $\rho=1/2$.
+Find $W^{2,\Q}$ and the relative drift of $Y$ under $\Q$. Does the correlation change?
+\end{drill}
+
+\newpage
+\round{3}{Martingale or not?}
+Use the augmented natural Brownian filtration on a finite interval $[0,T]$ under $\Pbb$.
+For each process, answer \textbf{yes or no} and justify it. Check adaptedness and integrability;
+use a conditional expectation or It\^o's formula. Here $\theta\ne0$ is constant.
+\begin{drill}{3}
+\item $M_t=W_t$.
+\item $M_t=W_t^2$.
+\item $M_t=W_t^2-t$.
+\item $M_t=W_t^3-3tW_t$.
+\item $M_t=\exp(\theta W_t-\tfrac12\theta^2t)$.
+\item $M_t=\exp(\theta W_t)$.
+\item $M_t=\int_0^t W_u\dd W_u$.
+\item $M_t=\int_0^t W_u^2\dd u$.
+\item $M_t=W_T$ for every $0\leq t\leq T$.
+\item $M_t=W_{t/2}$. Is being adapted with constant expectation sufficient?
+\end{drill}
+
+\round{4}{Quote checks: is there an arbitrage?}
+Each question is an \textbf{independent market}. All options are European on the same stock,
+with $S_0=100$, $T=1$, $r=0$ and no dividends; borrowing, lending and short selling are allowed.
+Write $C(K)$ and $P(K)$ for option prices at strike $K$.
+Ignore bid--ask spreads here.
+
+For each set, identify a violated no-arbitrage condition, or state that the quoted checks pass.
+If you find an arbitrage, specify the positions, the initial receipt and a nonnegative terminal payoff.
+\begin{drill}{4}
+\item $C(90)=8$.
+\item $C(100)=9$, $P(100)=12$.
+\item $C(90)=14$, $C(110)=16$.
+\item $C(90)=24$, $C(110)=2$.
+\item $C(80)=25$, $C(100)=20$, $C(130)=5$. Use the actual strike spacings.
+\item $C(90)=15$, $C(100)=9$, $C(110)=4$.
+Check the bounds, monotonicity, slope bounds and convexity, including the point $C(0)=S_0$.
+\end{drill}
+
+\newpage
+\round{5}{Replicate using the instrument that is actually traded}
+Only a bank account $B$ and an asset $X$ can be traded. Under $\Pbb$,
+\[
+ B_t=e^{rt},\qquad
+ \dd X_t=\mu X_t\dd t+\sigma X_t\dd W_t,
+ \qquad X_0>0,\quad\sigma>0.
+\]
+The constants are $r,\mu,\sigma$. The observed variable is $S_t=\sqrt{X_t}$;
+there is no separately traded asset with price $S_t$.
+The contract pays \textbf{the cash amount $S_T$} at $T$ and makes no earlier payments.
+Write its price as $v(t,S_t)$, and let $\phi_t,\beta_t$ be units of $X,B$.
+Assume no arbitrage, sufficient smoothness, and the integrability and admissibility needed for replication.
+
+Derive the answer from the trading equations. Keep a number of units distinct from a cash amount.
+\begin{drill}{5}
+\item Name the traded instruments. Can $S$ itself appear as an independently chosen holding?
+\item Apply It\^o to $S=\sqrt X$ and give its dynamics under $\Pbb$.
+\item Write the portfolio value $V$ and its self-financing gain equation in terms of $X,B$.
+\item Apply It\^o to $v(t,S_t)$. Give the drift and Brownian coefficient.
+\item Match Brownian terms to find $\phi$ in terms of $v_s$ and $S$.
+Why is holding $v_s$ units of $X$ generally incorrect?
+\item Express the cash amount $\beta B$ in terms of $v,S,v_s$.
+\item Match drifts to derive the pricing PDE and its terminal condition.
+Where does the historical drift $\mu$ disappear?
+\item Try $v(t,s)=A(t)s$. Derive the ODE and terminal value for $A$.
+\item Solve the ODE and give the price $v(t,s)$ explicitly.
+\item Give the resulting $\phi$ and $\beta B$. Check their self-financing gains and
+the value at maturity.
+\end{drill}
+
+\newpage
+\round{6}{Interview round: explain it in one sentence}
+Answer directly, then defend the answer with a formula, a sign or a counterexample.
+Use the standard BS benchmark unless the question changes the model.
+\begin{drill}{6}
+\item A European call has spot 100, strike 100 and one year to expiry.
+What inputs are still missing for a BS price? Do you need the historical drift $\mu$?
+\item With $S=K=100$, $r=0$ and $\sigma=20\%$, estimate the price of a call expiring
+in one business day, taken as $1/252$ year.
+\item You are long one call. How do you make the position delta neutral with stock?
+If spot rises with the other inputs fixed, do you buy or sell more stock to rebalance?
+\item As expiry approaches at the money, what happens to gamma and vega?
+\item A call and a put have the same strike and maturity. Which has the larger BS vega, and why?
+\item For the position ``long call, short put'' at the same strike and maturity,
+give the terminal payoff, gamma and vega.
+\item Does higher BS volatility raise both vanilla call and put prices?
+Must it also raise the price of a nonnegative call-spread payoff?
+\item Holding the other BS inputs fixed, how does a higher interest rate affect a European call and put?
+\item Which is worth more: an American or European call? Give the standard condition for equality.
+\item Can you price an American option by selecting the best discounted exercise payoff
+on each simulated path after observing the whole path?
+\item You buy a call at 20\% implied volatility and delta hedge daily.
+Realized volatility is 30\%. Is a positive terminal profit guaranteed?
+\item Equity implied volatility is higher at lower strikes. Does this permit a call and put
+at the \emph{same} strike and expiry to have different parity-consistent implied volatilities?
+\item Distinguish implied volatility from the local-volatility coefficient $\sigma_{\rm loc}(t,s)$.
+\item A stochastic-volatility model adds an independent variance shock.
+Can stock and cash generally replicate every claim?
+\item Daily returns have a 1\% standard deviation and are independent with equal variance.
+What is the annualized volatility over 252 days? What if every daily return is deterministically $+1\%$?
+\item At fixed log-forward moneyness $k=\log(K/F_{0,T})$, where $F_{0,T}=S_0e^{rT}$,
+3-month implied volatility is 30\% and 1-year implied volatility is 20\%.
+Does this pair violate the total-variance calendar check?
+\item The same payoff is quoted bid/ask at 8.8/9.2 on one venue and 9.0/9.4 on another.
+Do the different mid-prices give an executable arbitrage?
+\item You multiply the number of independent MC paths by four. What happens to the standard error?
+Does this reduce Euler time-discretization bias?
+\item A simulation uses \texttt{h*Z} for a Brownian increment, with $Z\sim N(0,1)$.
+What is wrong, and what is the correct scaling?
+\item You already own a stock. Does selling a put protect you against a stock-price fall?
+What put position creates a protective floor instead?
+\end{drill}
+\end{document}

@@ -1,5 +1,5 @@
 % !TEX program = pdflatex
-\documentclass[10pt,aspectratio=169]{beamer}
+\documentclass[handout,10pt,aspectratio=169]{beamer}
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -155,7 +155,7 @@ This is the squared radius, or squared Bessel process of dimension 2.
 \begin{pausebox}
 Compute \(\dd R_t\). Which deterministic term makes the result a martingale?
 \end{pausebox}
-\pause
+
 Applying It\^o to each squared coordinate gives
 \[
 \boxed{\dd R_t=2W_t^\top\dd W_t+2\dd t,}
@@ -193,7 +193,7 @@ A_t=\int_0^tW_s\dd s,
 \begin{pausebox}
 Use the product rule to find \(\dd Y_t\), then compute \(\E[Y_t]\).
 \end{pausebox}
-\pause
+
 Since \(\dd A_t=W_t\dd t\) and \(A\) has finite variation,
 \(\dd[W,A]_t=0\). Therefore
 \[
@@ -213,7 +213,7 @@ Because both variables are centered,
 \begin{pausebox}
 Verify the answer directly from \(\Cov(W_t,W_s)=\min(t,s)\).
 \end{pausebox}
-\pause
+
 \[
 \Cov\left(W_t,\int_0^tW_s\dd s\right)
 =\int_0^t\Cov(W_t,W_s)\dd s
@@ -235,7 +235,7 @@ where \(\Ncdf\) and \(\phiN\) are the standard normal cdf and density.
 \begin{pausebox}
 Compute \(u_t,u_x,u_{xx}\). Does \(u(t,W_t)\) have drift?
 \end{pausebox}
-\pause
+
 With \(\tau=T-t\) and \(z=x/\sqrt{\tau}\),
 \[
 u_x=\frac{\phiN(z)}{\sqrt{\tau}},
@@ -257,7 +257,7 @@ It\^o's formula therefore gives
 \dd u(t,W_t)
 =\frac{\phiN(W_t/\sqrt{T-t})}{\sqrt{T-t}}\,\dd W_t.}
 \]
-\pause
+
 Moreover,
 \[
 u(t,W_t)=\Pp(W_T>0\mid\cF_t),
@@ -373,7 +373,7 @@ the model.
 +\text{external cash flow}.
 \]
 \end{center}
-\pause
+
 \begin{block}{Self-financing}
 After the initial investment, the external cash flow is zero.
 \end{block}
@@ -403,7 +403,7 @@ X_n=\Delta_nS_n+\beta_nB_n.
 \begin{pausebox}
 If no cash enters or leaves at \(t_n\), what equality must hold?
 \end{pausebox}
-\pause
+
 \[
 X_n=X_n^-
 \quad\Longleftrightarrow\quad
@@ -427,7 +427,7 @@ X_{n+1}^-=\Delta_nS_{n+1}+\beta_nB_{n+1}.
 \begin{pausebox}
 Subtract \(X_n=\Delta_nS_n+\beta_nB_n\). What is the wealth increment?
 \end{pausebox}
-\pause
+
 \[
 \boxed{
 X_{n+1}^--X_n
@@ -456,7 +456,7 @@ X_t=X_0+\int_0^t\Delta_u\dd S_u+\int_0^t\beta_u\dd B_u,}
 \qquad
 \boxed{\dd X_t=\Delta_t\dd S_t+\beta_t\dd B_t.}
 \]
-\pause
+
 Together with \(X_t=\Delta_tS_t+\beta_tB_t\), the product rule yields the
 equivalent rebalancing constraint
 \[
@@ -474,7 +474,7 @@ V_t=p(t,S_t),
 \begin{pausebox}
 Use It\^o's formula. Separate the drift and diffusion coefficients.
 \end{pausebox}
-\pause
+
 \[
 \boxed{
 \begin{aligned}
@@ -505,7 +505,7 @@ Since \(\dd B_t=rB_t\dd t\), the bank-account gain is
 \begin{pausebox}
 Now insert \(\dd S_t=\mu S_t\dd t+\sigma S_t\dd W_t\).
 \end{pausebox}
-\pause
+
 \[
 \boxed{
 \dd X_t
@@ -527,7 +527,7 @@ X_t=V_t=p(t,S_t)
 \begin{pausebox}
 Match the \(\dd W_t\) coefficients. What must \(\Delta_t\) be?
 \end{pausebox}
-\pause
+
 \[
 \sigma S_t\Delta_t=\sigma S_tp_s(t,S_t).
 \]
@@ -546,7 +546,7 @@ Set \(X_t=p(t,S_t)\) and \(\Delta_t=p_s(t,S_t)\).
 \begin{pausebox}
 Match the drift coefficients and simplify. Which parameter disappears?
 \end{pausebox}
-\pause
+
 \[
 rp+(\mu-r)sp_s
 =p_t+\mu sp_s+\frac12\sigma^2s^2p_{ss}.
@@ -628,7 +628,7 @@ Once \(\Delta_t=p_s(t,S_t)\),
 At maturity, what does the portfolio hold when \(g(s)=(s-K)^+\), away from
 the strike?
 \end{pausebox}
-\pause
+
 \[
 \Delta_T=
 \begin{cases}1,&S_T>K,\\0,&S_T<K,\end{cases}
@@ -698,7 +698,7 @@ v(\tau,s)=p(T-\tau,s).
 \begin{pausebox}
 Transform the PDE and its terminal condition.
 \end{pausebox}
-\pause
+
 Because \(p_t=-v_\tau\),
 \[
 \boxed{
@@ -717,7 +717,7 @@ u(\tau,s)=e^{r\tau}v(\tau,s).
 \begin{pausebox}
 Compute \(u_\tau,u_s,u_{ss}\) and simplify the PDE.
 \end{pausebox}
-\pause
+
 \[
 u_\tau=ru+e^{r\tau}v_\tau,
 \qquad
@@ -743,7 +743,7 @@ w(\tau,x)=u(\tau,e^x).
 \begin{pausebox}
 Express \(u_s\) and \(u_{ss}\) using \(w_x,w_{xx}\).
 \end{pausebox}
-\pause
+
 \[
 w_x=su_s,
 \qquad
@@ -771,7 +771,7 @@ w(0,x)=g(e^x).}
 \begin{pausebox}
 Why does \(r-\sigma^2/2\) look familiar?
 \end{pausebox}
-\pause
+
 It is the drift of \(\log S\) when the stock's pricing drift is \(r\):
 \[
 \dd\log S_t
@@ -789,7 +789,7 @@ a=r-\frac12\sigma^2,
 \begin{pausebox}
 Differentiate \(\varphi\). Which PDE does it satisfy?
 \end{pausebox}
-\pause
+
 \[
 \varphi_\tau=w_\tau-aw_x,
 \qquad
@@ -875,7 +875,7 @@ drift term is \(rs\,p_s\), and its discount term is \(-rp\).
 \begin{pausebox}
 Choose a process whose drift makes It\^o's formula reproduce those terms.
 \end{pausebox}
-\pause
+
 For each starting pair \((t,s)\), define \(S^r\) on \([t,T]\) by
 \[
 \frac{\dd S_u^r}{S_u^r}=r\dd u+\sigma\dd W_u,
@@ -896,7 +896,7 @@ risk-neutral interpretation.
 Apply It\^o's formula to \(e^{-r(u-t)}p(u,S_u^r)\). Identify its drift
 and explain why that drift vanishes.
 \end{pausebox}
-\pause
+
 It\^o's formula gives
 \[
 \begin{aligned}
@@ -925,7 +925,7 @@ p(t,s)
 e^{-r(T-t)}p(T,S_T^{r})
 \right].
 \]
-\pause
+
 Now use the terminal condition \(p(T,x)=g(x)\):
 \[
 \boxed{
@@ -953,7 +953,7 @@ Given a sufficiently regular PDE solution, define
 \begin{pausebox}
 Check that these holdings are self-financing and match the payoff.
 \end{pausebox}
-\pause
+
 The PDE rearranges It\^o's formula as
 \[
 \dd p(t,S_t)
@@ -1031,7 +1031,7 @@ C(t,s)
 \begin{pausebox}
 Rewrite \(S_T^r>K\) as a threshold event for \(Z\sim N(0,1)\).
 \end{pausebox}
-\pause
+
 \[
 S_T^r>K
 \iff
@@ -1061,8 +1061,8 @@ therefore favors larger \(Z\).
 \begin{pausebox}
 Complete the square to evaluate this weighted Gaussian tail.
 \end{pausebox}
-\pause
-Letting $\varphi$ be the standard gaussian density. 
+
+Letting $\varphi$ be the standard gaussian density.
 \[
 \begin{aligned}
 e^{az}\phiN(z)&=e^{a^2/2}\phiN(z-a),\\
@@ -1121,7 +1121,7 @@ d_+-d_-=\sigma\sqrt{\tau}.
 Predict the limits when \(s\downarrow0\), \(s\uparrow\infty\), and
 \(\tau\downarrow0\).
 \end{pausebox}
-\pause
+
 \[
 \begin{array}{lll}
 s\downarrow0: & d_\pm\to-\infty, & C(t,s)\to0,\\
@@ -1147,7 +1147,7 @@ Replication and no arbitrage imply
 \begin{pausebox}
 Deduce the Black--Scholes put price.
 \end{pausebox}
-\pause
+
 \[
 \boxed{
 P(t,s)
@@ -1169,7 +1169,7 @@ C=s\Ncdf(d_+)-Ke^{-r\tau}\Ncdf(d_-),
 \begin{pausebox}
 Show that the two density terms satisfy a simple identity.
 \end{pausebox}
-\pause
+
 Using \(d_-=d_+-\sigma\sqrt{\tau}\),
 \[
 \frac{\phiN(d_-)}{\phiN(d_+)}
@@ -1182,7 +1182,7 @@ Thus
 \]
 \end{frame}
 
-\begin{frame}{Delta is the stock holding in the replicating strategy}
+\begin{frame}[shrink=5]{Delta is the stock holding in the replicating strategy}
 \[
 C(t,s)=s\Ncdf(d_+)-Ke^{-r\tau}\Ncdf(d_-),
 \qquad
@@ -1193,7 +1193,7 @@ d_\pm=\frac{\log(s/K)+(r\pm\frac12\sigma^2)\tau}
 Starting from the displayed formula, differentiate \(C(t,s)\) with respect
 to \(s\). Keep both \(d_\pm\) terms until they cancel.
 \end{pausebox}
-\pause
+
 Since
 \[
 \partial_s d_+=\partial_s d_-=\frac{1}{s\sigma\sqrt{\tau}},
@@ -1215,7 +1215,7 @@ The density identity gives
 \begin{pausebox}
 Differentiate \(\Delta=\Ncdf(d_+)\) once more with respect to \(s\).
 \end{pausebox}
-\pause
+
 \[
 \Gamma=C_{ss}
 =\phiN(d_+)\partial_sd_+
@@ -1236,7 +1236,7 @@ means frequent trading, costs, and discrete-hedging error.
 Differentiate the call price with respect to \(\sigma\). Use the density
 identity instead of expanding every term separately.
 \end{pausebox}
-\pause
+
 The \(d_\pm\)-derivative terms simplify to
 \[
 \boxed{
@@ -1255,7 +1255,7 @@ volatility varies by strike and maturity.
 \begin{pausebox}
 Use the PDE with the known call delta and gamma to find \(\Theta=C_t\).
 \end{pausebox}
-\pause
+
 \[
 \Theta
 =rC-rs\Delta-\frac12\sigma^2s^2\Gamma.
@@ -1277,7 +1277,7 @@ Some systems report the opposite sign or a one-day rescaling.
 \begin{pausebox}
 Differentiate \(C(t,s)\) with respect to \(r\).
 \end{pausebox}
-\pause
+
 Because
 \[
 \partial_r d_+=\partial_r d_-=\frac{\sqrt{\tau}}{\sigma},
@@ -1302,7 +1302,7 @@ P=C-s+Ke^{-r\tau}.
 \begin{pausebox}
 Find the put delta, gamma, vega, theta, and rho.
 \end{pausebox}
-\pause
+
 \[
 \begin{aligned}
 \Delta_P&=\Ncdf(d_+)-1=-\Ncdf(-d_+),\\
@@ -1345,7 +1345,7 @@ With discrete trading over \(\Delta t\),
 \begin{pausebox}
 Which idealizations become most fragile for a high-gamma option?
 \end{pausebox}
-\pause
+
 \begin{itemize}
   \item continuous trading;
   \item zero transaction costs and unlimited liquidity;
@@ -1384,7 +1384,7 @@ C=s\Ncdf(d_+)-Ke^{-r\tau}\Ncdf(d_-).
   \item Delta can be followed exactly.
 \end{enumerate}
 \end{pausebox}
-\pause
+
 \begin{enumerate}
   \item One traded stock spans the one Brownian risk: completeness.
   \item No arbitrage and unrestricted borrowing/lending at \(r\).
